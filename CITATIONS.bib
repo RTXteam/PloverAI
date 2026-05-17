@@ -1,0 +1,104 @@
+% Citations for upstream services and standards used by PloverAI.
+% All DOIs in this file have been verified via the Crossref API.
+
+% [1] RTX-KG2 — the biomedical knowledge graph served by PloverDB.
+@article{wood2022rtxkg2,
+  author       = {Wood, E. C. and Glen, Amy K. and Kvarfordt, Lindsey G. and Womack, Finn and Acevedo, Liliana and Yoon, Timothy S. and Ma, Chunyu and Flores, Veronica and Sinha, Meghamala and Chodpathumwan, Yodsawalai and Termehchy, Arash and Roach, Jared C. and Mendoza, Luis and Hoffman, Andrew S. and Deutsch, Eric W. and Koslicki, David and Ramsey, Stephen A.},
+  title        = {{RTX-KG2}: a system for building a semantically standardized knowledge graph for translational biomedicine},
+  journal      = {BMC Bioinformatics},
+  volume       = {23},
+  number       = {1},
+  pages        = {400},
+  year         = {2022},
+  doi          = {10.1186/s12859-022-04932-3},
+  url          = {https://doi.org/10.1186/s12859-022-04932-3}
+}
+
+% [2] PloverDB — the in-memory TRAPI service that hosts RTX-KG2c.
+@misc{rtxteam_ploverdb,
+  author       = {{RTXteam}},
+  title        = {{PloverDB}: an in-memory {TRAPI} knowledge-graph service},
+  howpublished = {\url{https://github.com/RTXteam/PloverDB}},
+  note         = {{KG2.10.2c} instance: \url{https://kg2cploverdb.ci.transltr.io}}
+}
+
+% [3] Biolink Model — the schema TRAPI queries are validated against.
+@article{unni2022biolink,
+  author       = {Unni, Deepak R. and Moxon, Sierra A. T. and Bada, Michael and Brush, Matthew and Bruskiewich, Richard and Caufield, J. Harry and Clemons, Paul A. and Dancik, Vlado and Dumontier, Michel and Fecho, Karamarie and Glusman, Gustavo and Hadlock, Jennifer J. and Harris, Nomi L. and Joshi, Arpita and Putman, Tim and Qin, Guangrong and Ramsey, Stephen A. and Shefchek, Kent A. and Solbrig, Harold and Soman, Karthik and Thessen, Anne E. and Haendel, Melissa A. and Bizon, Chris and Mungall, Christopher J.},
+  title        = {{Biolink Model}: A universal schema for knowledge graphs in clinical, biomedical, and translational science},
+  journal      = {Clinical and Translational Science},
+  volume       = {15},
+  number       = {8},
+  pages        = {1848--1855},
+  year         = {2022},
+  doi          = {10.1111/cts.13302},
+  url          = {https://doi.org/10.1111/cts.13302}
+}
+
+% [4] TRAPI — the Translator Reasoner API specification.
+@misc{ncats_trapi,
+  author       = {{NCATS Biomedical Data Translator Consortium}},
+  title        = {{Translator Reasoner API (TRAPI)} specification},
+  howpublished = {\url{https://github.com/NCATSTranslator/ReasonerAPI}}
+}
+
+% [5] ARAX — the visual TRAPI reasoning agent and KG2 client.
+@article{glen2023arax,
+  author       = {Glen, Amy K. and Ma, Chunyu and Mendoza, Luis and Womack, Finn and Wood, E. C. and Sinha, Meghamala and Kvarfordt, Lindsey G. and Hoffman, Andrew S. and Yoon, Timothy S. and Acevedo, Liliana and Flores, Veronica and Roach, Jared C. and Deutsch, Eric W. and Ramsey, Stephen A. and Koslicki, David},
+  title        = {{ARAX}: a graph-based modular reasoning tool for translational biomedicine},
+  journal      = {Bioinformatics},
+  volume       = {39},
+  number       = {3},
+  pages        = {btad082},
+  year         = {2023},
+  doi          = {10.1093/bioinformatics/btad082},
+  url          = {https://doi.org/10.1093/bioinformatics/btad082}
+}
+
+% [6] Translator Program — the umbrella NCATS program PloverAI sits within.
+@article{biomedical_translator_consortium2019program,
+  author       = {{The Biomedical Data Translator Consortium}},
+  title        = {The {Biomedical Data Translator} Program: Conception, Culture, and Community},
+  journal      = {Clinical and Translational Science},
+  volume       = {12},
+  number       = {2},
+  pages        = {91--94},
+  year         = {2019},
+  doi          = {10.1111/cts.12592},
+  url          = {https://doi.org/10.1111/cts.12592}
+}
+
+% Companion paper to [6], frequently co-cited.
+@article{austin2018babel,
+  author       = {Austin, Christopher P. and Colvis, Christine M. and Southall, Noel T.},
+  title        = {Deconstructing the {Translational Tower of Babel}},
+  journal      = {Clinical and Translational Science},
+  volume       = {12},
+  number       = {2},
+  pages        = {85},
+  year         = {2019},
+  doi          = {10.1111/cts.12595},
+  url          = {https://doi.org/10.1111/cts.12595}
+}
+
+% [7] Node Normalization — canonicalises CURIEs to a single preferred identifier.
+@misc{translatorsri_nodenormalization,
+  author       = {{TranslatorSRI}},
+  title        = {{NodeNormalization}: canonicalise {CURIE} identifiers across biomedical vocabularies},
+  howpublished = {\url{https://github.com/TranslatorSRI/NodeNormalization}}
+}
+
+% [8] Name Resolution — free-text → candidate CURIEs.
+@misc{translatorsri_nameresolution,
+  author       = {{TranslatorSRI}},
+  title        = {{NameResolution}: resolve free-text biomedical concept names to candidate {CURIE}s},
+  howpublished = {\url{https://github.com/TranslatorSRI/NameResolution}}
+}
+
+% reasoner-validator — used at runtime to enforce TRAPI 1.5 + Biolink 4.x compliance
+% on every LLM-built query before it is sent to PloverDB.
+@misc{ncats_reasoner_validator,
+  author       = {{NCATS Biomedical Data Translator Consortium}},
+  title        = {{reasoner-validator}: validator for {TRAPI} messages and {Biolink Model} compliance},
+  howpublished = {\url{https://github.com/NCATSTranslator/reasoner-validator}}
+}
