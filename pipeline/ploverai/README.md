@@ -733,8 +733,8 @@ You don't have to use the gold set. The runner accepts a free-form
 NL question with `--question`:
 
 ```bash
-python -m pipeline.code.runner --question "What treats Crohn's disease?"
-python -m pipeline.code.runner --model m7 --question "What genes are linked to ALS?"
+python -m ploverai.runner --question "What treats Crohn's disease?"
+python -m ploverai.runner --model m7 --question "What genes are linked to ALS?"
 ```
 
 What changes:

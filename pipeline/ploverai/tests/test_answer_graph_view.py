@@ -27,7 +27,7 @@
 #   6. an empty answer list → empty answer_nodes + empty edges, but
 #      pinned_node is still emitted.
 
-from pipeline.code.pipeline import _build_answer_graph_view
+from ploverai.pipeline import _build_answer_graph_view
 
 
 # ---- a minimal but realistic fabricated TRAPI response ----

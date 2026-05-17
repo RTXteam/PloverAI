@@ -81,7 +81,7 @@ from .trace import QuestionPaths, make_run_dir, make_run_root, write_json
 
 # pipeline/.env is the secret store. .env.example is committed; .env is
 # gitignored. it lives at the pipeline root (next to config.yaml), so
-# from this file (pipeline/code/runner.py) we go up two parents.
+# from this file (pipeline/ploverai/runner.py) we go up two parents.
 ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 

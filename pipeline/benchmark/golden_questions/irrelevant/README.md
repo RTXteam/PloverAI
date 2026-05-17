@@ -6,7 +6,7 @@ examples for the Stage 1 guardrail.
 
 ## Pipeline contract these questions test
 
-Stage 1 in `pipeline/code/pipeline.py` runs BEFORE any retrieval and decides
+Stage 1 in `pipeline/ploverai/pipeline.py` runs BEFORE any retrieval and decides
 whether the input is a biomedical question worth running through the
 NL → TRAPI → PloverDB → NL pipeline. Its LLM contract is a single JSON
 object:
@@ -134,7 +134,7 @@ systems.
 ### Tricky biomedical-looking OUT-scope (q6–q10)
 
 These all contain real biomedical entities or vocabulary. Each maps to one
-of the OUT-scope buckets enumerated in `pipeline/code/prompts.py`
+of the OUT-scope buckets enumerated in `pipeline/ploverai/prompts.py`
 (history / philosophy & ethics / generate-text / questions about PloverAI
 itself / mathematics).
 

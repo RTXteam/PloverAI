@@ -27,7 +27,7 @@
 # explicitly set to None (not omitted, not empty) — callers downstream
 # can distinguish "no evidence to check" from "checked, found nothing".
 
-from pipeline.code.pipeline import _enrich_edges_with_pubtator
+from ploverai.pipeline import _enrich_edges_with_pubtator
 
 
 # ---- shared fixtures ----

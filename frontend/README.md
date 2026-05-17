@@ -37,7 +37,7 @@ Two processes, one terminal each.
 # terminal 1 — Python service
 cd ../pipeline
 source .venv/bin/activate
-uvicorn pipeline.code.api:app --reload --port 8000
+uvicorn code.api:app --reload --port 8000
 
 # terminal 2 — Next.js dev server
 cd frontend

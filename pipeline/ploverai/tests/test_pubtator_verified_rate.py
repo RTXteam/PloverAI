@@ -16,7 +16,7 @@
 # of the picked answer edges, what fraction are independently
 # verifiable by PubTator?
 
-from pipeline.code.pipeline import _pubtator_verified_edge_rate
+from ploverai.pipeline import _pubtator_verified_edge_rate
 
 
 def _view(edges):

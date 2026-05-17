@@ -18,7 +18,7 @@ import json
 
 import pytest
 
-from pipeline.code.pipeline import _extract_json
+from ploverai.pipeline import _extract_json
 
 
 # ---- the happy path ----

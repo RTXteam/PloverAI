@@ -98,7 +98,7 @@ Run the always-on service locally:
 
 ```bash
 PLOVERAI_API_KEY=dev-key-change-me \
-  uvicorn pipeline.code.api:app --reload --port 8000
+  uvicorn code.api:app --reload --port 8000
 ```
 
 Or run the gold benchmark via the CLI runner — see [pipeline/README.md](pipeline/README.md).

@@ -23,7 +23,7 @@
 #      "PubTator didn't index this PMID").
 #   5. empty body → empty dict.
 
-from pipeline.code.pubtator_client import _parse_pubtator_biocjson
+from ploverai.pubtator_client import _parse_pubtator_biocjson
 
 
 def _minimal_biocjson():

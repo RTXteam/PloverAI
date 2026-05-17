@@ -16,7 +16,7 @@
 
 import pytest
 
-from pipeline.code.pipeline import (
+from ploverai.pipeline import (
     _check_label_consistency,
     LOW_CONFIDENCE_THRESHOLD,
 )
