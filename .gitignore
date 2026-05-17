@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# local-only working docs (kept on disk, not published)
+AGENTS.md
+CLAUDE.md
+CONTEXT.md
+DEPLOY.md

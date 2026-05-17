@@ -1,0 +1,63 @@
+# PloverAI FastAPI service — copy to /etc/systemd/system/ploverai-api.service
+# then: sudo systemctl daemon-reload && sudo systemctl enable --now ploverai-api
+#
+# this assumes the following layout:
+#   /var/lib/ploverai/app/        ← git clone
+#   /var/lib/ploverai/app/pipeline/.venv/  ← python venv
+#   /var/lib/ploverai/app/pipeline/.env    ← OPENROUTER_API_KEY + PLOVERAI_API_KEY
+
+[Unit]
+Description=PloverAI FastAPI service (uvicorn, port 8000)
+Documentation=https://github.com/RamseyLab/ploverai
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ploverai
+Group=ploverai
+
+# repo root — the python module path `pipeline.code.api:app` is
+# resolved from here, so this MUST be the top-level repo dir.
+WorkingDirectory=/var/lib/ploverai/app
+
+# env file with OPENROUTER_API_KEY + PLOVERAI_API_KEY. systemd reads
+# it once at service start. update with `sudo systemctl restart`.
+EnvironmentFile=/var/lib/ploverai/app/pipeline/.env
+
+# bind ONLY to localhost — nginx is the public-facing layer. nothing
+# on the open internet should be able to reach uvicorn directly. if
+# you ever debug from a remote machine, do it through an SSH tunnel:
+#   ssh -L 8000:127.0.0.1:8000 ec2-user@<ip>
+ExecStart=/var/lib/ploverai/app/pipeline/.venv/bin/uvicorn \
+          pipeline.code.api:app \
+          --host 127.0.0.1 \
+          --port 8000 \
+          --workers 1
+
+# restart on crash. RestartSec gives the system 5s breathing room
+# between attempts so a syntax error doesn't peg the CPU restarting
+# the process in a loop.
+Restart=on-failure
+RestartSec=5s
+
+# basic hardening — uvicorn doesn't need to write outside its repo
+# folder, doesn't need temp file access beyond what python's stdlib
+# requires, and doesn't need device access.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/ploverai/app/pipeline/code/outputs
+ReadWritePaths=/var/lib/ploverai/app/pipeline/code/logs
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# logs go to journald — view with `sudo journalctl -u ploverai-api -f`.
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ploverai-api
+
+[Install]
+WantedBy=multi-user.target
