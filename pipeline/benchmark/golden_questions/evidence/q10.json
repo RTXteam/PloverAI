@@ -1,0 +1,165 @@
+{
+  "question_id": "q10",
+  "nl_question": "Which pathways involve lanosterol?",
+  "pinned_entity": {
+    "curie": "CHEBI:16521",
+    "label": "Lanosterol",
+    "category": "biolink:ChemicalEntity"
+  },
+  "answer_category": "biolink:Pathway",
+  "predicate": "biolink:has_participant",
+  "predicate_note": "Edge direction: Pathway (subject) → has_participant → ChemicalEntity (object). Original natural-language `participates_in` is not stored in KG2.10.2c; gold uses the reverse-direction `biolink:has_participant`, per the q10 predicate_fix in the legacy gold record.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "CHEBI:16521"
+          ],
+          "categories": [
+            "biolink:ChemicalEntity"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Pathway"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:has_participant"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 35,
+    "results_count_revalidated": 35,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "participates_in -> has_participant (reversed, participates_in not in KG2)",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "5 pathways spanning the four pathway categories PloverDB returns for lanosterol: (1) the upstream metabolic pathway that produces lanosterol (Mevalonate Pathway, SMPDB); (2) the overarching steroid biosynthesis pathway in which lanosterol is the keystone intermediate (SMPDB); (3+4) the two canonical downstream routes that convert lanosterol → cholesterol (Bloch and Kandutsch-Russell pathways, SMPDB, with corroborating primary literature); (5) the parent GO biological-process category (steroid biosynthetic process). Each is in PloverDB's 35-pathway result set for the gold one-hop query.",
+    "sources_used": [
+      "Small Molecule Pathway Database (SMPDB):",
+      "  Mevalonate Pathway        — https://smpdb.ca/view/SMP0121055",
+      "  Steroid Biosynthesis      — https://smpdb.ca/view/SMP0000023",
+      "  Bloch Pathway             — https://smpdb.ca/view/SMP0121057",
+      "  Kandutsch-Russell Pathway — https://smpdb.ca/view/SMP0121060",
+      "ChEBI (the canonical chemical-ontology entry for lanosterol):",
+      "  https://www.ebi.ac.uk/chebi/CHEBI:16521",
+      "Primary literature corroborating the two named downstream pathways:",
+      "  Mitsche MA, McDonald JG, Hobbs HH, Cohen JC. \"Flux analysis of cholesterol biosynthesis in vivo reveals multiple tissue and cell-type specific pathways.\" eLife. 2015 Jun 26;4:e07999. PMID:26114596. PMCID:PMC4501332.",
+      "  Europe PMC: https://europepmc.org/article/MED/26114596"
+    ],
+    "how_to_verify_an_entry": "For SMPDB pathways: open the URL, wait ~5 seconds for the SVG diagram and the \"Pathway Description\" block beneath it to render. The description prose either names lanosterol explicitly (Steroid Biosynthesis pathway does, in the sentence quoted below) or names the enzymes Lanosterol synthase (LSS) / Lanosterol 14-alpha demethylase (CYP51A1) (Mevalonate Pathway does). The pathway diagram shows lanosterol as a labelled metabolite node — find it by scanning the sterol-side of the diagram for the word \"Lanosterol\" inside a metabolite ellipse. For ChEBI: the lanosterol page's \"Definition\" line near the top names the role explicitly. For Mitsche 2015: open the Europe PMC URL and read the FIRST sentence of the abstract — it names both pathways. NOTE on SMPDB availability: during gold-set curation the SMPDB backend application server intermittently returned 504 Gateway Time-outs. We captured the page HTML during availability windows; the file sizes below (~3.5 MB) confirm the page rendered with content; the diagram-derived evidence (UniProt / metabolite IDs in SVG) is reproducible by anyone with a working SMPDB session.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (SMPDB:SMP0121055, SMPDB:SMP0000023, SMPDB:SMP0121057, SMPDB:SMP0121060, GO:0006694) was confirmed present in the PloverDB result set for the gold one-hop query (n0=CHEBI:16521, n1=biolink:Pathway, e0=biolink:has_participant from pathway to chemical). PloverDB returned 35 pathway CURIEs total: 1 GO term (GO:0006694 steroid biosynthetic process), 4 PathWhiz IDs (variants of \"Cholesterol Biosynthesis and Metabolism\" + 2 CDPX2 disease-pathway variants), and 30 SMPDB pathways (4 metabolic routes including the 3 used here + Cholesterol Biosynthesis and Metabolism CE(*); 10 statin/bisphosphonate drug-action pathways; 9 cholesterol-related disease pathways: SLOS, CDPX2, CHILD, Wolman, Mevalonic aciduria, Hyper-IgD, Desmosterolosis, Hypercholesterolemia, Cholesteryl Ester Storage Disease).",
+    "ploverdb_kg_observation": "Compared with q5 (genes participating in cholesterol biosynthesis GO:0006695, 33 results) and q8 (pathways HMGCR participates in, 25 results), q10 returns 35 lanosterol-pathway results. Lanosterol is a chemical (not a gene), so the result set is broader: every SMPDB pathway whose diagram contains a lanosterol metabolite node returns. This includes drug-action and disease pathways downstream of cholesterol biosynthesis. The 4 SMPDB pathways selected here are the metabolic-class pathways — they are the strongest direct fits for the natural-language question."
+  },
+  "verified_answers": [
+    {
+      "curie": "SMPDB:SMP0121055",
+      "label": "Mevalonate Pathway",
+      "pathway_type": "metabolic (upstream — produces lanosterol)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0121055",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0121055#:~:text=Lanosterol%20synthase",
+          "page_title": "Mevalonate Pathway — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Diagram (enzyme list + Lanosterol metabolite node) + Pathway Description",
+          "where_on_page": "Open the URL and wait for the SVG diagram to render. The horizontal enzyme list along the top of the diagram reads \"ACAT1, HMGCS1, HMGCR, MVK, PMVK, MVD, IDI1, FDPS, FDPS, FDFT1, SQLE, LSS\" — the rightmost enzyme \"LSS\" is Lanosterol synthase (gene NCBIGene:4047, the same gene verified in q5). The FINAL metabolite node at the right end of the diagram (after \"Squalene\" and \"(S)-2,3-Epoxysqualene\") is labelled \"Lanosterol\". Above the diagram, in the protein full-name banner, \"Lanosterol synthase\" appears. The enzyme list confirms lanosterol is produced as the last step of this pathway (the cyclization of (S)-2,3-epoxysqualene by LSS yields lanosterol).",
+          "exact_quote": "ACAT1  HMGCS1  HMGCR  MVK  PMVK  MVD  IDI1  FDPS  FDPS  FDFT1  SQLE  LSS    [diagram final metabolite:] Lanosterol"
+        }
+      ]
+    },
+    {
+      "curie": "SMPDB:SMP0000023",
+      "label": "Steroid Biosynthesis",
+      "pathway_type": "metabolic (overarching pathway with lanosterol as keystone intermediate)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0000023",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0000023#:~:text=cyclizes%20squalene%20to%20form%20lanosterol.%20Lanosterol%20is%20a%20tetracyclic%20triterpenoid%2C%20and%20serves%20as%20the%20framework%20from%20which%20all%20steroids%20are%20derived",
+          "page_title": "Steroid Biosynthesis — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Description",
+          "where_on_page": "Open the URL and wait for the diagram to render. The \"Pathway Description\" block sits beneath the SVG diagram. Read down the description: the long paragraph traces the pathway from acetyl-CoA through HMG-CoA reductase, mevalonate, IPP/DMAPP, farnesyl pyrophosphate, squalene, and (S)-2,3-epoxysqualene. Roughly two-thirds of the way through the paragraph is the cited sentence about oxidosqualene cyclase forming lanosterol, immediately followed by the role-defining sentence quoted below. The diagram itself contains 17 lanosterol mentions (text labels + metabolite nodes + enzyme names: \"Lanosterol synthase\", \"Lanosterol 14-alpha demethylase\", a metabolite ellipse labelled \"Lanosterol\", and downstream nodes like \"24,25-Dihydrolanosterol\").",
+          "exact_quote": "The enzyme oxidosqualene cyclase then cyclizes squalene to form lanosterol. Lanosterol is a tetracyclic triterpenoid, and serves as the framework from which all steroids are derived. 14-Demethylation of lanosterol by a cytochrome P450 enzyme known as CYP51 eventually yields cholesterol."
+        }
+      ]
+    },
+    {
+      "curie": "SMPDB:SMP0121057",
+      "label": "Bloch Pathway (Cholesterol Biosynthesis)",
+      "pathway_type": "metabolic (downstream — lanosterol → cholesterol, route 1)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0121057",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0121057#:~:text=Lanosterol%2C%20a%20compound%20created%20through%20the%20mevalonate%20pathway%2C%20binds%20with%20the%20enzyme%20lanosterol%2014-alpha%20demethylase",
+          "url_corroborating": "https://europepmc.org/article/MED/26114596",
+          "page_title": "Bloch Pathway (Cholesterol Biosynthesis) — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Description",
+          "where_on_page": "Open the URL and wait ~5 seconds for the SVG diagram to render. The \"Pathway Description\" block sits beneath the diagram. The opening sentences of the description are the cited quote — they name the pathway after Konrad Bloch, establish it as the downstream half of cholesterol biosynthesis (mevalonate pathway → Bloch pathway → cholesterol), and explicitly distinguish it from the Kandutsch-Russell route by noting that the divergence happens AT LANOSTEROL. The fourth sentence (also quoted below) names lanosterol as the starting metabolite of the pathway. The SMPDB diagram contains 11 \"Lanosterol\" labels (a metabolite ellipse for the starting lanosterol, plus enzyme labels mentioning lanosterol such as \"Lanosterol 14-alpha demethylase\").",
+          "corroborating_citation": "Mitsche MA, McDonald JG, Hobbs HH, Cohen JC. Flux analysis of cholesterol biosynthesis in vivo reveals multiple tissue and cell-type specific pathways. eLife. 2015 Jun 26;4:e07999. PMID:26114596. PMCID:PMC4501332. — opening sentence of abstract: \"Two parallel pathways produce cholesterol: the Bloch and Kandutsch-Russell pathways.\"",
+          "exact_quote": "The Bloch pathway, named after Konrad Bloch, is the pathway following the mevalonate pathway occurring within the cell to complete cholesterol biosynthesis. ... This pathway, combined with the mevalonate pathway is one of two ways to biosynthesize cholesterol; the Kandutsch-Russell pathway is an alternative pathway that uses different compounds than the Bloch Pathway beginning after lanosterol. ... Lanosterol, a compound created through the mevalonate pathway, binds with the enzyme lanosterol 14-alpha demethylase to become 4,4-dimethyl-14a-hydroxymethyl-5a-cholesta-8,24-dien-3b-ol."
+        }
+      ]
+    },
+    {
+      "curie": "SMPDB:SMP0121060",
+      "label": "Kandutsch-Russell Pathway (Cholesterol Biosynthesis)",
+      "pathway_type": "metabolic (downstream — lanosterol → cholesterol, route 2)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0121060",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0121060#:~:text=lanosterol%20is%20the%20first%20compound%20used%20in%20this%20pathway%2C%20and%20when%20catalyzed%20by%20delta(24)-sterol-reductase",
+          "url_corroborating": "https://europepmc.org/article/MED/26114596",
+          "page_title": "Kandutsch-Russell Pathway (Cholesterol Biosynthesis) — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Description",
+          "where_on_page": "Open the URL and wait ~5 seconds for the SVG diagram to render. The \"Pathway Description\" block sits beneath the diagram. The opening sentences (cited below) identify the pathway as the alternative downstream half of cholesterol biosynthesis (parallel to the Bloch route) and explicitly name lanosterol as the first compound used in the pathway. The mechanism described is the canonical K-R fork: lanosterol is reduced at the 24,25 position by DHCR24 (delta(24)-sterol reductase) BEFORE any demethylation, yielding 24,25-dihydrolanosterol — this is the structural feature that distinguishes K-R from Bloch (Bloch keeps the 24,25 double bond and reduces it only at the very end). The SMPDB diagram contains 10 \"Lanosterol\" labels plus 11 \"lanosterol\" mentions in metabolite/enzyme labels, all on the left side of the diagram.",
+          "corroborating_citation": "Mitsche MA, McDonald JG, Hobbs HH, Cohen JC. Flux analysis of cholesterol biosynthesis in vivo reveals multiple tissue and cell-type specific pathways. eLife. 2015 Jun 26;4:e07999. PMID:26114596. PMCID:PMC4501332. — opening sentence of abstract: \"Two parallel pathways produce cholesterol: the Bloch and Kandutsch-Russell pathways.\" Historical primary reference: Kandutsch AA, Russell AE. Preputial gland tumor sterols. 3. A metabolic pathway from lanosterol to cholesterol. J Biol Chem. 1960 Aug;235:2256-61. PMID:13754662.",
+          "exact_quote": "The Kandutsch-Russell pathway is the alternative pathway stemming from the mevalonate pathway completing cholesterol biosynthesis. The Bloch pathway and the Kandutsch-Russell pathway are both key to a functioning human body as cholesterol aids in the development of many important nutrients and hormones, such as vitamin D. Starting in the endoplasmic reticulum, lanosterol is the first compound used in this pathway, and when catalyzed by delta(24)-sterol-reductase, becomes 24,25-dihydrolanosterol."
+        }
+      ]
+    },
+    {
+      "curie": "GO:0006694",
+      "label": "steroid biosynthetic process",
+      "pathway_type": "GO biological process (parent term spanning the entire sterol-biosynthesis space)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ebi.ac.uk/chebi/CHEBI:16521",
+          "url_with_text_fragment": "https://www.ebi.ac.uk/chebi/CHEBI:16521#:~:text=It%20is%20the%20compound%20from%20which%20all%20steroids%20are%20derived",
+          "url_alt_amigo": "https://amigo.geneontology.org/amigo/term/GO:0006694",
+          "page_title": "lanosterol (CHEBI:16521) — ChEBI",
+          "publisher": "European Bioinformatics Institute — ChEBI (Chemical Entities of Biological Interest)",
+          "source_type": "chebi_ontology",
+          "section_heading": "Intro → Definition",
+          "where_on_page": "Open the ChEBI URL. At the very top of the page, beneath the molecule structure, a small metadata table lists ChEBI ID, ChEBI Name, Stars, and Definition. The \"Definition\" row's text is the cited quote. The same role is restated in the Wikipedia-summary blurb immediately below: \"Lanosterol is a tetracyclic triterpenoid from which all animal and fungal steroids are derived... Lanosterol is the precursor to cholesterol.\" GO:0006694 (steroid biosynthetic process) is defined by the GO consortium as \"the chemical reactions and pathways resulting in the formation of steroids\" — lanosterol is the canonical first cyclized sterol intermediate of these reactions in animals and fungi, so its participation in GO:0006694 follows directly from the ChEBI definition. (KG2c's edge for this specific pathway-chemical pair likely originated from a Reactome/ChEBI cross-reference; the underlying biological fact is the canonical role established by the ChEBI definition.)",
+          "exact_quote": "Lanosterol — Definition: A tetracyclic triterpenoid that is lanosta-8,24-diene substituted by a β-hydroxy group at the 3β position. It is the compound from which all steroids are derived."
+        }
+      ]
+    }
+  ]
+}

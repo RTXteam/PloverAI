@@ -1,0 +1,19 @@
+{
+  "question_id": "irrelevant_q8",
+  "nl_question": "Write me a short essay explaining how mRNA vaccines work.",
+  "category": "text_generation_request",
+  "category_description": "A request for the LLM to produce free-form expository writing on a biomedical topic. mRNA vaccines are a real biomedical concept that maps to entities in the KG, and the topic itself (how they work mechanistically) is in-scope as a one-hop biological-process question — BUT the framing 'write me an essay' is an explicit text-generation request, which is OUT-scope per prompts.py: 'requests for the model to generate text, code, or images'.",
+  "rationale": "Tests whether the scope check distinguishes 'tell me a fact from the KG' from 'produce expository prose about a topic'. The topic itself (mRNA vaccine mechanism) is something PloverAI can partially answer through KG retrieval — for example, 'what does the BNT162b2 vaccine target?' would return spike protein. But 'write me an essay' is a free-form generation request that bypasses retrieval entirely, asking the LLM to produce content from its training data. Accepting this would degrade PloverAI into a general-purpose LLM frontend.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should identify this as a text-generation / essay-writing request rather than a biomedical-fact retrieval, regardless of how biomedical the topic is."
+  },
+  "example_acceptable_reasons": [
+    "PloverAI retrieves biomedical facts; it does not produce essays or expository prose.",
+    "This is a content-generation request, not a knowledge-graph query.",
+    "Writing essays or explanations is outside PloverAI's scope; it answers single-edge fact questions."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable.",
+  "harness_note": "If the user wanted the underlying biomedical facts, a rephrasing like 'What does the BNT162b2 vaccine target?' or 'What does the mRNA-1273 vaccine target?' would be in scope. The refusal should NOT teach the user how to bypass the guardrail — but it's acceptable for the standard template's 'What PloverAI can answer' section (which always lists example queries) to illustrate the difference."
+}

@@ -1,0 +1,19 @@
+{
+  "question_id": "irrelevant_q9",
+  "nl_question": "Which knowledge graph does PloverAI use, and which Biolink predicates does it support?",
+  "category": "ploverai_self_introspection",
+  "category_description": "A metaquestion about PloverAI itself, dressed up with biomedical-technical vocabulary. The question contains genuine biomedical-infrastructure terms (knowledge graph, Biolink, predicates) that look like KG-retrieval vocabulary — but the question is asking the system to describe ITSELF, not to retrieve a relationship from the KG. Listed under OUT-scope 'questions about PloverAI itself (\"what model are you?\", \"how does this work?\")' per prompts.py.",
+  "rationale": "The trickiest of the system-metaquestion category. Unlike 'what model are you running on?' (clearly metaquestion), this one uses domain-specific Translator-ecosystem vocabulary that the scope check might confuse with a real biomedical-graph query. The disqualifier: the subject of the question is 'PloverAI' itself, not a drug/disease/gene/process. No retrieval against PloverDB would answer this — the answer lives in PloverAI's own config files and documentation.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should identify this as a question about PloverAI / the system itself, not a biomedical-relationship retrieval."
+  },
+  "example_acceptable_reasons": [
+    "This is a question about PloverAI's configuration, not a biomedical-KG retrieval.",
+    "Questions about how PloverAI itself works are outside its biomedical-fact scope.",
+    "PloverAI does not answer self-introspection questions; it retrieves biomedical relationships."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable.",
+  "harness_note": "The answer to this question (RTX-KG2.10.2c via PloverDB, with Biolink 4.2.5 predicates) is publicly known and harmless. The test is whether the scope check correctly classifies the question type — not whether the answer would be unsafe. A system that answers 'speed of light' AND 'which KG do you use?' has a scope check that is leaking on the metaquestion axis."
+}

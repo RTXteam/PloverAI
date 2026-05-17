@@ -1,0 +1,109 @@
+{
+  "question_id": "q4",
+  "nl_question": "What human genes/proteins does aspirin physically interact with?",
+  "pinned_entity": {
+    "curie": "CHEBI:15365",
+    "label": "Aspirin",
+    "category": "biolink:ChemicalEntity"
+  },
+  "answer_category": "biolink:Gene",
+  "predicate": "biolink:physically_interacts_with",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "CHEBI:15365"
+          ],
+          "categories": [
+            "biolink:ChemicalEntity"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Gene"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:physically_interacts_with"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 9,
+    "results_count_revalidated": 9,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "2 well-documented direct molecular targets of aspirin (PTGS2 / COX-2 and IKBKB / IκB kinase-β). Each is supported by a peer-reviewed primary publication that explicitly describes a physical binding / acetylation / inhibition relationship between aspirin and the protein. Each is also returned by PloverDB for the gold query. The question intentionally limits the answer set to 2 because the published literature only strongly supports two direct gene-product targets of aspirin; the other PloverDB hits (MAPK1/3/4/6/7/15, IKBKB-pathway downstream) reflect signaling-pathway propagation, not direct physical interaction.",
+    "sources_used": [
+      "Wu KK 2003 — Semin Vasc Med (PubMed PMID:15199473) for PTGS2 (COX-2)",
+      "Yin MJ, Yamamoto Y, Gaynor RB 1998 — Nature (PubMed PMID:9817203) for IKBKB"
+    ],
+    "how_to_verify_an_entry": "Each evidence record cites a PubMed abstract. Open the URL — PubMed displays the article title, citation (journal + year), and the abstract block. The exact_quote field reproduces one or two sentences from the abstract that explicitly name aspirin AND the gene/protein. PubMed pages do not move quotes around, so locating the quoted sentence inside the abstract is straightforward.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (NCBIGene:5743, NCBIGene:3551) was confirmed present in the PloverDB result set for the gold one-hop query (n0=CHEBI:15365, n1=biolink:Gene, e0=biolink:physically_interacts_with). PloverDB returned 9 gene CURIEs total.",
+    "intentionally_omitted": "PTGS1 (COX-1) is aspirin's other canonical direct target and is mentioned by the Wu KK paper (\"Aspirin acetylates serine-530 of cyclooxygenase-1\") — BUT PloverDB does not return NCBIGene:5742 (PTGS1) for this query. PloverDB returns a CHEMBL combined COX-1/COX-2 target (CHEMBL.TARGET:CHEMBL4523964) instead of PTGS1 individually. We omit PTGS1 because the gold set requires the CURIE to be in PloverDB's returned set; we note this as a KG coverage gap rather than a verification failure."
+  },
+  "verified_answers": [
+    {
+      "curie": "NCBIGene:5743",
+      "label": "PTGS2",
+      "aliases": [
+        "COX-2",
+        "cyclooxygenase-2",
+        "prostaglandin-endoperoxide synthase 2"
+      ],
+      "interaction_type": "inhibition of expression",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://pubmed.ncbi.nlm.nih.gov/15199473/",
+          "url_with_text_fragment": "https://pubmed.ncbi.nlm.nih.gov/15199473/#:~:text=Aspirin%20and%20salicylate%20at%20therapeutic%20concentrations%20inhibit%20COX-2%20protein%20expression",
+          "page_title": "Aspirin and other cyclooxygenase inhibitors: new therapeutic insights — PubMed",
+          "publisher": "U.S. National Library of Medicine — PubMed",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Wu KK. Aspirin and other cyclooxygenase inhibitors: new therapeutic insights. Semin Vasc Med. 2003;3(2):107-12.",
+          "where_on_page": "Open the PubMed page. Below the title and citation, the \"Abstract\" block contains the article's abstract. The relevant sentence appears in the middle of the abstract paragraph and starts \"Aspirin and salicylate at therapeutic concentrations inhibit COX-2 protein expression...\".",
+          "exact_quote": "Aspirin and salicylate at therapeutic concentrations inhibit COX-2 protein expression through interference with binding of CCAAT/enhancer binding protein beta (C/EBPbeta) to its cognate site on COX-2 promoter/enhancer."
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:3551",
+      "label": "IKBKB",
+      "aliases": [
+        "IKK-β",
+        "IκB kinase-β",
+        "inhibitor of nuclear factor kappa-B kinase subunit beta"
+      ],
+      "interaction_type": "direct binding and ATP-competitive inhibition",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://pubmed.ncbi.nlm.nih.gov/9817203/",
+          "url_with_text_fragment": "https://pubmed.ncbi.nlm.nih.gov/9817203/#:~:text=binding%20of%20these%20agents%20to%20IKK-beta%20to%20reduce%20ATP%20binding",
+          "page_title": "The anti-inflammatory agents aspirin and salicylate inhibit the activity of I(kappa)B kinase-beta — PubMed",
+          "publisher": "U.S. National Library of Medicine — PubMed",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Yin MJ, Yamamoto Y, Gaynor RB. The anti-inflammatory agents aspirin and salicylate inhibit the activity of I(kappa)B kinase-beta. Nature. 1998 Nov 5;396(6706):77-80.",
+          "where_on_page": "Open the PubMed page. Below the title and citation (\"Nature. 1998\"), the \"Abstract\" block contains the article's full abstract. Two relevant sentences sit toward the end of the paragraph: the first establishes the interaction (\"aspirin and sodium salicylate specifically inhibit IKK-beta activity in vitro and in vivo\"), and the second describes its physical nature (\"The mechanism of aspirin and sodium salicylate inhibition is due to binding of these agents to IKK-beta to reduce ATP binding.\").",
+          "exact_quote": "Here we demonstrate that the anti-inflammatory agents aspirin and sodium salicylate specifically inhibit IKK-beta activity in vitro and in vivo. The mechanism of aspirin and sodium salicylate inhibition is due to binding of these agents to IKK-beta to reduce ATP binding."
+        }
+      ]
+    }
+  ]
+}

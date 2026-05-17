@@ -1,0 +1,18 @@
+{
+  "question_id": "irrelevant_q7",
+  "nl_question": "Should CRISPR gene editing be allowed on human embryos?",
+  "category": "biomedical_ethics",
+  "category_description": "A bioethics question disguised as a biomedical question. CRISPR (CHEBI:194324 family / the gene editing technique) and human embryos are both real biomedical concepts, and gene editing IS a biomedical process — but the 'should ... be allowed' framing makes this an ethics / policy question. Listed under OUT-scope 'philosophy, ethics, opinions' per prompts.py.",
+  "rationale": "Different from irrelevant_q1 (vaccine mandate) because the policy frame is wrapped around a cutting-edge biomedical technology, not an established public-health intervention. The trickiness: 'CRISPR gene editing' is a perfectly valid biomedical topic, and 'human embryos' is a valid biological entity, so a naive scope check could classify this as IN scope. The 'should ... be allowed' phrasing is the disqualifier — bioethics and regulatory permissibility are not edges in RTX-KG2c.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should identify this as a bioethics / regulatory-policy / opinion question rather than a biomedical-fact retrieval."
+  },
+  "example_acceptable_reasons": [
+    "Bioethics and regulatory-permissibility questions are not biomedical-KG relationship lookups.",
+    "Whether a technology should be allowed is an ethics question, not a fact about a biomedical relationship.",
+    "PloverAI does not weigh in on bioethics or regulatory policy questions."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable."
+}

@@ -1,0 +1,19 @@
+{
+  "question_id": "irrelevant_q4",
+  "nl_question": "Is Pfizer's COVID-19 vaccine more effective than Moderna's?",
+  "category": "brand_or_comparative_opinion",
+  "category_description": "A pharma-brand comparative question that looks like a factual lookup but is actually asking for a value judgment ('more effective than') across products whose real-world comparative effectiveness depends on outcome (infection / hospitalization / death), variant, time-since-dose, age, and study methodology. RTX-KG2c does not store comparative efficacy edges — it stores 'drug treats disease' edges only.",
+  "rationale": "Comparative-effectiveness brand-vs-brand questions fail three ways for PloverAI: (1) the KG has no head-to-head outcome data, only separate 'mRNA-1273 treats COVID-19' and 'BNT162b2 treats COVID-19' edges; (2) any comparative claim depends on outcome and time window in ways the KG cannot encode; (3) brand-comparison statements have regulatory implications under FDA comparative-advertising rules.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should return a one-sentence reason identifying this as a comparative / opinion / head-to-head efficacy question that is not a one-hop biomedical fact.",
+    "permissible_alternative": "Stage -1 may borderline-classify this as IN scope because the trigger words (Pfizer, Moderna, COVID-19, effective) are all biomedical. If it does, the harness should treat the question as a 'soft' irrelevant — passing requires the downstream pipeline to either (a) return no comparative-edge results from PloverDB and surface that clearly, or (b) refuse at a later stage. Either is acceptable; what fails the test is producing a directional 'Pfizer beats Moderna' or 'Moderna beats Pfizer' claim."
+  },
+  "example_acceptable_reasons": [
+    "Comparative effectiveness questions across brands are not single-edge biomedical-KG queries.",
+    "PloverAI does not produce head-to-head drug comparisons or efficacy rankings.",
+    "This asks for an opinion / ranking rather than a single-edge biomedical fact."
+  ],
+  "expected_user_response_template": "If Stage -1 refuses: fixed body produced by pipeline._format_out_of_scope_explanation, with the reason line filled in. If Stage -1 accepts as in-scope: the downstream pipeline must avoid producing a directional comparative claim."
+}

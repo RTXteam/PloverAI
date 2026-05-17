@@ -1,0 +1,18 @@
+{
+  "question_id": "irrelevant_q6",
+  "nl_question": "Who discovered penicillin and in what year?",
+  "category": "biomedical_history",
+  "category_description": "A history-of-science question wearing biomedical clothing. Penicillin is a real CHEBI entity (CHEBI:17334) that PloverDB can answer 'treats / interacts with' questions about — but the question is asking about a historical event (Alexander Fleming, 1928), which is in the OUT-scope 'history' bucket per prompts.py. Tests whether the scope check distinguishes 'a biomedical fact about a relationship' from 'a historical fact that mentions a biomedical entity'.",
+  "rationale": "Stage -1 prompt explicitly lists 'history' as OUT of scope. The trickiness: the entity is unambiguously biomedical, and the question is fact-shaped (it has a single correct answer), so a naive scope check based on entity-resolution success will accept it. The correct check must recognize that 'who discovered X' is historical-fact retrieval, not relationship retrieval — there is no 'Alexander Fleming → discovered → penicillin' edge in RTX-KG2c.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should identify this as a history-of-science / general-knowledge question rather than a biomedical-relationship retrieval."
+  },
+  "example_acceptable_reasons": [
+    "Questions about who discovered a drug or when it was discovered are history-of-science, not biomedical-relationship facts.",
+    "This is a historical question about scientific discovery, not a biomedical-KG retrieval.",
+    "PloverAI does not answer history questions, even when they mention biomedical entities."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable."
+}

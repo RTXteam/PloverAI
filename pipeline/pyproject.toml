@@ -1,0 +1,61 @@
+# tool configs only. we do NOT publish this folder as a python package,
+# so there's no [project] / [build-system] table here.
+
+[tool.ruff]
+target-version = "py311"
+line-length    = 100
+# we don't lint logs/, outputs/, or any cache dirs. ruff matches these
+# by directory name (not full path), so they apply at any depth — e.g.
+# code/logs/ and code/outputs/ are caught by these names.
+extend-exclude = ["logs", "outputs", ".venv", ".mypy_cache", ".ruff_cache"]
+
+[tool.ruff.lint]
+# E, W: pycodestyle. F: pyflakes (undefined names, unused imports).
+# I: isort (import order). B: bugbear (likely bugs).
+# UP: pyupgrade (modernise syntax). SIM: simplify-style cleanups.
+# RUF: ruff-native rules. TRY: lighter try/except smell catcher.
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "TRY"]
+# E501: line length is enforced by the formatter, not the linter.
+# TRY003: "avoid long messages in exceptions" - we want long messages.
+# TRY300: "use else for code that runs on success" - hurts readability here.
+# B008: "do not perform function call in argument defaults" - we sometimes
+#       use Path(...) as a default and that's fine for our scale.
+# I001: "import block is un-sorted" - we deliberately interleave imports
+#       with explanatory comments, which I001 rejects.
+ignore = ["E501", "TRY003", "TRY300", "B008", "I001"]
+
+[tool.ruff.lint.isort]
+# group: stdlib | third-party | first-party (us). makes import blocks
+# scannable and matches what the comments say about "where it's from".
+# our package is `pipeline.code` (.py modules live under pipeline/code/).
+known-first-party = ["pipeline"]
+
+[tool.mypy]
+python_version          = "3.11"
+strict                  = true
+warn_unused_ignores     = true
+warn_redundant_casts    = true
+disallow_untyped_defs   = true
+disallow_incomplete_defs = true
+no_implicit_optional    = true
+check_untyped_defs      = true
+explicit_package_bases  = true
+# reasoner-validator (6.x) does NOT ship a py.typed marker, so mypy
+# refuses to analyse it under --strict. we silence ONLY that module
+# here. httpx, rich, python-dotenv, and PyYAML (via types-PyYAML)
+# all ship their own stubs and need no override.
+[[tool.mypy.overrides]]
+module = ["reasoner_validator", "reasoner_validator.*"]
+ignore_missing_imports = true
+
+[tool.vulture]
+# vulture finds dead code. min_confidence 80 keeps it useful without
+# being noisy on dataclass fields and module-level constants that look
+# unused but are part of the public surface.
+min_confidence = 80
+exclude        = ["logs/", "outputs/", ".venv/", ".mypy_cache/", ".ruff_cache/"]
+# whitelist: things vulture flags as unused but we know are public.
+ignore_names   = [
+    "STATUS_*",         # public terminal-state constants in code/pipeline.py
+    "SYS_*",            # public prompt strings in code/prompts.py
+]

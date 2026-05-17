@@ -1,0 +1,146 @@
+{
+  "question_id": "q2",
+  "nl_question": "What diseases are associated with CFTR?",
+  "pinned_entity": {
+    "curie": "NCBIGene:1080",
+    "label": "CFTR",
+    "category": "biolink:Gene"
+  },
+  "answer_category": "biolink:Disease",
+  "predicate": "biolink:gene_associated_with_condition",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "NCBIGene:1080"
+          ],
+          "categories": [
+            "biolink:Gene"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Disease"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:gene_associated_with_condition"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 561,
+    "results_count_revalidated": 561,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "3 diseases verified against the official NCBI Gene Phenotypes table for CFTR (gene/1080). Each entry is one row of that table, with cross-references to OMIM, MedGen, and (where applicable) GeneReviews. Each is also returned by PloverDB for the gold query.",
+    "sources_used": [
+      "NCBI Gene record for CFTR — Phenotypes section. URL: https://www.ncbi.nlm.nih.gov/gene/1080 — anchor: #header-phenotypes"
+    ],
+    "how_to_verify_an_entry": "Open the URL https://www.ncbi.nlm.nih.gov/gene/1080. Use the in-page TOC or scroll to the section header titled \"Phenotypes\" (an H2; anchor id=header-phenotypes). Immediately below the heading is a table with columns [Description, Tests], alphabetical by disease name. Each verified_answer corresponds to one row of that table — match by the Description column. The exact_quote field reproduces the row's Description + cross-refs verbatim.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (MONDO:0009061, MONDO:0010178, MONDO:0008887) was confirmed present in the PloverDB result set for the gold one-hop query (n0=NCBIGene:1080, n1=biolink:Disease, e0=biolink:gene_associated_with_condition). PloverDB returned 561 disease CURIEs total; the 3 here are the canonical CFTR-associated diseases per NCBI's authoritative gene-phenotype curation.",
+    "intentionally_omitted": "The NCBI Phenotypes table also lists Hereditary pancreatitis (OMIM:167800), but its GeneReviews link points to \"PRSS1-Related Hereditary Pancreatitis\" — PRSS1 is the primary causal gene, CFTR is a modifier. Excluded from the gold set to keep gene_associated_with_condition strict (CFTR-primary only)."
+  },
+  "verified_answers": [
+    {
+      "curie": "MONDO:0009061",
+      "label": "cystic fibrosis",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/1080",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/1080#:~:text=Cystic%20fibrosis%20MedGen%3A%20C0010674%20OMIM%3A%20219700",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/1080#header-phenotypes",
+          "page_title": "CFTR — CF transmembrane conductance regulator [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene",
+          "source_type": "ncbi_gene_phenotypes_table",
+          "section_heading": "Phenotypes",
+          "section_anchor": "header-phenotypes",
+          "where_on_page": "On the CFTR gene page, scroll to (or click) the section header titled \"Phenotypes\" (H2). Directly below it is a table with columns [Description, Tests]. Look for the row whose Description column starts with the exact text \"Cystic fibrosis\" — it shows MedGen: C0010674, OMIM: 219700, GeneReviews: Cystic Fibrosis.",
+          "table_columns": [
+            "Description",
+            "Tests"
+          ],
+          "table_row_match_on": "Description",
+          "exact_quote": "Cystic fibrosis  MedGen: C0010674  OMIM: 219700  GeneReviews: Cystic Fibrosis",
+          "cross_refs": {
+            "OMIM": "219700",
+            "MedGen": "C0010674",
+            "GeneReviews": "https://www.ncbi.nlm.nih.gov/books/NBK1250/"
+          }
+        }
+      ]
+    },
+    {
+      "curie": "MONDO:0010178",
+      "label": "congenital bilateral aplasia of vas deferens from CFTR mutation",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/1080",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/1080#:~:text=Congenital%20bilateral%20aplasia%20of%20vas%20deferens%20from%20CFTR%20mutation%20MedGen%3A%20C0403814%20OMIM%3A%20277180",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/1080#header-phenotypes",
+          "page_title": "CFTR — CF transmembrane conductance regulator [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene",
+          "source_type": "ncbi_gene_phenotypes_table",
+          "section_heading": "Phenotypes",
+          "section_anchor": "header-phenotypes",
+          "where_on_page": "On the CFTR gene page, scroll to the \"Phenotypes\" section (H2). In the table with columns [Description, Tests], find the row whose Description starts with \"Congenital bilateral aplasia of vas deferens from CFTR mutation\" — note the disease name itself contains \"from CFTR mutation\". The row shows MedGen: C0403814, OMIM: 277180, GeneReviews: Cystic Fibrosis.",
+          "table_columns": [
+            "Description",
+            "Tests"
+          ],
+          "table_row_match_on": "Description",
+          "exact_quote": "Congenital bilateral aplasia of vas deferens from CFTR mutation  MedGen: C0403814  OMIM: 277180  GeneReviews: Cystic Fibrosis",
+          "cross_refs": {
+            "OMIM": "277180",
+            "MedGen": "C0403814",
+            "GeneReviews": "https://www.ncbi.nlm.nih.gov/books/NBK1250/"
+          }
+        }
+      ]
+    },
+    {
+      "curie": "MONDO:0008887",
+      "label": "bronchiectasis with or without elevated sweat chloride 1",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/1080",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/1080#:~:text=Bronchiectasis%20with%20or%20without%20elevated%20sweat%20chloride%201%20MedGen%3A%20C2749757%20OMIM%3A%20211400",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/1080#header-phenotypes",
+          "page_title": "CFTR — CF transmembrane conductance regulator [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene",
+          "source_type": "ncbi_gene_phenotypes_table",
+          "section_heading": "Phenotypes",
+          "section_anchor": "header-phenotypes",
+          "where_on_page": "On the CFTR gene page, scroll to the \"Phenotypes\" section (H2). In the table with columns [Description, Tests], find the row whose Description starts with \"Bronchiectasis with or without elevated sweat chloride 1\" — usually the FIRST row of the table (it's alphabetical and starts with B). The row shows MedGen: C2749757, OMIM: 211400.",
+          "table_columns": [
+            "Description",
+            "Tests"
+          ],
+          "table_row_match_on": "Description",
+          "exact_quote": "Bronchiectasis with or without elevated sweat chloride 1  MedGen: C2749757  OMIM: 211400",
+          "cross_refs": {
+            "OMIM": "211400",
+            "MedGen": "C2749757"
+          }
+        }
+      ]
+    }
+  ]
+}

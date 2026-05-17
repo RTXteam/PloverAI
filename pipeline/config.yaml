@@ -1,0 +1,59 @@
+# single source of truth for the pipeline at runtime.
+# keep this in sync with benchmark/golden_questions/questions.json
+# (the question set). nothing in code reads model names, endpoint
+# hosts, or counts from anywhere else — switching providers / staging
+# mirrors is a one-line edit here.
+
+# every external service the pipeline talks to. each entry is a BASE
+# URL; the corresponding client appends the specific path it needs
+# (e.g. PloverDB client appends /query and /meta_knowledge_graph).
+# this is the single place to point the pipeline at a different host.
+endpoints:
+  ploverdb:   "https://kg2cploverdb.ci.transltr.io"     # client appends /query, /meta_knowledge_graph
+  openrouter: "https://openrouter.ai/api/v1"            # client appends /chat/completions
+  nameres:    "https://name-resolution-sri.renci.org"   # client appends /lookup
+  nodenorm:   "https://nodenormalization-sri.renci.org" # client appends /get_normalized_nodes
+  pubtator:   "https://www.ncbi.nlm.nih.gov/research/pubtator3-api"  # client appends /publications/export/biocjson
+
+# all 8 benchmark models. price is per 1M tokens (input / output) in USD.
+# id is the short label we use everywhere on disk (m1..m8).
+# slug is the exact OpenRouter model string we POST.
+#
+# locked in for the v15 benchmark: 4 frontier × 4 budget across the SAME
+# 4 western providers (anthropic, google, openai, xai), so the
+# frontier-vs-budget comparison is held constant on provider identity.
+# DeepSeek (Chinese) is intentionally excluded.
+models:
+  - { id: m1, tier: frontier, slug: "anthropic/claude-opus-4.6",      provider: anthropic, price_in: 5.00,  price_out: 25.00 }
+  - { id: m2, tier: frontier, slug: "google/gemini-3.1-pro-preview",  provider: google,    price_in: 2.00,  price_out: 12.00 }
+  - { id: m3, tier: frontier, slug: "openai/gpt-5.5",                 provider: openai,    price_in: 5.00,  price_out: 30.00 }
+  - { id: m4, tier: frontier, slug: "x-ai/grok-4",                    provider: xai,       price_in: 3.00,  price_out: 15.00 }
+  - { id: m5, tier: budget,   slug: "anthropic/claude-haiku-4.5",     provider: anthropic, price_in: 1.00,  price_out: 5.00  }
+  - { id: m6, tier: budget,   slug: "google/gemini-3-flash-preview",  provider: google,    price_in: 0.50,  price_out: 3.00  }
+  - { id: m7, tier: budget,   slug: "openai/gpt-5",                   provider: openai,    price_in: 1.25,  price_out: 10.00 }
+  - { id: m8, tier: budget,   slug: "x-ai/grok-4.3",                  provider: xai,       price_in: 1.25,  price_out: 2.50  }
+
+# LLM sampling parameters. shared across every stage of every model.
+# temperature=0 where the provider supports it; max_tokens caps any
+# single completion; request_timeout_s applies uniformly to OpenRouter
+# AND to RENCI/PloverDB calls so a hung backend can't deadlock the run.
+generation:
+  temperature: 0.0
+  max_tokens: 4096
+  request_timeout_s: 120
+
+# where artifacts go on disk. paths below are pipeline-relative
+# (resolved against pipeline/ at load time, see code/config.py).
+# layout reasoning:
+#   - input data lives under benchmark/ (the gold set is read-only).
+#   - things produced BY running code (logs, outputs) live under
+#     code/ alongside the .py files that produce them.
+paths:
+  # the gold set is now a directory of per-question JSON files
+  # (benchmark/golden_questions/evidence/q1.json … q10.json), each
+  # self-contained with its query_graph, validation block, evidence,
+  # and verified_answers. config exposes the directory; the loader
+  # iterates and parses every q*.json in alphanumeric order.
+  questions: "benchmark/golden_questions/evidence"
+  results:   "code/outputs"
+  logs:      "code/logs"

@@ -1,0 +1,168 @@
+{
+  "question_id": "q5",
+  "nl_question": "Which genes participate in the cholesterol biosynthesis pathway?",
+  "pinned_entity": {
+    "curie": "GO:0006695",
+    "label": "cholesterol biosynthetic process",
+    "category": "biolink:BiologicalProcess"
+  },
+  "answer_category": "biolink:Gene",
+  "predicate": "biolink:has_participant",
+  "predicate_note": "Original natural-language `participates_in` is not stored in KG2.10.2c; gold uses the reverse-direction `biolink:has_participant` with the BiologicalProcess as subject and the Gene as object, per the q5 predicate_fix in the legacy gold record.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "categories": [
+            "biolink:Gene"
+          ]
+        },
+        "n1": {
+          "ids": [
+            "GO:0006695"
+          ],
+          "categories": [
+            "biolink:BiologicalProcess"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:has_participant"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 37,
+    "results_count_revalidated": 34,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "participates_in -> has_participant (reversed, participates_in not in KG2). Category: Pathway -> BiologicalProcess. CURIE: REACT:R-HSA-191273 -> GO:0006695 (canonical)",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "4 canonical cholesterol-biosynthesis genes, chosen to span the pathway from early (HMG-CoA formation) to final (cholesterol formation) steps. Each is annotated to GO:0006695 (\"cholesterol biosynthetic process\") on its NCBI Gene record under the \"Gene Ontology\" section, with the strongest available evidence code (IDA, IMP, IC, or TAS — all human-curated experimental or curator-asserted codes). Each is returned by PloverDB for the gold one-hop query.",
+    "sources_used": [
+      "NCBI Gene records, \"Gene Ontology\" section (provided by GOA, the Gene Ontology Annotation database):",
+      "  HMGCR  — https://www.ncbi.nlm.nih.gov/gene/3156#gene-ontology",
+      "  HMGCS1 — https://www.ncbi.nlm.nih.gov/gene/3157#gene-ontology",
+      "  LSS    — https://www.ncbi.nlm.nih.gov/gene/4047#gene-ontology",
+      "  DHCR7  — https://www.ncbi.nlm.nih.gov/gene/1717#gene-ontology",
+      "Authoritative GO term page for reference: https://amigo.geneontology.org/amigo/term/GO:0006695"
+    ],
+    "how_to_verify_an_entry": "Open the per-gene URL. Scroll to the H3 section header titled \"Gene Ontology — Provided by GOA\" (anchor id=gene-ontology). The section has three sub-tables labelled \"Function\", \"Process\", and \"Component\". Each sub-table has exactly 3 columns: [Process / Function / Component] | [Evidence Code] | [Pubs]. Look in the \"Process\" sub-table for a row whose first column (a wide column) reads exactly \"involved_in cholesterol biosynthetic process\". The MIDDLE column (a narrow column labelled \"Evidence Code\") contains a 2- or 3-letter code (e.g. IDA, IMP, IC, TAS). Match it against the evidence code cited in each verified_answer. The third column (\"Pubs\") links to PubMed when an experimental publication exists. NOTE: the Evidence Code column is narrow; you may need to scan carefully — the long-form name (e.g. \"Inferred by Curator\") is shown only as a tooltip when you hover over the code.",
+    "go_evidence_codes_glossary": {
+      "IDA": "Inferred from Direct Assay — strongest experimental code; gene's role in the process was shown by direct biochemical or genetic experiment.",
+      "IMP": "Inferred from Mutant Phenotype — strong; a mutation in the gene produces a phenotype consistent with the process.",
+      "IC": "Inferred by Curator — a human curator concluded the annotation from related evidence in the literature.",
+      "TAS": "Traceable Author Statement — a published statement that the curator can trace to a primary source.",
+      "IBA": "Inferred from Biological aspect of Ancestor — phylogenetic propagation from a related gene.",
+      "IEA": "Inferred from Electronic Annotation — computational only (we treat as weakest and don't use as the cited evidence)."
+    },
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (NCBIGene:3156, 3157, 4047, 1717) was confirmed present in the PloverDB result set for the gold one-hop query (n0=biolink:Gene, n1=GO:0006695, e0=biolink:has_participant from process to gene). PloverDB returned 33 gene CURIEs total; the 4 here are pathway-representative early/mid/late enzymes chosen for clarity of evidence."
+  },
+  "verified_answers": [
+    {
+      "curie": "NCBIGene:3157",
+      "label": "HMGCS1",
+      "aliases": [
+        "3-hydroxy-3-methylglutaryl-CoA synthase 1",
+        "cytosolic HMG-CoA synthase"
+      ],
+      "pathway_step": "first committed step (acetyl-CoA + acetoacetyl-CoA → HMG-CoA)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/3157",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/3157#gene-ontology",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/3157#:~:text=involved_in%20cholesterol%20biosynthetic%20process%20IC",
+          "page_title": "HMGCS1 3-hydroxy-3-methylglutaryl-CoA synthase 1 [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene; GO annotation from GOA",
+          "source_type": "ncbi_gene_go_annotation",
+          "section_heading": "Gene Ontology (Provided by GOA)",
+          "section_anchor": "gene-ontology",
+          "where_on_page": "Open the HMGCS1 page, then jump to the \"Gene Ontology — Provided by GOA\" H3 (anchor #gene-ontology). In the PROCESS sub-table, multiple rows say \"involved_in cholesterol biosynthetic process\". The fastest way to find the right one: SCAN THE RIGHTMOST COLUMN (\"Pubs\") FOR THE WORD \"PubMed\" — exactly one of the bare-term rows has it. That row's middle column shows the evidence code \"IC\" (tooltip: \"Inferred by Curator\"). A separate row has evidence code \"TAS\" (Traceable Author Statement) — semantically also valid, but its Pubs column is empty, so IC is the cited evidence here.",
+          "exact_quote": "involved_in cholesterol biosynthetic process IC PubMed"
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:3156",
+      "label": "HMGCR",
+      "aliases": [
+        "3-hydroxy-3-methylglutaryl-CoA reductase",
+        "HMG-CoA reductase"
+      ],
+      "pathway_step": "rate-limiting (HMG-CoA → mevalonate); target of statin drugs",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/3156",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/3156#gene-ontology",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/3156#:~:text=involved_in%20cholesterol%20biosynthetic%20process%20IDA",
+          "page_title": "HMGCR 3-hydroxy-3-methylglutaryl-CoA reductase [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene; GO annotation from GOA",
+          "source_type": "ncbi_gene_go_annotation",
+          "section_heading": "Gene Ontology (Provided by GOA)",
+          "section_anchor": "gene-ontology",
+          "where_on_page": "Open the HMGCR page, then jump to the \"Gene Ontology — Provided by GOA\" H3 (anchor #gene-ontology). The section has 3 sub-tables: Function, Process, Component — each with exactly 3 columns: [term] | [Evidence Code] | [Pubs]. In the PROCESS sub-table, find the row whose first (wide) column reads exactly \"involved_in cholesterol biosynthetic process\". In the middle (narrow) Evidence Code column the cell reads \"IDA\" — tooltip \"Inferred from Direct Assay\" (the strongest experimental GO code). The right column shows \"PubMed\" linked to the supporting paper.",
+          "exact_quote": "involved_in cholesterol biosynthetic process IDA PubMed"
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:4047",
+      "label": "LSS",
+      "aliases": [
+        "lanosterol synthase",
+        "2,3-oxidosqualene-lanosterol cyclase"
+      ],
+      "pathway_step": "mid-late (2,3-oxidosqualene → lanosterol — first cyclic sterol)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/4047",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/4047#gene-ontology",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/4047#:~:text=involved_in%20cholesterol%20biosynthetic%20process%20IMP",
+          "page_title": "LSS lanosterol synthase [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene; GO annotation from GOA",
+          "source_type": "ncbi_gene_go_annotation",
+          "section_heading": "Gene Ontology (Provided by GOA)",
+          "section_anchor": "gene-ontology",
+          "where_on_page": "Open the LSS page, then jump to the \"Gene Ontology — Provided by GOA\" H3 (anchor #gene-ontology). In the PROCESS sub-table, multiple rows say \"involved_in cholesterol biosynthetic process\" (4 with the bare term + 2 with suffixes \"via desmosterol\" / \"via lathosterol\"). The fastest way to find the right one: SCAN THE RIGHTMOST COLUMN (\"Pubs\") FOR THE WORD \"PubMed\" — exactly one of these rows has it. That row's middle (Evidence Code) column shows \"IMP\" (tooltip: \"Inferred from Mutant Phenotype\"). The other matching rows carry IBA / IEA / TAS codes with empty Pubs columns — those are weaker evidence and not the cited row.",
+          "exact_quote": "involved_in cholesterol biosynthetic process IMP PubMed"
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:1717",
+      "label": "DHCR7",
+      "aliases": [
+        "7-dehydrocholesterol reductase"
+      ],
+      "pathway_step": "final step (7-dehydrocholesterol → cholesterol; mutations cause Smith-Lemli-Opitz syndrome)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/1717",
+          "url_with_anchor": "https://www.ncbi.nlm.nih.gov/gene/1717#gene-ontology",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/1717#:~:text=involved_in%20cholesterol%20biosynthetic%20process%20IMP",
+          "page_title": "DHCR7 7-dehydrocholesterol reductase [Homo sapiens (human)] — NCBI Gene",
+          "publisher": "U.S. National Center for Biotechnology Information — NCBI Gene; GO annotation from GOA",
+          "source_type": "ncbi_gene_go_annotation",
+          "section_heading": "Gene Ontology (Provided by GOA)",
+          "section_anchor": "gene-ontology",
+          "where_on_page": "Open the DHCR7 page, then jump to the \"Gene Ontology — Provided by GOA\" H3 (anchor #gene-ontology). In the PROCESS sub-table, multiple rows say \"involved_in cholesterol biosynthetic process\". The fastest way to find the right one: SCAN THE RIGHTMOST COLUMN (\"Pubs\") FOR THE WORD \"PubMed\" — only one of these rows has it. That row's middle column shows the evidence code \"IMP\" (tooltip: \"Inferred from Mutant Phenotype\"). The other matching rows carry IBA / IEA codes with empty Pubs columns — those are weaker and not the cited row.",
+          "exact_quote": "involved_in cholesterol biosynthetic process IMP PubMed"
+        }
+      ]
+    }
+  ]
+}

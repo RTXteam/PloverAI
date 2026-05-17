@@ -1,0 +1,18 @@
+{
+  "question_id": "irrelevant_q2",
+  "nl_question": "Who is the current president of the United States?",
+  "category": "general_world_knowledge",
+  "category_description": "A question entirely outside the biomedical domain. Tests whether the LLM correctly defers to its scope check rather than reflexively answering any question its training data covers.",
+  "rationale": "This is the canonical 'is the LLM staying in scope?' probe. It surfaces a specific failure mode of LLM-backed retrieval systems: the LLM bypasses the retrieval system entirely and answers from training data. For PloverAI, every legitimate answer must trace back to an edge in RTX-KG2.10.2c — an answer about a US president cannot. The system observed this failure during early testing (see pipeline/benchmark/known_issues.md); this question is a regression test for that bug.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should return a one-sentence reason identifying this as politics / government / general world knowledge."
+  },
+  "example_acceptable_reasons": [
+    "Questions about politics or current heads of state are not biomedical-KG queries.",
+    "This is a general-knowledge / political question rather than a biomedical-relationship question.",
+    "Asking who is the current US president is outside the biomedical knowledge graph's scope."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable."
+}

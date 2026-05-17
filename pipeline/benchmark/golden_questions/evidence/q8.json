@@ -1,0 +1,148 @@
+{
+  "question_id": "q8",
+  "nl_question": "Which pathways involve HMGCR?",
+  "pinned_entity": {
+    "curie": "NCBIGene:3156",
+    "label": "HMGCR",
+    "category": "biolink:Gene"
+  },
+  "answer_category": "biolink:Pathway",
+  "predicate": "biolink:has_participant",
+  "predicate_note": "Edge direction: Pathway (subject) → has_participant → Gene (object). Original natural-language `participates_in` is not stored in KG2.10.2c; gold uses the reverse-direction `biolink:has_participant`, per the q8 predicate_fix in the legacy gold record.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "NCBIGene:3156"
+          ],
+          "categories": [
+            "biolink:Gene"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Pathway"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:has_participant"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 25,
+    "results_count_revalidated": 25,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "participates_in -> has_participant (reversed, participates_in not in KG2)",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "4 pathways spanning the four pathway categories PloverDB returns for HMGCR: (1) a metabolic pathway (Mevalonate Pathway, SMPDB), (2) a drug-action pathway (Simvastatin Action Pathway, SMPDB — HMGCR is the direct molecular target of statins), (3) a disease pathway (Hypercholesterolemia, SMPDB — HMGCR is the statin-druggable enzyme that defines hypercholesterolemia therapy), and (4) a parent GO biological-process category (cholesterol metabolic process). Each is in PloverDB's 25-pathway result set for the gold one-hop query.",
+    "sources_used": [
+      "Small Molecule Pathway Database (SMPDB):",
+      "  Mevalonate Pathway              — https://smpdb.ca/view/SMP0121055",
+      "  Simvastatin Action Pathway      — https://smpdb.ca/view/SMP0000082",
+      "  Hypercholesterolemia (disease)  — https://smpdb.ca/view/SMP0000209",
+      "Gene Ontology (via EBI QuickGO annotation browser):",
+      "  GO:0008203 cholesterol metabolic process — annotations for HMGCR (UniProt P04035):",
+      "    https://www.ebi.ac.uk/QuickGO/annotations?geneProductId=P04035&goId=GO:0008203&goUsage=descendants&goUsageRelationships=is_a,part_of"
+    ],
+    "how_to_verify_an_entry": "Each evidence record points to either a SMPDB pathway page or a QuickGO annotation list. For SMPDB: open the URL, wait ~5s for the pathway diagram (SVG) to render. (a) For metabolic / drug-action pathways the \"Pathway Description\" block beneath the diagram names HMGCR by its full enzyme name (\"3-hydroxy-3-methylglutaryl-coenzyme A reductase\" or \"HMG-CoA reductase\"). (b) For the Hypercholesterolemia disease pathway the description prose focuses on LDLR (the canonical familial-hypercholesterolemia mutation) and does NOT name HMGCR — instead HMGCR is verified from the pathway DIAGRAM (look for the white-rectangle protein node labelled \"HMGCR\" inside the cholesterol-biosynthesis sub-section of the diagram; the node is linked to UniProt P04035, HMGCR's canonical accession) AND from the \"Highlight\" sidebar's protein checklist where a row labelled \"3-Hydroxy-3-methylglutaryl-coenzyme A reductase\" carries checkbox id P04035. For QuickGO: open the URL, wait for the annotation table to load, then read the rows — each row is one HMGCR↔GO-term annotation with its evidence code and supporting publication.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (SMPDB:SMP0121055, SMPDB:SMP0000082, SMPDB:SMP0000209, GO:0008203) was confirmed present in the PloverDB result set for the gold one-hop query (n0=NCBIGene:3156, n1=biolink:Pathway, e0=biolink:has_participant from pathway to gene). PloverDB returned 25 pathway CURIEs total — 23 SMPDB pathways (statin/bisphosphonate drug-action + several cholesterol-related disease pathways + the Mevalonate Pathway) and 2 GO biological-process parent terms (GO:0006694 steroid biosynthetic process, GO:0008203 cholesterol metabolic process).",
+    "kg_coverage_note": "Notably absent from PloverDB's result set: GO:0006695 (cholesterol biosynthetic process) — the GO term that HMGCR is directly and most strongly annotated to (IDA evidence, PMID:23063590), and the term used as the anchor of q5. Comparing q5's PloverDB return for GO:0006695 (33 genes including HMGCR) against q8's PloverDB return shows that the inverse edge (HMGCR → GO:0006695) is NOT in this query's result set because GO:0006695 is categorized in KG2c only as biolink:BiologicalProcess, NOT as biolink:Pathway. The two parent GO terms PloverDB DOES return here (GO:0006694, GO:0008203) carry the dual BiologicalProcess+Pathway categorization. This is a Biolink-category modeling asymmetry, not a missing edge — the underlying GO annotation graph is consistent across q5 and q8.",
+    "intentionally_omitted": "PloverDB also returns ~20 other SMPDB pathways (mostly statin/bisphosphonate drug-action pathways and additional cholesterol-related disease pathways: SLOS, mevalonic aciduria, Wolman, CHILD syndrome, desmosterolosis, etc.). These are biologically plausible — HMGCR participates wherever cholesterol biosynthesis is modeled — but adding them to the gold set would inflate it without adding evidential variety. The Simvastatin Action Pathway is the strongest representative of the statin-action class; Hypercholesterolemia is the strongest representative of the disease class."
+  },
+  "verified_answers": [
+    {
+      "curie": "SMPDB:SMP0121055",
+      "label": "Mevalonate Pathway",
+      "pathway_type": "metabolic",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0121055",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0121055#:~:text=3-Hydroxy-3-methylglutaryl-CoA%20then%20pairs%20with%202NADPH%2C%202%20hydrogen%20ions%20and%20is%20catalyzed%20by%203-hydroxy-3-methylglutaryl-coenzyme%20A%20reductase",
+          "page_title": "Mevalonate Pathway — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Description",
+          "where_on_page": "Open the URL. The page takes a few seconds to render its pathway diagram (an SVG). Once rendered, you will see (a) a horizontal canonical mevalonate→sterol pathway diagram with enzyme labels — find the third enzyme node in the top row labelled \"HMGCR\" (between HMGCS1 and MVK), and (b) below the diagram, a \"Pathway Description\" block whose second paragraph contains the named-enzyme sentence: \"3-Hydroxy-3-methylglutaryl-CoA then pairs with 2NADPH, 2 hydrogen ions and is catalyzed by 3-hydroxy-3-methylglutaryl-coenzyme A reductase to produce (R)-mevalonate...\". \"3-hydroxy-3-methylglutaryl-coenzyme A reductase\" IS HMGCR (NCBIGene:3156).",
+          "exact_quote": "3-Hydroxy-3-methylglutaryl-CoA then pairs with 2NADPH, 2 hydrogen ions and is catalyzed by 3-hydroxy-3-methylglutaryl-coenzyme A reductase to produce (R)-mevalonate, also producing byproducts CoA and NADP."
+        }
+      ]
+    },
+    {
+      "curie": "SMPDB:SMP0000082",
+      "label": "Simvastatin Action Pathway",
+      "pathway_type": "drug-action",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0000082",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0000082#:~:text=competitively%20inhibiting%203-hydroxy-3-methylglutaryl-coenzyme%20A%20(HMG-CoA)%20reductase",
+          "page_title": "Simvastatin Action Pathway — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Description",
+          "where_on_page": "Open the URL. The page renders the simvastatin action diagram and underneath a \"Pathway Description\" block. The description's third sentence reads: \"The simvastatin hydroxy acid inhibits cholesterol synthesis via the mevalonate pathway by competitively inhibiting 3-hydroxy-3-methylglutaryl-coenzyme A (HMG-CoA) reductase.\" The diagram itself also labels HMGCR explicitly (and labels it twice — once on the cholesterol-biosynthesis side and once on the cholesterol-storage side — because the pathway shows HMG-CoA reductase being competitively inhibited by simvastatin's active acid form). HMG-CoA reductase IS HMGCR (NCBIGene:3156).",
+          "exact_quote": "The simvastatin hydroxy acid inhibits cholesterol synthesis via the mevalonate pathway by competitively inhibiting 3-hydroxy-3-methylglutaryl-coenzyme A (HMG-CoA) reductase. HMG-CoA reductase, a hepatic microsomal enzyme, is the enzyme responsible for the conversion of HMG-CoA to mevalonic acid, the rate-limiting step of cholesterol biosynthesis by this pathway."
+        }
+      ]
+    },
+    {
+      "curie": "SMPDB:SMP0000209",
+      "label": "Hypercholesterolemia",
+      "pathway_type": "disease",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://smpdb.ca/view/SMP0000209",
+          "url_with_text_fragment": "https://smpdb.ca/view/SMP0000209#:~:text=Hypercholesterolemia%2C%20also%20called%20elevated%20cholesterol",
+          "page_title": "Hypercholesterolemia — Small Molecule Pathway Database (SMPDB)",
+          "publisher": "The Metabolomics Innovation Centre (TMIC) / University of Alberta — SMPDB",
+          "source_type": "smpdb_pathway",
+          "section_heading": "Pathway Diagram + Highlight protein checklist",
+          "where_on_page": "Open the URL and wait ~5 seconds for the SVG pathway diagram to render. UNLIKE the metabolic and drug-action pathways above, the \"Pathway Description\" text here focuses on the LDLR mutation (the canonical familial-hypercholesterolemia etiology) and does NOT name HMGCR. HMGCR's participation is documented in TWO places on the page: (a) the pathway diagram itself contains three labelled \"HMGCR\" protein nodes (white rectangles) inside the cholesterol-biosynthesis subsection — each is linked in the SVG to UniProt accession P04035 (HMGCR's canonical accession; verify by hovering over the node, which highlights the canonical name); (b) the right-hand \"Highlight\" sidebar's protein checklist contains a row labelled \"3-Hydroxy-3-methylglutaryl-coenzyme A reductase\" whose checkbox carries the HTML id \"P04035_check\". The pathway shows hypercholesterolemia as cholesterol-biosynthesis upstream of the LDLR-defective cholesterol-clearance step — which is why the statin drugs named in the Description (\"Treatment with atorvastatin, simvastatin or rosuvastatin...\") work: they inhibit HMGCR. So HMGCR is a pathway participant via the cholesterol-biosynthesis sub-graph that the disease pathway models, even though the text-level description names only LDLR.",
+          "exact_quote": "Hypercholesterolemia, also called elevated cholesterol, is an autosomal dominant disorder caused by a defective LDLR gene. The LDLR gene codes for a receptor that binds to low-density lipoprotein which are carriers of cholesterol in the blood. The mutation on the LDLR gene causes the removal of cholesterol from the bloodstream to be limited, resulting in a buildup of cholesterol in the blood. This disorder is characterized by a large accumulation of cholesterol in the blood. Symptoms of the disorder include angina, tendon xanthomas increased risk of cardiac arrest. Treatment with atorvastatin, simvastatin or rosuvastatin, in combination with a heart healthy diet and regular exercise is very effective.",
+          "diagram_evidence": {
+            "hmgcr_node_count_in_svg": 3,
+            "linked_uniprot_id": "P04035",
+            "highlight_panel_label": "3-Hydroxy-3-methylglutaryl-coenzyme A reductase",
+            "highlight_panel_checkbox_id": "P04035_check",
+            "verification_method": "Saved a snapshot of the rendered page during a brief SMPDB availability window (the site was returning 504 Gateway Time-out for the surrounding period). Parsed the SVG and Highlight-panel HTML and confirmed three protein elements with data-element-id=\"P04035\" and a checkbox input with id=\"P04035_check\" labelled \"3-Hydroxy-3-methylglutaryl-coenzyme A reductase\". When SMPDB is reachable, a manual reviewer can reproduce by inspecting the page DOM (Ctrl-U → search \"P04035\") or by hovering over the HMGCR protein nodes in the diagram."
+          }
+        }
+      ]
+    },
+    {
+      "curie": "GO:0008203",
+      "label": "cholesterol metabolic process",
+      "pathway_type": "GO biological process (parent term)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ebi.ac.uk/QuickGO/annotations?geneProductId=P04035&goId=GO:0008203&goUsage=descendants&goUsageRelationships=is_a,part_of",
+          "url_alt_term_page": "https://amigo.geneontology.org/amigo/term/GO:0008203",
+          "page_title": "QuickGO::Annotation List — geneProductId=P04035, goId=GO:0008203 (with descendants)",
+          "publisher": "European Bioinformatics Institute — QuickGO (Gene Ontology Consortium)",
+          "source_type": "go_annotation",
+          "section_heading": "Annotations (filtered to UniProt:P04035 = HMGCR, with goUsage=descendants of GO:0008203)",
+          "where_on_page": "Open the URL. The page is a server-rendered annotation list. After ~3 seconds, the \"4 annotations\" header appears above a 4-row table. Each row is an HMGCR↔GO-term annotation where the GO term is a descendant of GO:0008203 (cholesterol metabolic process) in the GO is_a/part_of hierarchy. The first row is the strongest: it shows the direct experimental annotation of HMGCR to GO:0006695 (cholesterol biosynthetic process), evidence code IDA (Inferred from Direct Assay), supported by PubMed PMID:23063590, assigned by CACAO. GO:0006695 is the canonical child of GO:0008203 in the GO ontology, so this is the route by which HMGCR is annotated to the broader cholesterol metabolic process category.",
+          "transitivity_note": "PloverDB returns GO:0008203 (cholesterol metabolic process, the PARENT term) as a pathway HMGCR participates in, but does NOT return GO:0006695 (cholesterol biosynthetic process, the CHILD term that HMGCR is directly annotated to). The reason is a Biolink-category modeling decision in KG2c: GO:0008203 is categorized as both biolink:BiologicalProcess AND biolink:Pathway, while GO:0006695 is categorized only as biolink:BiologicalProcess. The query graph requires n1 to match biolink:Pathway, so only the dually-categorized parent term qualifies. Biologically the answer is correct (HMGCR is a cholesterol biosynthesis enzyme, hence by GO subsumption a participant in cholesterol metabolism), but the direct evidence sits on the child term — we cite that child-term annotation as the strongest supporting evidence.",
+          "exact_quote": "UniProtKB:P04035  HMGCR  involved_in  GO:0006695 cholesterol biosynthetic process  ECO:0000314  IDA  PMID:23063590  9606 Homo sapiens  CACAO"
+        }
+      ]
+    }
+  ]
+}

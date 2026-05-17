@@ -1,0 +1,18 @@
+{
+  "question_id": "irrelevant_q1",
+  "nl_question": "Should the MMR vaccine be mandated in schools?",
+  "category": "policy_opinion",
+  "category_description": "A biomedical-adjacent question that asks for a values/policy judgment rather than a factual knowledge-graph lookup. The 'should' framing is the trigger word — PloverDB stores facts about MMR (e.g., it prevents measles), not policy positions.",
+  "rationale": "PloverAI's scope is bounded by edges in RTX-KG2.10.2c (drug-disease, gene-disease, gene-process, etc.). Public-health policy questions require weighing competing values (individual autonomy vs. public-health benefit, religious exemptions, jurisdictional law) — none of which are KG edges. An LLM that answers 'yes' or 'no' here is either hallucinating a policy position from training-data correlations or reflecting the political stance of its training corpus.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should return a one-sentence reason flagging this as a policy / values / opinion question rather than a biomedical-fact retrieval."
+  },
+  "example_acceptable_reasons": [
+    "This is a public-health policy question that requires a value judgment, not a biomedical-KG lookup.",
+    "Policy and ethics questions about vaccine mandates are outside PloverAI's biomedical-fact scope.",
+    "This asks for an opinion on policy rather than a biomedical-relationship fact."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation (## Answer / ## Reason / ## What PloverAI can answer). Only the line under \"## Reason\" is variable — it is filled from Stage -1's reason field."
+}

@@ -1,0 +1,136 @@
+{
+  "question_id": "q7",
+  "nl_question": "Which genes/proteins does imatinib physically interact with?",
+  "pinned_entity": {
+    "curie": "CHEBI:45783",
+    "label": "Imatinib",
+    "category": "biolink:Drug"
+  },
+  "answer_category": "biolink:Gene",
+  "predicate": "biolink:physically_interacts_with",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "CHEBI:45783"
+          ],
+          "categories": [
+            "biolink:Drug"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Gene"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:physically_interacts_with"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 6,
+    "results_count_revalidated": 7,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "CURIE: DRUGBANK:DB00619 -> CHEBI:45783 (canonical)",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "3 of imatinib's canonical direct molecular targets: KIT (stem cell factor receptor / c-Kit), the Abl tyrosine kinase, and PDGFR-beta. Each is supported by a peer-reviewed primary publication that explicitly describes a physical binding / kinase-inhibition relationship between imatinib (originally CGP 57148B, then STI571) and the named target. Each is also returned by PloverDB for the gold one-hop query.",
+    "sources_used": [
+      "Druker BJ et al. 1996. \"Effects of a selective inhibitor of the Abl tyrosine kinase on the growth of Bcr-Abl positive cells.\" Nat Med 2(5):561-566. PMID:8616716. Europe PMC: https://europepmc.org/article/MED/8616716",
+      "Buchdunger E et al. 2000. \"Abl protein-tyrosine kinase inhibitor STI571 inhibits in vitro signal transduction mediated by c-kit and platelet-derived growth factor receptors.\" J Pharmacol Exp Ther 295(1):139-145. PMID:10991971. Europe PMC: https://europepmc.org/article/MED/10991971"
+    ],
+    "how_to_verify_an_entry": "Open the Europe PMC URL for the cited paper. The page renders the paper's title, authors, journal/year/volume, PMID, and full abstract in a single \"Abstract\" block near the top. The exact_quote field reproduces one or two sentences from that abstract that explicitly name the drug (imatinib / STI571 / CGP 57148) AND the target gene/protein. Europe PMC abstracts do not reflow — locate the quoted sentence by scanning the abstract paragraph for the named target.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (NCBIGene:3815 KIT, CHEMBL.TARGET:CHEMBL1862 Tyrosine-protein kinase ABL, CHEMBL.TARGET:CHEMBL1913 Platelet-derived growth factor receptor beta) was confirmed present in the PloverDB result set for the gold one-hop query (n0=CHEBI:45783, n1=biolink:Gene, e0=biolink:physically_interacts_with). PloverDB returned 6 gene/protein CURIEs total; the 3 here are the cleanest representatives of the canonical KIT, ABL, and PDGFR targets.",
+    "curie_representation_note": "In PloverDB's result set for this query, ABL kinase and PDGFR-beta are returned as CHEMBL.TARGET CURIEs (CHEMBL1862, CHEMBL1913) rather than NCBIGene CURIEs — these are protein-level identifiers from the ChEMBL drug-target database that the KG2c build indexes alongside gene-level NCBIGene IDs. KIT is returned both as NCBIGene:3815 (gene) and CHEMBL.TARGET:CHEMBL1936 (stem cell growth factor receptor, protein). The gold set cites the NCBIGene form for KIT and the CHEMBL.TARGET form for ABL/PDGFRB to match what PloverDB actually returns. Other PloverDB hits not separately listed here (CHEMBL.TARGET:CHEMBL2096618 Bcr/Abl fusion protein, UMLS:C0004891 Fusion Proteins bcr-abl) represent the BCR-ABL fusion target — semantically redundant with the ABL kinase entry above.",
+    "intentionally_omitted": "PDGFR-alpha (PDGFRA, NCBIGene:5156) is imatinib's third canonical direct receptor target — Buchdunger 2000 explicitly inhibits \"the alpha- and beta-PDGF receptors\" — AND imatinib is FDA-approved for PDGFRA-mutant GIST. BUT PloverDB does not return NCBIGene:5156 or any CHEMBL.TARGET for PDGFR-alpha in this query. We omit PDGFRA because the gold set requires the CURIE to be in PloverDB's returned set; we note this as a KG coverage gap rather than a verification failure (parallel to the PTGS1/COX-1 omission in q4)."
+  },
+  "verified_answers": [
+    {
+      "curie": "NCBIGene:3815",
+      "label": "KIT",
+      "aliases": [
+        "c-Kit",
+        "stem cell factor receptor",
+        "SCFR",
+        "CD117"
+      ],
+      "interaction_type": "ATP-competitive kinase inhibition (binds the inactive conformation of the KIT tyrosine kinase domain)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://europepmc.org/article/MED/10991971",
+          "url_with_text_fragment": "https://europepmc.org/article/MED/10991971#:~:text=STI571%20was%20found%20to%20potently%20inhibit%20the%20kinase%20activity%20of%20the%20alpha-%20and%20beta-PDGF%20receptors%20and%20the%20receptor%20for%20stem%20cell%20factor",
+          "page_title": "Abl protein-tyrosine kinase inhibitor STI571 inhibits in vitro signal transduction mediated by c-kit and platelet-derived growth factor receptors. — Europe PMC",
+          "publisher": "European Bioinformatics Institute — Europe PMC (mirror of PubMed)",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Buchdunger E, Cioffi CL, Law N, Stover D, Ohno-Jones S, Druker BJ, Lydon NB. Abl protein-tyrosine kinase inhibitor STI571 inhibits in vitro signal transduction mediated by c-kit and platelet-derived growth factor receptors. J Pharmacol Exp Ther. 2000 Oct;295(1):139-145. PMID:10991971.",
+          "where_on_page": "Open the URL. The article title (which itself names c-kit) sits at the top, followed by the author line and the journal citation \"The Journal of Pharmacology and Experimental Therapeutics, 01 Oct 2000, 295(1):139-145\". The \"Abstract\" block is the next section. Scan the abstract paragraph for the sentence beginning \"STI571 was found to potently inhibit the kinase activity of the alpha- and beta-PDGF receptors and the receptor for stem cell factor...\" — \"the receptor for stem cell factor\" IS c-Kit (= KIT, gene 3815). This is the second sentence in the body of the abstract.",
+          "exact_quote": "STI571 was found to potently inhibit the kinase activity of the alpha- and beta-PDGF receptors and the receptor for stem cell factor, but not the closely related c-Fms, Flt-3, Kdr, Flt-1, and Tek tyrosine kinases."
+        }
+      ]
+    },
+    {
+      "curie": "CHEMBL.TARGET:CHEMBL1862",
+      "label": "Tyrosine-protein kinase ABL",
+      "aliases": [
+        "ABL1",
+        "c-Abl",
+        "Abelson tyrosine kinase",
+        "BCR-ABL (in fusion context)"
+      ],
+      "interaction_type": "ATP-competitive kinase inhibition (imatinib was rationally designed to inhibit the Abl protein tyrosine kinase domain)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://europepmc.org/article/MED/8616716",
+          "url_with_text_fragment": "https://europepmc.org/article/MED/8616716#:~:text=A%20compound%2C%20designed%20to%20inhibit%20the%20Abl%20protein%20tyrosine%20kinase",
+          "page_title": "Effects of a selective inhibitor of the Abl tyrosine kinase on the growth of Bcr-Abl positive cells. — Europe PMC",
+          "publisher": "European Bioinformatics Institute — Europe PMC (mirror of PubMed)",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Druker BJ, Tamura S, Buchdunger E, Ohno S, Segal GM, Fanning S, Zimmermann J, Lydon NB. Effects of a selective inhibitor of the Abl tyrosine kinase on the growth of Bcr-Abl positive cells. Nat Med. 1996 May;2(5):561-566. PMID:8616716.",
+          "where_on_page": "Open the URL. The article title (which itself names \"the Abl tyrosine kinase\") sits at the top, followed by the author line and the journal citation \"Nature Medicine, 01 May 1996, 2(5):561-566\". The \"Abstract\" block is the next section. The relevant sentence is the SECOND sentence of the abstract, beginning \"A compound, designed to inhibit the Abl protein tyrosine kinase, was evaluated for its effects...\". The \"compound\" is imatinib (originally CGP 57148, later STI571 / Gleevec). The CHEMBL.TARGET CURIE used here (CHEMBL1862, \"Tyrosine-protein kinase ABL\") is the ChEMBL protein-level identifier for the same kinase encoded by ABL1 / NCBIGene:25 — PloverDB indexes ABL under this CURIE, not under NCBIGene:25, for this query.",
+          "exact_quote": "A compound, designed to inhibit the Abl protein tyrosine kinase, was evaluated for its effects on cells containing the Bcr-Abl fusion protein."
+        }
+      ]
+    },
+    {
+      "curie": "CHEMBL.TARGET:CHEMBL1913",
+      "label": "Platelet-derived growth factor receptor beta",
+      "aliases": [
+        "PDGFR-β",
+        "PDGFRB",
+        "CD140b"
+      ],
+      "interaction_type": "ATP-competitive kinase inhibition (imatinib binds the inactive conformation of the PDGFR-β tyrosine kinase domain)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://europepmc.org/article/MED/10991971",
+          "url_with_text_fragment": "https://europepmc.org/article/MED/10991971#:~:text=STI571%20selectively%20inhibits%20the%20Abl%20and%20platelet-derived%20growth%20factor%20(PDGF)%20receptor%20tyrosine%20kinases",
+          "page_title": "Abl protein-tyrosine kinase inhibitor STI571 inhibits in vitro signal transduction mediated by c-kit and platelet-derived growth factor receptors. — Europe PMC",
+          "publisher": "European Bioinformatics Institute — Europe PMC (mirror of PubMed)",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Buchdunger E, Cioffi CL, Law N, Stover D, Ohno-Jones S, Druker BJ, Lydon NB. Abl protein-tyrosine kinase inhibitor STI571 inhibits in vitro signal transduction mediated by c-kit and platelet-derived growth factor receptors. J Pharmacol Exp Ther. 2000 Oct;295(1):139-145. PMID:10991971.",
+          "where_on_page": "Open the URL. The article title names \"platelet-derived growth factor receptors\" explicitly. The \"Abstract\" block is the next section. Two sentences of the abstract are jointly relevant: the FIRST sentence after the opening (\"STI571 selectively inhibits the Abl and platelet-derived growth factor (PDGF) receptor tyrosine kinases in vitro...\") establishes PDGF receptor inhibition in general; the SECOND content sentence (\"STI571 was found to potently inhibit the kinase activity of the alpha- and beta-PDGF receptors and the receptor for stem cell factor...\") names the beta receptor specifically. The CHEMBL.TARGET CURIE used here (CHEMBL1913) is the ChEMBL protein-level identifier for the PDGFR-β receptor encoded by PDGFRB / NCBIGene:5159 — PloverDB indexes PDGFR-β under this CURIE for this query.",
+          "exact_quote": "STI571 selectively inhibits the Abl and platelet-derived growth factor (PDGF) receptor tyrosine kinases in vitro and blocks cellular proliferation and tumor growth of Bcr-abl- or v-abl-expressing cells."
+        }
+      ]
+    }
+  ]
+}

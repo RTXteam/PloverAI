@@ -1,0 +1,151 @@
+{
+  "question_id": "q1",
+  "nl_question": "What drugs treat type 2 diabetes mellitus?",
+  "pinned_entity": {
+    "curie": "MONDO:0005148",
+    "label": "type 2 diabetes mellitus",
+    "category": "biolink:Disease"
+  },
+  "answer_category": "biolink:Drug",
+  "predicate": "biolink:treats",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "MONDO:0005148"
+          ],
+          "categories": [
+            "biolink:Disease"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Drug"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:treats"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 126,
+    "results_count_revalidated": 126,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "5 drugs from 5 distinct pharmacological classes (biguanide, sulfonylurea, DPP-4 inhibitor, SGLT2 inhibitor, GLP-1 receptor agonist). Each is FDA-approved for T2D and verified against a primary regulatory source. Each is also returned by PloverDB for the gold query.",
+    "sources_used": [
+      "MedlinePlus drug information page (NIH consumer-facing): used for metformin",
+      "DailyMed FDA-approved drug label (NIH regulatory): used for the other 4 drugs"
+    ],
+    "how_to_verify_a_medlineplus_entry": "Open the URL. Use the right-side TOC or scroll to the section titled \"Why is this medication prescribed?\" — the FIRST paragraph under that heading is the indication. The exact_quote field is verbatim from that paragraph.",
+    "how_to_verify_a_dailymed_entry": "Open the URL. At the top of the label there is a box titled \"HIGHLIGHTS OF PRESCRIBING INFORMATION\". The FIRST numbered subsection (1) is INDICATIONS AND USAGE — that subsection contains the exact_quote. For multi-indication drugs (JARDIANCE, FARXIGA), the T2D indication is one bullet among several; the per-entity where_on_page field calls out which.",
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE was confirmed present in the PloverDB result set for the gold one-hop query (n0=MONDO:0005148, n1=biolink:Drug, e0=biolink:treats from drug to disease). PloverDB returned 126 drug CURIEs total; the 5 here are a curated class-representative subset."
+  },
+  "verified_answers": [
+    {
+      "curie": "CHEBI:6801",
+      "label": "metformin",
+      "drug_class": "biguanide",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/druginfo/meds/a696005.html",
+          "url_with_text_fragment": "https://medlineplus.gov/druginfo/meds/a696005.html#:~:text=Metformin%20is%20used%20alone%20or%20with%20other%20medications%2C%20including%20insulin%2C%20to%20treat%20type%202%20diabetes",
+          "page_title": "Metformin: MedlinePlus Drug Information",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus",
+          "source_type": "drug_label_consumer",
+          "section_heading": "Why is this medication prescribed?",
+          "where_on_page": "On the MedlinePlus metformin page, scroll to (or use the right-side TOC for) the section titled \"Why is this medication prescribed?\" — the FIRST paragraph under that heading is the indication. The quote opens the paragraph.",
+          "exact_quote": "Metformin is used alone or with other medications, including insulin, to treat type 2 diabetes (condition in which the body does not use insulin normally and, therefore, cannot control the amount of sugar in the blood)."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:5384",
+      "label": "glipizide",
+      "drug_class": "sulfonylurea",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=eed99b60-d043-4249-9b2a-f05e46fb588d",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=eed99b60-d043-4249-9b2a-f05e46fb588d#:~:text=GLUCOTROL%20XL%20is%20indicated%20as%20an%20adjunct%20to%20diet%20and%20exercise%20to%20improve%20glycemic%20control%20in%20adults%20with%20type%202%20diabetes%20mellitus",
+          "page_title": "GLUCOTROL XL (glipizide) tablet, extended release",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "INDICATIONS AND USAGE (Highlights of Prescribing Information, section 1)",
+          "where_on_page": "On the DailyMed page, at the top of the FDA label, find the box titled \"HIGHLIGHTS OF PRESCRIBING INFORMATION\". The FIRST numbered subsection (1) is INDICATIONS AND USAGE — the quoted sentence is the single-paragraph contents of that subsection.",
+          "exact_quote": "GLUCOTROL XL is indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:40237",
+      "label": "sitagliptin",
+      "drug_class": "DPP-4 inhibitor",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=f85a48d0-0407-4c50-b0fa-7673a160bf01",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=f85a48d0-0407-4c50-b0fa-7673a160bf01#:~:text=JANUVIA%20is%20a%20dipeptidyl%20peptidase%2D4%20(DPP%2D4)%20inhibitor%20indicated%20as%20an%20adjunct%20to%20diet%20and%20exercise%20to%20improve%20glycemic%20control%20in%20adults%20with%20type%202%20diabetes%20mellitus",
+          "page_title": "JANUVIA (sitagliptin) tablet, film coated",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "INDICATIONS AND USAGE (Highlights of Prescribing Information, section 1)",
+          "where_on_page": "On the DailyMed JANUVIA page, the top of the label has \"HIGHLIGHTS OF PRESCRIBING INFORMATION\". The FIRST numbered subsection (1) is INDICATIONS AND USAGE — the quoted sentence is that subsection's opening line.",
+          "exact_quote": "JANUVIA is a dipeptidyl peptidase-4 (DPP-4) inhibitor indicated as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:82720",
+      "label": "empagliflozin",
+      "drug_class": "SGLT2 inhibitor",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=5777b8a8-ada6-4950-8548-43a1de11f075",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=5777b8a8-ada6-4950-8548-43a1de11f075#:~:text=As%20an%20adjunct%20to%20diet%20and%20exercise%20to%20improve%20glycemic%20control%20in%20adults%20and%20pediatric%20patients%20aged%2010%20years%20and%20older%20with%20type%202%20diabetes%20mellitus",
+          "page_title": "JARDIANCE (empagliflozin) tablet, film coated",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "INDICATIONS AND USAGE (Highlights of Prescribing Information, section 1)",
+          "where_on_page": "On the DailyMed JARDIANCE page, the top of the label has \"HIGHLIGHTS OF PRESCRIBING INFORMATION\". Section (1) INDICATIONS AND USAGE has a bulleted list — the quoted bullet is the one starting \"As an adjunct to diet and exercise...\". (JARDIANCE has 4 indications listed; the T2D bullet is among them.)",
+          "exact_quote": "JARDIANCE is a sodium-glucose co-transporter 2 (SGLT2) inhibitor indicated: ... As an adjunct to diet and exercise to improve glycemic control in adults and pediatric patients aged 10 years and older with type 2 diabetes mellitus."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:167574",
+      "label": "semaglutide",
+      "drug_class": "GLP-1 receptor agonist",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=27f15fac-7d98-4114-a2ec-92494a91da98",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=27f15fac-7d98-4114-a2ec-92494a91da98#:~:text=as%20an%20adjunct%20to%20diet%20and%20exercise%20to%20improve%20glycemic%20control%20in%20adults%20with%20type%202%20diabetes%20mellitus",
+          "page_title": "OZEMPIC / RYBELSUS (semaglutide)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "INDICATIONS AND USAGE (Highlights of Prescribing Information, section 1)",
+          "where_on_page": "On the DailyMed page, the top of the label has \"HIGHLIGHTS OF PRESCRIBING INFORMATION\". Section (1) INDICATIONS AND USAGE has a bulleted list (RYBELSUS and OZEMPIC tablets are indicated: ...) — the FIRST bullet is the T2D indication.",
+          "exact_quote": "RYBELSUS and OZEMPIC tablets are indicated: as an adjunct to diet and exercise to improve glycemic control in adults with type 2 diabetes mellitus."
+        }
+      ]
+    }
+  ]
+}

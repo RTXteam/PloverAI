@@ -1,0 +1,101 @@
+{
+  "question_id": "q6",
+  "nl_question": "Which diseases present with seizures?",
+  "pinned_entity": {
+    "curie": "HP:0001250",
+    "label": "Seizure",
+    "category": "biolink:PhenotypicFeature"
+  },
+  "answer_category": "biolink:Disease",
+  "predicate": "biolink:has_phenotype",
+  "predicate_note": "Edge direction: Disease (subject) → has_phenotype → PhenotypicFeature (object). PloverDB stores 198 disease→HP:0001250 edges, but the answer set is heavily skewed toward oncology (see kg_coverage_note below).",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "categories": [
+            "biolink:Disease"
+          ]
+        },
+        "n1": {
+          "ids": [
+            "HP:0001250"
+          ],
+          "categories": [
+            "biolink:PhenotypicFeature"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:has_phenotype"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 198,
+    "results_count_revalidated": 199,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "REPLACED: Original Q6 used HP:0004401 (meconium ileus) which normalizes to MONDO:0054868 (Disease type). New Q6 uses HP:0001250 (seizures).",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "2 brain tumors that frequently present with seizures, each supported by a peer-reviewed neurology / neuro-oncology publication that gives a specific seizure-presentation rate. Both are in PloverDB's returned set for this query.",
+    "sources_used": [
+      "Duehrsen L et al. 2019. \"Seizures as presenting symptom in patients with glioblastoma.\" Epilepsia 60(1):149-154. PMID:30536819. Europe PMC: https://europepmc.org/article/MED/30536819",
+      "Kerkhof M, Vecht CJ. 2013. \"Seizure characteristics and prognostic factors of gliomas.\" Epilepsia 54 Suppl 9:12-17. PMID:24328866. Europe PMC: https://europepmc.org/article/MED/24328866"
+    ],
+    "how_to_verify_an_entry": "Open the Europe PMC URL for the cited paper. The page renders the paper's title, authors, journal/year/volume, PMID, and full abstract in a single \"Abstract\" block near the top. The exact_quote field reproduces one or two sentences from that abstract that give the seizure-presentation statistic for the cited disease. Europe PMC abstracts do not reflow — locate the quoted sentence by scanning the abstract paragraph for the cited percentage or rate.",
+    "cross_check_with_ploverdb": "Both verified_answer CURIEs (MONDO:0018177 glioblastoma, MONDO:0016696 anaplastic oligodendroglioma) were confirmed present in the PloverDB result set for the gold one-hop query (n0=biolink:Disease, n1=HP:0001250, e0=biolink:has_phenotype). PloverDB returned 198 disease CURIEs total.",
+    "kg_coverage_note": "PloverDB's 198 disease results for HP:0001250 (Seizure) are ~190 brain tumors + a small handful of other entries (Cowden disease, diffuse meningeal melanocytosis). Classical epilepsy syndromes that clinicians strongly associate with seizures — Dravet syndrome, Lennox-Gastaut syndrome, tuberous sclerosis complex, Rett syndrome, Angelman syndrome, Smith-Lemli-Opitz syndrome, infantile spasms, febrile seizures, etc. — are NOT in PloverDB's answer set for this query. This is a KG coverage gap: KG2c's disease→phenotype edges with HP:0001250 appear to come predominantly from oncology / clinical-trial annotation sources, not from HPO disease annotation databases or epilepsy classification references. The gold set is restricted to what is actually returnable; this asymmetry should be discussed in the paper's Limitations section. See also pipeline/benchmark/known_issues.md for related canonicalization quirks affecting this question.",
+    "predicate_alternative_explored": "We also confirmed that swapping the predicate to biolink:causes (as q3 does for warfarin AEs) returns a different set of diseases. The has_phenotype edge in this KG build models \"this disease has Seizure as a clinical feature\"; results bias toward conditions whose phenotype profiles were imported from oncology trial annotations rather than HPO disease records."
+  },
+  "verified_answers": [
+    {
+      "curie": "MONDO:0018177",
+      "label": "glioblastoma",
+      "presentation_rate": "22.3% of patients (Duehrsen 2019 cohort, n=103); 30-60% across larger series (Kerkhof & Vecht 2013 review)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://europepmc.org/article/MED/30536819",
+          "url_with_text_fragment": "https://europepmc.org/article/MED/30536819#:~:text=Twenty-three%20patients%20were%20symptomatic%20with%20seizures%20(22.3%25)",
+          "page_title": "Seizures as presenting symptom in patients with glioblastoma. — Europe PMC",
+          "publisher": "European Bioinformatics Institute — Europe PMC (mirror of PubMed)",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract → Results",
+          "citation": "Dührsen L, Sauvigny T, Ricklefs FL, Mende KC, Schaper M, Matschke J, Goebell E, Westphal M, Martens T. Seizures as presenting symptom in patients with glioblastoma. Epilepsia. 2019;60(1):149-154. PMID:30536819.",
+          "where_on_page": "Open the URL. Near the top of the page, after the title \"Seizures as presenting symptom in patients with glioblastoma.\" and the author/journal line, scroll to the \"Abstract\" block. The abstract is a single paragraph organized as Objective / Methods / Results / Conclusion. Under \"Results\" (about a third of the way into the paragraph) you'll find the sentence beginning \"One hundred three patients diagnosed with glioblastoma...\" — the very next sentence is the cited statistic.",
+          "exact_quote": "Twenty-three patients were symptomatic with seizures (22.3%)."
+        }
+      ]
+    },
+    {
+      "curie": "MONDO:0016696",
+      "label": "anaplastic oligodendroglioma",
+      "presentation_rate": "60-85% (low-grade gliomas, of which oligodendroglioma is the canonical example; Kerkhof & Vecht 2013 review)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://europepmc.org/article/MED/24328866",
+          "url_with_text_fragment": "https://europepmc.org/article/MED/24328866#:~:text=low-grade%20gliomas%20of%2060-85%25%2C%20and%20glioblastoma%20of%2030-60%25",
+          "page_title": "Seizure characteristics and prognostic factors of gliomas. — Europe PMC",
+          "publisher": "European Bioinformatics Institute — Europe PMC (mirror of PubMed)",
+          "source_type": "peer_reviewed_publication",
+          "section_heading": "Abstract",
+          "citation": "Kerkhof M, Vecht CJ. Seizure characteristics and prognostic factors of gliomas. Epilepsia. 2013;54 Suppl 9:12-17. PMID:24328866. (Review article.)",
+          "where_on_page": "Open the URL. After the title \"Seizure characteristics and prognostic factors of gliomas.\" and the author/journal line (Epilepsia, 2013), the \"Abstract\" block sits near the top. The abstract opens with the sentence \"Epilepsy in neuroepithelial tumors is highly prevalent.\" — the immediately following sentence is the cited statistic giving seizure-incidence ranges for each tumor type, including oligodendroglioma's category (low-grade gliomas).",
+          "exact_quote": "Neurogliomas (dysembryoplastic neuroepitheliomas [DNETs] and gangliogliomas) have a seizure incidence of 80-100%, low-grade gliomas of 60-85%, and glioblastoma of 30-60%. With each type, the appearance of seizures is usually the presenting clinical symptom."
+        }
+      ]
+    }
+  ]
+}

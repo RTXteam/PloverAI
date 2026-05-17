@@ -1,0 +1,40 @@
+# local secrets — only the .env.example template is tracked.
+.env
+
+# python build / cache artifacts. these are machine-local and noisy.
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+build/
+dist/
+
+# virtual environments. we never commit a venv.
+.venv/
+venv/
+env/
+
+# linter / type-checker / dead-code caches.
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.vulture_cache/
+
+# every benchmark run drops a log under code/logs/RUN_<utc-ts>/run.log
+# (plus possibly other diagnostic files the runner may add later).
+# the RUN folders mirror outputs/RUN_<utc-ts>/ so any run.log can be
+# cross-referenced with its artifact folder by folder name. keep the
+# parent dir present, ignore everything inside.
+code/logs/RUN_*/
+
+# per-run artifact folders go under code/outputs/ (one folder per
+# pipeline invocation, see code/trace.py). these are large and
+# regeneratable; keep the folder, ignore the contents.
+code/outputs/*
+!code/outputs/.gitkeep
+
+# editor scratch
+.idea/
+.vscode/
+*.swp
+.DS_Store

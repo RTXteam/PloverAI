@@ -1,0 +1,120 @@
+{
+  "question_id": "q3",
+  "nl_question": "What adverse events does warfarin cause?",
+  "pinned_entity": {
+    "curie": "CHEBI:10033",
+    "label": "warfarin",
+    "category": "biolink:Drug"
+  },
+  "answer_category": "biolink:PhenotypicFeature",
+  "predicate": "biolink:causes",
+  "predicate_note": "Original `biolink:has_adverse_event` is not in KG2.10.2c; gold uses `biolink:causes` for the same semantic relation, per the q3 predicate_fix in the legacy gold record.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "CHEBI:10033"
+          ],
+          "categories": [
+            "biolink:Drug"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:PhenotypicFeature"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:causes"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 26,
+    "results_count_revalidated": 26,
+    "baseline_date": "2026-03-30",
+    "revalidated_date": "2026-05-15",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": "has_adverse_event -> causes (has_adverse_event not in KG2)",
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0"
+  },
+  "verification_guide": {
+    "summary": "3 adverse events from the 2 named AE categories in the FDA-approved COUMADIN label (Section 5.1 Hemorrhage and Section 5.2 Tissue Necrosis). Bleeding is also the headline of the FDA Boxed Warning — strongest possible labeling. Each is returned by PloverDB for the gold query.",
+    "sources_used": [
+      "DailyMed FDA-approved label for COUMADIN (warfarin sodium) tablet. URL: https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d"
+    ],
+    "how_to_verify_an_entry": "Open the URL. The label is organized in two layers: (a) HIGHLIGHTS OF PRESCRIBING INFORMATION at the top — a condensed summary with the BOXED WARNING and bulleted Highlights sections; (b) FULL PRESCRIBING INFORMATION lower down — the numbered (1, 2, 3...) full text. Find each AE in either layer using the per-entity where_on_page field. Cross-references in parentheses like \"(5.1)\" point from Highlights to the matching full-PI section.",
+    "specific_locations": {
+      "Abnormal bleeding": "Top of page, bordered \"WARNING: BLEEDING RISK\" box (the Boxed Warning). First sentence. Also Highlights bullet 5.1, also full PI section 5.1 Hemorrhage.",
+      "Cutaneous necrosis": "Highlights of Prescribing Information → \"WARNINGS AND PRECAUTIONS\" → bullet labeled \"Tissue necrosis: ...\". Cross-ref (5.2).",
+      "Gangrene": "Full Prescribing Information → section \"5.2 Tissue Necrosis\". First sentence."
+    },
+    "cross_check_with_ploverdb": "Each verified_answer's CURIE (HP:0001892, HP:0033126, HP:0100758) was confirmed present in the PloverDB result set for the gold one-hop query (n0=CHEBI:10033, n1=biolink:PhenotypicFeature, e0=biolink:causes from drug to phenotype). PloverDB returned 26 PhenotypicFeature CURIEs total.",
+    "intentionally_omitted": "PloverDB also returns MONDO:0017215 (calciphylaxis) for warfarin, but neither available COUMADIN DailyMed label mentions calciphylaxis explicitly. Newer warfarin labels (e.g. Jantoven, generic) do — could be added later by citing one of those labels."
+  },
+  "verified_answers": [
+    {
+      "curie": "HP:0001892",
+      "label": "Abnormal bleeding",
+      "ae_category": "hemorrhage (Boxed Warning + Section 5.1)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d#:~:text=COUMADIN%20can%20cause%20major%20or%20fatal%20bleeding",
+          "page_title": "COUMADIN (warfarin sodium) tablet",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "WARNING: BLEEDING RISK (Boxed Warning) + 5.1 Hemorrhage",
+          "where_on_page": "At the very top of the FDA label, look for the bordered \"WARNING: BLEEDING RISK\" box (the Boxed Warning). The first sentence states the AE explicitly. The same warning is also named in Highlights → \"WARNINGS AND PRECAUTIONS\" and in section 5.1 of the full prescribing information.",
+          "exact_quote": "WARNING: BLEEDING RISK — COUMADIN can cause major or fatal bleeding."
+        }
+      ]
+    },
+    {
+      "curie": "HP:0033126",
+      "label": "Cutaneous necrosis",
+      "ae_category": "tissue necrosis (Section 5.2)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d#:~:text=Necrosis%20or%20gangrene%20of%20skin%20or%20other%20tissues%20can%20occur",
+          "page_title": "COUMADIN (warfarin sodium) tablet",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "WARNINGS AND PRECAUTIONS — 5.2 Tissue Necrosis",
+          "where_on_page": "Scroll to the \"WARNINGS AND PRECAUTIONS\" section (section 5). The second subsection is \"5.2 Tissue Necrosis\". The Highlights bullet for 5.2 (or section 5.2 in the full prescribing information) names the AE.",
+          "exact_quote": "Tissue necrosis: Necrosis or gangrene of skin or other tissues can occur, with severe cases requiring debridement or amputation. Discontinue COUMADIN and consider alternative anticoagulants if necessary. (5.2)"
+        }
+      ]
+    },
+    {
+      "curie": "HP:0100758",
+      "label": "Gangrene",
+      "ae_category": "tissue necrosis (Section 5.2)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=91fa852c-b43d-4a55-983b-74aa6827125d#:~:text=Necrosis%20and%2For%20gangrene%20of%20skin%20and%20other%20tissues%20is%20an%20uncommon%20but%20serious%20risk",
+          "page_title": "COUMADIN (warfarin sodium) tablet",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "section_heading": "Full Prescribing Information — 5.2 Tissue Necrosis",
+          "where_on_page": "In the full prescribing information, expand or scroll to section \"5.2 Tissue Necrosis\". The first sentence of that section names gangrene as part of the AE.",
+          "exact_quote": "Necrosis and/or gangrene of skin and other tissues is an uncommon but serious risk (<0.1%). Necrosis may be associated with local thrombosis and usually appears within a few days of the start of COUMADIN therapy."
+        }
+      ]
+    }
+  ]
+}

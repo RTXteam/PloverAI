@@ -1,0 +1,66 @@
+# pinned for reproducibility. every version below is what was confirmed
+# working at the time of the run. bump deliberately, not implicitly.
+
+# -------- production --------
+
+# httpx: HTTP client used to call OpenRouter and PloverDB. we prefer it
+# over requests for proper timeout handling and connection pooling
+# across the 160-instance benchmark.
+httpx==0.28.1
+
+# pyyaml: parses pipeline/config.yaml (the single source of truth for
+# the model list, prices, and endpoints).
+pyyaml==6.0.2
+
+# types-PyYAML: type stubs for PyYAML so mypy --strict passes without
+# us monkey-patching anything.
+types-PyYAML==6.0.12.20240917
+
+# python-dotenv: loads OPENROUTER_API_KEY (and anything else) from
+# pipeline/.env into os.environ at runner start-up.
+python-dotenv==1.0.1
+
+# rich: pretty terminal — progress bars, log handler, summary tables.
+# the whole pipeline shares one Console object so the bars don't fight
+# the live log lines.
+rich==13.9.4
+
+# reasoner-validator: NCATSTranslator's official validator for TRAPI
+# 1.5 messages and Biolink 4.x predicates / categories. we run it on
+# every LLM-built query (via check_biolink_model_compliance) before
+# sending it to PloverDB. 6.0.1 is the version verified working with
+# Python 3.12; the older 4.x line caps at Python <3.12.
+reasoner-validator==6.0.1
+
+# bmt (Biolink Model Toolkit): canonical Python API for the Biolink
+# Model class hierarchy. used at start-up to derive a "loose
+# neighborhood" of Biolink categories for the NameRes biolink_type
+# filter — e.g. when the LLM says biolink:Pathway, we ALSO let NameRes
+# return matches typed as biolink:BiologicalProcess (Pathway's parent)
+# so GO terms like GO:0006695 (cholesterol biosynthetic process) aren't
+# excluded by an over-strict type filter. comes in transitively via
+# reasoner-validator today but we pin it directly so the dependency is
+# explicit and reproducible.
+bmt==1.4.6
+
+# fastapi: web framework for the always-on HTTP service. exposes the
+# pipeline at /api/v1/query so both the Next.js UI and external
+# clients (e.g. ARAX) hit one endpoint. OpenAPI-native, which matches
+# how the rest of the Translator ecosystem documents itself.
+fastapi==0.115.5
+
+# uvicorn[standard]: ASGI server for FastAPI. the [standard] extra
+# pulls in httptools and uvloop so prod throughput isn't gated on the
+# stdlib asyncio implementation.
+uvicorn[standard]==0.32.1
+
+# -------- dev (linting, types, dead-code detection) --------
+
+# ruff: very fast linter; replaces flake8 / isort / pyupgrade for us.
+ruff==0.7.4
+
+# mypy: static type checker; we run it in --strict mode.
+mypy==1.13.0
+
+# vulture: dead-code finder; flags imports / functions that are never used.
+vulture==2.13

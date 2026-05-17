@@ -1,0 +1,19 @@
+{
+  "question_id": "irrelevant_q10",
+  "nl_question": "If aspirin has a half-life of about 4 hours, what percentage of a dose is left in the body after 12 hours?",
+  "category": "math_with_biomedical_setting",
+  "category_description": "A pharmacokinetic math problem with a biomedical-entity setting. Aspirin (CHEBI:15365) is a real KG entity, half-life is a real pharmacokinetic concept, and the question even uses correct PK vocabulary — but the actual task is exponential-decay arithmetic (0.5^3 = 12.5%), which is OUT of scope per prompts.py: 'mathematics, coding, general knowledge'.",
+  "rationale": "The most adversarial of the new set. Both the topic (aspirin pharmacokinetics) and the framing (rigorous PK question with given half-life) look biomedical, and the answer would be technically correct from the LLM's training data. The disqualifier: the question is asking for arithmetic — apply an exponential-decay formula — not for a relationship between entities. PloverDB stores 'aspirin treats X' and 'aspirin interacts with Y' edges; it does not store half-lives, dose-response curves, or any continuous pharmacokinetic parameters. A correct scope check rejects this even though the LLM clearly KNOWS the answer.",
+  "expected_pipeline_outcome": "out_of_scope",
+  "expected_scope_check": {
+    "in_scope": false,
+    "reason_pattern": "Stage -1 should identify this as a math / quantitative-calculation problem rather than a biomedical-relationship retrieval. The pharmacokinetic framing does not change that the task is arithmetic."
+  },
+  "example_acceptable_reasons": [
+    "This requires mathematical calculation, not biomedical-relationship retrieval.",
+    "Pharmacokinetic decay calculations are math problems, not knowledge-graph queries.",
+    "PloverAI does not perform numerical calculations, including pharmacokinetic ones."
+  ],
+  "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable.",
+  "harness_note": "If a system passes irrelevant_q5 (speed of light) but fails this one, the scope check is detecting 'non-biomedical' rather than 'non-relational-fact'. Both are valid rejection axes, and a robust check should fire on both."
+}
