@@ -50,9 +50,24 @@ PLOVERAI_API_KEY=dev-key-change-me \
 ```
 
 - `GET /health` — liveness
-- `POST /api/v1/query` (header `X-API-Key`) — one NL question in,
-  one full pipeline trace out
+- `POST /api/v1/query` (headers `X-API-Key`, `X-Guest-Id`) — one NL
+  question in, one full pipeline trace out. `X-Guest-Id` is a
+  client-minted UUID v4 used to namespace this run on disk so the
+  caller's sidebar listing stays isolated from other visitors'.
+- `POST /api/v1/query/stream` (same headers as above) — Server-Sent
+  Events variant; emits one event per pipeline log line, then a
+  terminal `result` or `error` event.
+- `GET /api/v1/runs` (headers `X-API-Key`, `X-Guest-Id`) — sidebar
+  listing scoped to the caller's `X-Guest-Id`.
+- `GET /api/v1/runs/{run_id}` (header `X-API-Key`) — capability
+  lookup; any caller with a known `run_id` can re-open the run,
+  regardless of which guest namespace created it. This is what makes
+  shareable URLs work without sign-in.
 - `GET /docs` — auto-generated OpenAPI explorer
+
+`X-Guest-Id` must match the UUID v4 pattern; malformed values are
+rejected with 400. On disk, runs land at
+`outputs/<guest_id>/RUN_<utc_ts>_<nonce>/<model>/grounded/adhoc/`.
 
 ## Before every commit
 

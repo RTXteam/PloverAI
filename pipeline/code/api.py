@@ -9,6 +9,9 @@ from __future__ import annotations
 # stdlib only.
 # os: read PLOVERAI_API_KEY and PLOVERAI_CORS_ORIGINS from the env.
 import os
+# re: validate the shape of the X-Guest-Id header (UUID v4) so a
+# malformed value can't escape into a filesystem path.
+import re
 # uuid: short token appended to the run id so concurrent requests
 # never collide on the same artifact folder.
 import uuid
@@ -300,6 +303,28 @@ def require_api_key(
         raise HTTPException(401, "invalid api key")
 
 
+# per-browser identifier. minted by the UI as a localStorage UUID and
+# sent on every write request so runs can be namespaced on disk and
+# the sidebar shows only this browser's history. NOT an auth boundary
+# — the header is client-controlled. when real sign-in lands, the
+# server stops trusting this header for ownership.
+_GUEST_ID_RE = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
+)
+
+
+def require_guest_id(
+    x_guest_id: Annotated[str | None, Header(alias="X-Guest-Id")] = None,
+) -> str:
+    # strict shape check is also the path-traversal defense: a value
+    # like "../foo" would never match the UUID regex, so it can never
+    # land in `cfg.paths.results / guest_id` as a malicious path.
+    if not x_guest_id or not _GUEST_ID_RE.match(x_guest_id):
+        raise HTTPException(400, "missing or malformed X-Guest-Id header")
+    return x_guest_id.lower()
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     # liveness probe for nginx / monit / uptime checks. cheap and
@@ -369,15 +394,19 @@ def list_questions() -> QuestionsResponse:
     response_model=RunsResponse,
     dependencies=[Depends(require_api_key)],
 )
-def list_runs(limit: int = 50, offset: int = 0) -> RunsResponse:
-    # walks `code/outputs/RUN_*/<model>/grounded/<q_id>/` and reads the
-    # cheap-to-parse meta.json + question.json for each, newest first.
-    # full artifacts are NOT loaded — that's what /api/v1/runs/{id} is
-    # for. limit caps how many rows the UI sidebar pulls at once;
-    # offset lets the sidebar paginate older entries on infinite-scroll.
+def list_runs(
+    guest_id: Annotated[str, Depends(require_guest_id)],
+    limit: int = 50,
+    offset: int = 0,
+) -> RunsResponse:
+    # walks `outputs/<guest_id>/RUN_*/<model>/grounded/<q_id>/` and
+    # reads the cheap-to-parse meta.json + question.json for each,
+    # newest first. full artifacts are NOT loaded — that's what
+    # /api/v1/runs/{id} is for. the listing is scoped to one guest so
+    # each visitor sees only their own browser's history.
     results_root: Path = app.state.cfg.paths.results
     return RunsResponse(runs=_collect_run_summaries(
-        results_root, limit=limit, offset=offset,
+        results_root, guest_id=guest_id, limit=limit, offset=offset,
     ))
 
 
@@ -389,10 +418,13 @@ def list_runs(limit: int = 50, offset: int = 0) -> RunsResponse:
 def get_run(run_id: str) -> QueryResponse:
     # rehydrates a past run's full artifacts into the same shape /api/
     # v1/query returns, so the UI can re-open any history entry and
-    # see exactly what it saw the first time.
+    # see exactly what it saw the first time. NO guest_id dep here:
+    # this is a capability-style lookup so direct URLs (e.g. a link
+    # shared in a slide or email) work for any visitor, not just the
+    # one who originally created the run.
     results_root: Path = app.state.cfg.paths.results
-    run_dir = results_root / f"RUN_{run_id}"
-    if not run_dir.is_dir():
+    run_dir = _find_run_dir_any_guest(results_root, run_id)
+    if run_dir is None:
         raise HTTPException(404, f"unknown run: {run_id!r}")
     qp = _find_question_paths_in_run(run_dir)
     if qp is None:
@@ -453,14 +485,18 @@ def list_models() -> ModelsResponse:
     response_model=QueryResponse,
     dependencies=[Depends(require_api_key)],
 )
-def query(req: QueryRequest) -> QueryResponse:
+def query(
+    req: QueryRequest,
+    guest_id: Annotated[str, Depends(require_guest_id)],
+) -> QueryResponse:
     cfg = app.state.cfg
     logger = app.state.logger
     model_spec = _resolve_model(cfg, req.model)
-    request_run_id, qp = _prepare_run_paths(cfg, model_spec)
+    request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
 
     logger.info(
         f"-> /api/v1/query  request_run_id={request_run_id}  "
+        f"guest={guest_id[:8]}  "
         f"model={model_spec.id}  q_len={len(req.question)}"
     )
 
@@ -493,7 +529,10 @@ def query(req: QueryRequest) -> QueryResponse:
     "/api/v1/query/stream",
     dependencies=[Depends(require_api_key)],
 )
-async def query_stream(req: QueryRequest) -> StreamingResponse:
+async def query_stream(
+    req: QueryRequest,
+    guest_id: Annotated[str, Depends(require_guest_id)],
+) -> StreamingResponse:
     # Server-Sent Events variant of /api/v1/query. emits a sequence of
     # JSON events while the pipeline runs so the UI can show live
     # progress, then a final 'result' event with the same payload the
@@ -510,7 +549,7 @@ async def query_stream(req: QueryRequest) -> StreamingResponse:
     cfg = app.state.cfg
     logger: logging.Logger = app.state.logger
     model_spec = _resolve_model(cfg, req.model)
-    request_run_id, qp = _prepare_run_paths(cfg, model_spec)
+    request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
 
     loop = asyncio.get_running_loop()
     events: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
@@ -548,6 +587,7 @@ async def query_stream(req: QueryRequest) -> StreamingResponse:
         try:
             logger.info(
                 f"-> /api/v1/query/stream  request_run_id={request_run_id}  "
+                f"guest={guest_id[:8]}  "
                 f"model={model_spec.id}  q_len={len(req.question)}"
             )
             result = run_grounded(
@@ -616,12 +656,18 @@ def _resolve_model(cfg: Any, model_id: str) -> ModelSpec:
     return spec
 
 
-def _prepare_run_paths(cfg: Any, model_spec: ModelSpec) -> tuple[str, QuestionPaths]:
+def _prepare_run_paths(
+    cfg: Any, model_spec: ModelSpec, guest_id: str,
+) -> tuple[str, QuestionPaths]:
     # fresh artifact folder per HTTP request. ISO-8601 UTC timestamp
     # plus a short uuid lets concurrent requests coexist without
-    # clobbering each other's files.
+    # clobbering each other's files. runs are nested under the
+    # caller's guest_id so the sidebar listing for one browser stays
+    # isolated from another's (capability-read still works via
+    # _find_run_dir_any_guest below — see GET /api/v1/runs/{id}).
     request_run_id = f"{utc_stamp()}_{uuid.uuid4().hex[:8]}"
-    run_dir = make_run_dir(cfg.paths.results, request_run_id)
+    guest_results_root = cfg.paths.results / guest_id
+    run_dir = make_run_dir(guest_results_root, request_run_id)
     run_root = make_run_root(run_dir, model_spec.id, model_spec.slug)
     # grounded is currently the only condition the service exposes;
     # ungrounded is benchmark-only and doesn't reach this layer.
@@ -744,6 +790,26 @@ def _build_category_set(meta_kg: dict[str, Any]) -> list[str]:
 # history-walking helpers used by GET /api/v1/runs and /api/v1/runs/{id}.
 # the on-disk layout is owned by trace.py — these functions assume that
 # layout and break loudly if it changes (which is what we want).
+def _find_run_dir_any_guest(results_root: Path, run_id: str) -> Path | None:
+    # capability-style lookup for GET /api/v1/runs/{id}. any visitor
+    # with a known run_id can re-open the run regardless of which
+    # guest namespace it was created under — that's how shareable URLs
+    # work without sign-in. cost is O(num guest namespaces); fine for
+    # thesis-demo scale, graduates to a DB lookup later. order is
+    # arbitrary — run_ids are timestamp-prefixed + 8-hex-nonce so
+    # collisions across namespaces are practically impossible.
+    if not results_root.is_dir():
+        return None
+    target = f"RUN_{run_id}"
+    for guest_dir in results_root.iterdir():
+        if not guest_dir.is_dir():
+            continue
+        candidate = guest_dir / target
+        if candidate.is_dir():
+            return candidate
+    return None
+
+
 def _find_question_paths_in_run(run_dir: Path) -> QuestionPaths | None:
     # the runner writes one (model, condition, q_id) folder per
     # invocation. for the API service that's always exactly one
@@ -762,24 +828,26 @@ def _find_question_paths_in_run(run_dir: Path) -> QuestionPaths | None:
 
 def _collect_run_summaries(
     results_root: Path,
+    guest_id: str,
     limit: int,
     offset: int = 0,
 ) -> list[RunSummary]:
-    # newest-first listing of completed runs. malformed folders (a
-    # crashed run that never wrote meta.json) are skipped rather than
-    # failing the whole listing — better UX, and the user can spot
-    # the gap by the timestamp.
+    # newest-first listing of completed runs for one guest namespace.
+    # malformed folders (a crashed run that never wrote meta.json) are
+    # skipped rather than failing the whole listing — better UX, and
+    # the user can spot the gap by the timestamp.
     #
     # offset enables the sidebar's infinite scroll: each successive
     # ?limit=50&offset=N call returns the next page of older runs.
     # crashed-folder skipping is applied AFTER offset/limit so callers
     # get a stable count of N rows per page regardless of how many
     # malformed folders are scattered through the directory.
-    if not results_root.is_dir():
+    guest_root = results_root / guest_id
+    if not guest_root.is_dir():
         return []
     summaries: list[RunSummary] = []
     run_dirs = sorted(
-        (d for d in results_root.iterdir() if d.is_dir() and d.name.startswith("RUN_")),
+        (d for d in guest_root.iterdir() if d.is_dir() and d.name.startswith("RUN_")),
         key=lambda d: d.name,
         reverse=True,
     )

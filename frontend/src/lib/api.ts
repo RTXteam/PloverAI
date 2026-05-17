@@ -3,6 +3,11 @@
 // NEXT_PUBLIC_* env vars so the same bundle runs against localhost in
 // dev and the EC2 host in production.
 
+// guest identity: per-browser UUID stored in localStorage. sent on
+// every request as X-Guest-Id so the server can namespace the
+// sidebar. see ./guest.ts for the trade-offs.
+import { getGuestId } from "./guest";
+
 // types mirror the FastAPI response models. keep them narrow — we
 // only declare fields the UI actually reads. anything else stays in
 // an `unknown` blob.
@@ -184,7 +189,7 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000").r
 const API_KEY = process.env.NEXT_PUBLIC_API_KEY ?? "";
 
 function authHeaders(extra?: Record<string, string>): Record<string, string> {
-  return { "X-API-Key": API_KEY, ...(extra ?? {}) };
+  return { "X-API-Key": API_KEY, "X-Guest-Id": getGuestId(), ...(extra ?? {}) };
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
