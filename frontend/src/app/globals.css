@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* line-clamp + typography utilities used by the sidebar history rows
+   and the markdown explanation panel. v4 loads plugins from CSS. */
+@plugin "@tailwindcss/typography";
+
+/* dark mode driven by an explicit .dark class on <html>. the inline
+   FOUC bootstrap in layout.tsx sets the class before React hydrates;
+   the ThemeSwitch toggles it at runtime. when no preference is stored
+   the bootstrap reads prefers-color-scheme, so OS-following is the
+   default behaviour. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  /* smooth fade when the theme flips. excludes layout-affecting
+     properties so toggling never causes reflow. */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
