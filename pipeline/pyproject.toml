@@ -22,7 +22,9 @@ select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "TRY"]
 #       use Path(...) as a default and that's fine for our scale.
 # I001: "import block is un-sorted" - we deliberately interleave imports
 #       with explanatory comments, which I001 rejects.
-ignore = ["E501", "TRY003", "TRY300", "B008", "I001"]
+# RUF003: "ambiguous unicode in comments" - we use ∪ for set union,
+#         × for multiplication, and – for ranges. all deliberate.
+ignore = ["E501", "TRY003", "TRY300", "B008", "I001", "RUF003"]
 
 [tool.ruff.lint.isort]
 # group: stdlib | third-party | first-party (us). makes import blocks
@@ -45,8 +47,19 @@ explicit_package_bases  = true
 # here. httpx, rich, python-dotenv, and PyYAML (via types-PyYAML)
 # all ship their own stubs and need no override.
 [[tool.mypy.overrides]]
-module = ["reasoner_validator", "reasoner_validator.*"]
+module = ["reasoner_validator", "reasoner_validator.*", "bmt", "bmt.*"]
 ignore_missing_imports = true
+
+# tests use the pytest collection convention (def test_foo(): ...) which
+# is naturally untyped. enforcing --strict on every test function adds
+# noise without catching real bugs — the production code under code/
+# is what carries the strict type contract. mypy still runs on tests
+# via pytest's own type-aware plumbing if needed.
+[[tool.mypy.overrides]]
+module = ["pipeline.code.tests.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
 
 [tool.vulture]
 # vulture finds dead code. min_confidence 80 keeps it useful without

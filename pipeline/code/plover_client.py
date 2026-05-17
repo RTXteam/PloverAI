@@ -149,7 +149,7 @@ class PloverClient:
         pinned_curie: str,
         pinned_cat: str,
         answer_cat: str,
-    ) -> "PredicateProbe":
+    ) -> PredicateProbe:
         # CURIE-specific predicate-distribution probe. fires ONE TRAPI
         # query with the pinned CURIE on one side and the answer category
         # on the other, NO predicate filter — PloverDB returns every

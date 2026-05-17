@@ -515,25 +515,25 @@ def _check_label_consistency(mention: str, label: str) -> tuple[float, dict[str,
     # failure ("type 2 diabites" vs "sialidosis type 2" shares {"type", "2"}
     # → Jaccard 0.5, masking the typo). see git blame for the bug.
     m = mention.lower().strip()
-    l = label.lower().strip()
+    lbl = label.lower().strip()
     # both-empty corner case: SequenceMatcher.ratio("", "") returns 1.0
     # in stdlib (empty trivially matches empty), but two empty strings
     # carry no information — a 1.0 score here would let a junk
     # resolution pass the consistency threshold. caught by unit test
     # test_empty_inputs_score_zero. handle explicitly before delegating.
-    if not m or not l:
+    if not m or not lbl:
         return 0.0, {
             "mention_normalized": m,
-            "label_normalized": l,
+            "label_normalized": lbl,
             "seqmatcher_ratio": 0.0,
             "substring_match": False,
         }
-    seq = SequenceMatcher(None, m, l).ratio()
-    substr = m in l or l in m
+    seq = SequenceMatcher(None, m, lbl).ratio()
+    substr = m in lbl or lbl in m
     sim = max(seq, 1.0 if substr else 0.0)
     return sim, {
         "mention_normalized": m,
-        "label_normalized": l,
+        "label_normalized": lbl,
         "seqmatcher_ratio": seq,
         "substring_match": substr,
     }
@@ -1755,8 +1755,8 @@ def run_grounded(
         MAX_PMIDS_TOTAL = 80
         all_pmids: list[str] = []
         seen: set[str] = set()
-        for e in answer_graph_view["edges"]:
-            per_edge = (e.get("supporting_publications") or [])[:MAX_PMIDS_PER_EDGE]
+        for edge in answer_graph_view["edges"]:
+            per_edge = (edge.get("supporting_publications") or [])[:MAX_PMIDS_PER_EDGE]
             for p in per_edge:
                 if p not in seen:
                     seen.add(p)

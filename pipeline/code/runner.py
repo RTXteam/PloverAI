@@ -329,7 +329,7 @@ def main() -> int:
     # to the strict single-category filter the same way it did before.
     available_categories_list = sorted({
         c
-        for (s, o) in predicate_index.keys()
+        for (s, o) in predicate_index
         for c in (s, o)
     })
     biolink_neighborhoods: dict[str, list[str]] = {}

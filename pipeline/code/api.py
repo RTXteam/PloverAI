@@ -730,7 +730,7 @@ def _build_category_set(meta_kg: dict[str, Any]) -> list[str]:
     # one supported predicate triple). returned sorted so the LLM
     # always sees the same order (prompt caching).
     cats: set[str] = set()
-    for c in (meta_kg.get("nodes") or {}).keys():
+    for c in meta_kg.get("nodes") or {}:
         if isinstance(c, str) and c.startswith("biolink:"):
             cats.add(c)
     for edge in meta_kg.get("edges") or []:

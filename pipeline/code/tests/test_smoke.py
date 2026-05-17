@@ -4,7 +4,6 @@
 # everything else in this directory tests an actual edge case or
 # invariant, not just "the module loads".
 
-import pytest
 
 # importing the pipeline package proves __init__.py + relative imports
 # all wire. status constants and key prompts are checked at module-load

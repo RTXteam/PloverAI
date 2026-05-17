@@ -10,9 +10,6 @@ jobs:
   pipeline:
     name: pipeline (python 3.12)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: pipeline
     steps:
       - uses: actions/checkout@v4
 
@@ -25,20 +22,19 @@ jobs:
       - name: install deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r pipeline/requirements.txt
           pip install pytest
 
       - name: ruff
-        run: ruff check .
-
-      - name: mypy --strict
-        run: mypy code
+        run: ruff check pipeline/code
 
       - name: vulture
-        run: vulture code
+        run: vulture pipeline/code --min-confidence 80 --exclude .venv
+
+      - name: mypy --strict
+        run: mypy --strict --explicit-package-bases --config-file pipeline/pyproject.toml pipeline
 
       - name: pytest
-        working-directory: .
         run: PYTHONPATH=. pytest pipeline/code/tests -q
 
   frontend:
@@ -62,11 +58,11 @@ jobs:
       - name: npm ci
         run: npm ci
 
-      - name: eslint
-        run: npm run lint
-
       - name: tsc --noEmit
         run: npx tsc --noEmit
+
+      - name: eslint
+        run: npm run lint
 
       - name: next build
         run: npm run build
