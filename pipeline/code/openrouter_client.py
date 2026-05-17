@@ -76,7 +76,7 @@ class OpenRouterClient:
             base_url=cfg.endpoints.openrouter,
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "HTTP-Referer": "https://github.com/bazarkua/ploverai",
+                "HTTP-Referer": "https://github.com/RTXteam/PloverAI",
                 "X-Title": "PloverAI Benchmark",
             },
             timeout=cfg.generation.request_timeout_s,

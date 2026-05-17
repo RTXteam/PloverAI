@@ -41,7 +41,7 @@ server {
     # blocks crawlers, scripted bots, and curl one-liners before they
     # ever reach the FastAPI service or the static frontend. rotate
     # with `htpasswd /etc/nginx/.auth/ploverai <user>`.
-    auth_basic           "PloverAI (RamseyLab thesis demo)";
+    auth_basic           "PloverAI";
     auth_basic_user_file /etc/nginx/.auth/ploverai;
 
     # security headers

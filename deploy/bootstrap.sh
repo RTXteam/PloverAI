@@ -7,17 +7,17 @@
 # values that vary per instance and are configured manually.
 #
 # usage:
-#   curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/deploy/bootstrap.sh | sudo bash -s -- <git-url>
+#   curl -fsSL https://raw.githubusercontent.com/RTXteam/PloverAI/main/deploy/bootstrap.sh | sudo bash -s -- <git-url>
 #
 # or after manual SSH:
-#   sudo ./bootstrap.sh https://github.com/<org>/<repo>.git
+#   sudo ./bootstrap.sh https://github.com/RTXteam/PloverAI.git
 
 set -euo pipefail
 
 REPO_URL="${1:-}"
 if [[ -z "$REPO_URL" ]]; then
     echo "usage: $0 <git-url>"
-    echo "example: $0 https://github.com/RamseyLab/ploverai.git"
+    echo "example: $0 https://github.com/RTXteam/PloverAI.git"
     exit 1
 fi
 

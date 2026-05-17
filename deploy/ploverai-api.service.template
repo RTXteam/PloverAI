@@ -8,7 +8,7 @@
 
 [Unit]
 Description=PloverAI FastAPI service (uvicorn, port 8000)
-Documentation=https://github.com/RamseyLab/ploverai
+Documentation=https://github.com/RTXteam/PloverAI
 After=network-online.target
 Wants=network-online.target
 
