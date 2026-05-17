@@ -546,9 +546,7 @@ function SendSpinner() {
 // both as low-key text/icon links. research-grade signature — sits
 // next to the page title without distracting from the chat.
 function HeaderMeta() {
-  // placeholder until the public repo URL is decided. swap href when
-  // the move-from-private-to-public happens.
-  const REPO_URL = "https://github.com/bazarkua/ploverai";
+  const REPO_URL = "https://github.com/RTXteam/PloverAI";
   return (
     <div className="flex items-center gap-3 shrink-0 text-[11px] text-zinc-500 dark:text-zinc-500 mt-1.5">
       <a
