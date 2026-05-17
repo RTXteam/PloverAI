@@ -44,9 +44,9 @@ apt-get install -y \
     curl \
     build-essential
 
-echo "==> node.js 20.x (build-time only)"
+echo "==> node.js 22.x (build-time only)"
 if ! command -v node >/dev/null 2>&1; then
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
     apt-get install -y nodejs
 fi
 node --version

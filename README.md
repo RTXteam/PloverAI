@@ -9,7 +9,7 @@
 [![tests](https://github.com/RTXteam/PloverAI/actions/workflows/tests.yml/badge.svg)](https://github.com/RTXteam/PloverAI/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.12-blue.svg)](pipeline/requirements.txt)
-[![node](https://img.shields.io/badge/node-20-339933.svg)](frontend/package.json)
+[![node](https://img.shields.io/badge/node-22-339933.svg)](frontend/package.json)
 [![status](https://img.shields.io/badge/status-research%20preview-orange.svg)](#3-research-questions)
 
 <img src="docs/img/hero.png" alt="PloverAI chat interface: a biomedical question yields a live pipeline trace, a structured natural-language answer, and edge-level evidence from RTX-KG2c" width="900" />
