@@ -9,7 +9,7 @@
 #
 # this is the spec these tests pin down.
 
-from ploverai.pipeline import _parse_scope_check_output
+from code.pipeline import _parse_scope_check_output
 
 
 # ---- happy path: well-formed responses ----

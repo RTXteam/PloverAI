@@ -29,16 +29,16 @@ jobs:
           pip install pytest
 
       - name: ruff
-        run: ruff check ploverai
+        run: ruff check code
 
       - name: vulture
-        run: vulture ploverai --min-confidence 80 --exclude .venv
+        run: vulture code --min-confidence 80 --exclude .venv
 
       - name: mypy --strict
-        run: mypy --strict --explicit-package-bases --config-file pyproject.toml ploverai
+        run: mypy --strict --explicit-package-bases --config-file pyproject.toml code
 
       - name: pytest
-        run: pytest ploverai/tests -q
+        run: pytest code/tests -q
 
   frontend:
     name: frontend (node 22)

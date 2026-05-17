@@ -62,21 +62,21 @@ from dotenv import load_dotenv
 # difference is lifetime — for an always-on service we want one set of
 # clients per process, not per request, so the httpx connection pools
 # and OpenRouter rate-limit buckets survive across calls.
-from ploverai.config import ModelSpec, load_config
-from ploverai.logging_setup import setup_logger, utc_stamp
-from ploverai.nameres_client import NameResClient
+from code.config import ModelSpec, load_config
+from code.logging_setup import setup_logger, utc_stamp
+from code.nameres_client import NameResClient
 # BMT (Biolink Model Toolkit) wrappers used at boot to derive the
 # loose-neighborhood map for the Stage 3 biolink_type filter.
-from ploverai.biolink_helper import (
+from code.biolink_helper import (
     build_neighborhood_map as build_biolink_neighborhood_map,
     make_toolkit as make_biolink_toolkit,
 )
-from ploverai.nodenorm_client import NodeNormClient
-from ploverai.pubtator_client import PubTatorClient
-from ploverai.openrouter_client import OpenRouterClient
-from ploverai.pipeline import run_grounded
-from ploverai.plover_client import PloverClient
-from ploverai.trace import QuestionPaths, make_run_dir, make_run_root
+from code.nodenorm_client import NodeNormClient
+from code.pubtator_client import PubTatorClient
+from code.openrouter_client import OpenRouterClient
+from code.pipeline import run_grounded
+from code.plover_client import PloverClient
+from code.trace import QuestionPaths, make_run_dir, make_run_root
 
 
 # pipeline/.env lives next to config.yaml, two parents up from this
@@ -321,7 +321,7 @@ def info() -> InfoResponse:
     # gold question was validated). reading the first file gets us that
     # metadata without needing a separate metadata.json.
     cfg = app.state.cfg
-    from ploverai.config import load_questions
+    from code.config import load_questions
     qs = load_questions(cfg)
     first_validation = (qs[0].get("validation") if qs else {}) or {}
     return InfoResponse(
@@ -351,7 +351,7 @@ def list_questions() -> QuestionsResponse:
     # benchmark/golden_questions/evidence/; use the shared loader so
     # the API and the offline benchmark read the gold set identically.
     cfg = app.state.cfg
-    from ploverai.config import load_questions
+    from code.config import load_questions
     out: list[GoldQuestion] = []
     for q in load_questions(cfg):
         pinned = q.get("pinned_entity") or {}

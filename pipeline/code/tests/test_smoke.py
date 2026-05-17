@@ -8,8 +8,8 @@
 # importing the pipeline package proves __init__.py + relative imports
 # all wire. status constants and key prompts are checked at module-load
 # time so a typo in either is caught here before any "real" test runs.
-from ploverai import pipeline as pl
-from ploverai import prompts
+from code import pipeline as pl
+from code import prompts
 
 
 # status constants are user-visible (they end up in meta.json and the

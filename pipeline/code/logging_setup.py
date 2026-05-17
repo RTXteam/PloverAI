@@ -15,7 +15,7 @@ import logging
 from datetime import UTC, datetime
 
 # pathlib.Path: stdlib. log file lives at
-# pipeline/ploverai/logs/RUN_<run_id>/run.log — same RUN_<run_id> folder
+# pipeline/code/logs/RUN_<run_id>/run.log — same RUN_<run_id> folder
 # name as the matching outputs/RUN_<run_id>/ directory, so the two
 # can be cross-referenced at a glance.
 from pathlib import Path

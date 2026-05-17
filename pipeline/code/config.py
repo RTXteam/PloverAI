@@ -30,7 +30,7 @@ import yaml
 
 
 # pipeline root resolves to .../PloverAI/pipeline/. this file lives at
-# pipeline/ploverai/config.py, so we climb two parents to reach it.
+# pipeline/code/config.py, so we climb two parents to reach it.
 # everything the backend reads or writes is relative to this folder,
 # so the YAML stays portable and the project root stays tidy.
 # resolving from this file's location means scripts can be run from

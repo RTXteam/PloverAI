@@ -16,8 +16,8 @@ faithful, evidence-grounded answer using PloverDB and RTX-KG2.10.2c.
    answer entities from the response (ranked by Biolink evidence
    tier) and writes a paragraph citing the supporting publications.
 5. **Two entry points**:
-   - `ploverai.runner` — CLI for batch benchmark runs.
-   - `ploverai.api` — FastAPI service for the always-on use
+   - `code.runner` — CLI for batch benchmark runs.
+   - `code.api` — FastAPI service for the always-on use
      case (Next.js UI, ARAX, anything else hitting `/api/v1/query`).
 
 ## Key constraints
@@ -36,9 +36,9 @@ faithful, evidence-grounded answer using PloverDB and RTX-KG2.10.2c.
 
 ```bash
 source .venv/bin/activate
-python -m ploverai.runner --smoke           # m5 + q1, one shot
-python -m ploverai.runner --dry-run         # show the plan, no work
-python -m ploverai.runner                   # full benchmark
+python -m code.runner --smoke           # m5 + q1, one shot
+python -m code.runner --dry-run         # show the plan, no work
+python -m code.runner                   # full benchmark
 ```
 
 ### HTTP service (always-on)
@@ -46,7 +46,7 @@ python -m ploverai.runner                   # full benchmark
 ```bash
 source .venv/bin/activate
 PLOVERAI_API_KEY=dev-key-change-me \
-  uvicorn ploverai.api:app --reload --port 8000
+  uvicorn code.api:app --reload --port 8000
 ```
 
 - `GET /health` — liveness

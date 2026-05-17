@@ -17,7 +17,7 @@
 #   - answer_category:   None if absent or not a non-empty string.
 #   - granularity:       "general" (default) unless explicitly "specific".
 
-from ploverai.pipeline import _parse_stage0_output
+from code.pipeline import _parse_stage0_output
 
 
 # ---- happy path: full 4-field JSON ----
