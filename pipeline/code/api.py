@@ -196,7 +196,7 @@ app.add_middleware(
     allow_origins=[o.strip() for o in _origins if o.strip()],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["X-API-Key", "Content-Type"],
+    allow_headers=["X-API-Key", "X-Guest-Id", "Content-Type"],
 )
 
 
