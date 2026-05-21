@@ -1745,14 +1745,27 @@ def run_grounded(
     pubtator_summary: dict[str, Any] = {"called": False, "reason": "client_not_provided"}
     if pubtator is not None and answer_graph_view["edges"]:
         # KG2c edges from SemMedDB often have 30+ supporting PMIDs each.
-        # 5 edges × 30 PMIDs = ~150 PMIDs in one PubTator batch, and on
-        # slow PubTator days that adds 30-60s of latency to every user
-        # query. cap PMIDs per edge to the top-N (most-cited research
-        # is captured in the first few PMIDs anyway), AND cap the
-        # cross-edge total. eval / benchmark runs can do exhaustive
-        # verification offline if needed.
-        MAX_PMIDS_PER_EDGE = 8
-        MAX_PMIDS_TOTAL = 80
+        # the cap below is a sanity budget, not the load-bearing
+        # protection. measured runs show pubtator's biocjson endpoint
+        # returns one batched response in ~0.3-1.5s regardless of how
+        # many PMIDs are in the request — the latency cost is per-call,
+        # not per-PMID, so larger caps are cheap.
+        #
+        # the real latency/cost bottleneck we found in profiling is
+        # NOT pubtator: it's the size of the PloverDB /query response
+        # being shoved into the answer_pick + explain LLM prompts. on
+        # the warfarin run those two stages were 4.0s + 4.6s with 68k
+        # input tokens each (~$0.07 total), against a 1.6 MB PloverDB
+        # response. response reduction (predicate grouping + top-N by
+        # knowledge_level) is where the real wins are — see the
+        # reduction-strategy code path, not this cap.
+        #
+        # so the cap stays in place purely as a pathological-case
+        # guard (someone runs an "all genes related to MONDO:..."
+        # query and gets back 50 edges × 50 PMIDs = 2500 PMIDs). under
+        # normal load these caps almost never bite.
+        MAX_PMIDS_PER_EDGE = 20
+        MAX_PMIDS_TOTAL = 200
         all_pmids: list[str] = []
         seen: set[str] = set()
         for edge in answer_graph_view["edges"]:
