@@ -57,3 +57,13 @@ paths:
   questions: "benchmark/golden_questions/evidence"
   results:   "code/outputs"
   logs:      "code/logs"
+
+# response reduction (Strategy B) — predicate-grouped, ranked by
+# (knowledge_level, agent_type, n_publications, edge_id). full spec:
+# docs/specs/response-reduction-strategy-b.md.
+#
+# top_n_per_predicate is the v1 default. the benchmark sweeps it
+# across {5, 10, 15, 20} to characterise the answer-quality vs
+# token-cost curve before locking the published default.
+reduction:
+  top_n_per_predicate: 10

@@ -58,6 +58,15 @@ class QuestionPaths:
     validation: Path                 # reasoner-validator report
     plover_request: Path             # exact body POSTed to PloverDB
     plover_response: Path            # raw response from PloverDB
+    reduced_data: Path               # PloverDB response after Strategy B
+                                     # reduction; this is what Stage 11
+                                     # actually sees, and what the
+                                     # faithfulness evaluator grades
+                                     # answers against
+    reduction_metadata: Path         # per-predicate kept/dropped counts +
+                                     # the strategy + N used. lets the
+                                     # benchmark correlate answer quality
+                                     # with reduction stats
     answer: Path                     # CURIEs the LLM picked from the response
     answer_graph_view: Path          # Stage 13: research-grade node-link view
                                      # (pinned + answer nodes + edges with provenance)
@@ -84,6 +93,8 @@ class QuestionPaths:
             validation=d / "validation.json",
             plover_request=d / "plover_request.json",
             plover_response=d / "plover_response.json",
+            reduced_data=d / "reduced_data.json",
+            reduction_metadata=d / "reduction_metadata.json",
             answer=d / "answer.json",
             answer_graph_view=d / "answer_graph_view.json",
             explanation=d / "explanation.md",

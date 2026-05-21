@@ -78,6 +78,15 @@ class Generation:
 
 
 @dataclass(frozen=True)
+class ReductionConfig:
+    # Strategy B (predicate-grouped knowledge_level ranking) is the
+    # only reduction strategy in v1. see docs/specs/response-reduction-
+    # strategy-b.md. top_n_per_predicate is the number of TRAPI results
+    # kept per predicate group after ranking.
+    top_n_per_predicate: int
+
+
+@dataclass(frozen=True)
 class Paths:
     # absolute filesystem locations derived from the YAML's relative paths.
     questions: Path    # benchmark/golden_questions/evidence/ (directory of q*.json)
@@ -91,6 +100,7 @@ class Config:
     models: list[ModelSpec]
     generation: Generation
     paths: Paths
+    reduction: ReductionConfig
 
     def model(self, model_id: str) -> ModelSpec:
         # tiny lookup helper. raising explicitly here means a typo in
@@ -120,7 +130,21 @@ def load_config() -> Config:
     )
 
     models = [ModelSpec(**m) for m in raw["models"]]
-    return Config(endpoints=eps, models=models, generation=gen, paths=paths)
+    # reduction section is optional: pre-Strategy-B configs (or partial
+    # local edits) load with a top_n_per_predicate=10 default. matches
+    # the v1 default documented in the spec; the benchmark sweeps this
+    # knob via per-run overrides.
+    reduction_raw = raw.get("reduction") or {}
+    reduction = ReductionConfig(
+        top_n_per_predicate=int(reduction_raw.get("top_n_per_predicate", 10)),
+    )
+    return Config(
+        endpoints=eps,
+        models=models,
+        generation=gen,
+        paths=paths,
+        reduction=reduction,
+    )
 
 
 def load_questions(cfg: Config) -> list[dict[str, Any]]:

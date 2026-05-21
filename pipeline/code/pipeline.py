@@ -34,7 +34,7 @@ import time
 
 # dataclasses: stdlib. QuestionResult is a frozen dataclass returned
 # to runner.py for the summary table.
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 # difflib.SequenceMatcher: stdlib. used by Stage 7 to compare the
 # user's entity mention against the resolved canonical label. cheap
@@ -70,6 +70,11 @@ from .nodenorm_client import NodeNormClient, NodeNormError
 # endpoints. graceful degradation: if the client is None or errors,
 # edges get pubtator_verified=None and the pipeline carries on.
 from .pubtator_client import PubTatorClient, PubTatorError
+
+# reduction: Strategy B reduces the PloverDB body to top-N results per
+# predicate before Stage 11 sees it, ranked by knowledge_level then
+# agent_type. full spec: docs/specs/response-reduction-strategy-b.md.
+from .reduction import reduce_plover_response
 
 # prompts: SYS_ENTITY_EXTRACT, SYS_TRAPI_BUILD, SYS_ANSWER_PICK,
 # SYS_EXPLAIN. flat strings re-exported by name so diffs for tuning
@@ -1639,10 +1644,24 @@ def run_grounded(
     plover_n_results = len(prep.body.get("message", {}).get("results") or [])
 
     # ---------- Stage 11: LLM picks answer ----------
+    # Strategy B reduction (predicate-grouped knowledge_level ranking)
+    # shrinks the PloverDB body BEFORE the LLM sees it. the top-N is a
+    # config knob; the reduced body + per-group stats are written out
+    # as artifacts so the faithfulness evaluator can grade answers
+    # against what the LLM saw, not the full PloverDB response.
+    reduction = reduce_plover_response(
+        prep.body,
+        top_n_per_predicate=cfg.reduction.top_n_per_predicate,
+        logger=logger,
+    )
+    write_json(qp.reduced_data, reduction.reduced_body)
+    write_json(qp.reduction_metadata, asdict(reduction.metadata))
     user_msg_4 = (
         f"User question: {nl_question}\n\n"
-        f"TRAPI response (whole message):\n"
-        f"{json.dumps(prep.body, ensure_ascii=False)[:200_000]}\n"
+        f"TRAPI response (reduced — top "
+        f"{reduction.metadata.top_n_per_predicate} results per predicate, "
+        f"ranked by knowledge_level then agent_type):\n"
+        f"{json.dumps(reduction.reduced_body, ensure_ascii=False)}\n"
     )
     prompt_log["stage_11_answer_pick"] = {
         "system": prompts.SYS_ANSWER_PICK,
@@ -1873,11 +1892,15 @@ def run_grounded(
         outcome_reason = None
 
     # ---------- Stage 15: explanation ----------
+    # the LLM only sees the edges Stage 11 ALREADY PICKED, not the full
+    # PloverDB body. this is a structural anti-hallucination measure:
+    # the explainer can only ground citations in edges that are in its
+    # prompt, so it cannot invent citations from non-picked edges.
     user_msg_5 = (
         f"User question: {nl_question}\n\n"
         f"Selected answers (Stage 11):\n{json.dumps(answer_obj, ensure_ascii=False)}\n\n"
-        f"TRAPI response (whole message):\n"
-        f"{json.dumps(prep.body, ensure_ascii=False)[:200_000]}\n"
+        f"Picked-edge view (use ONLY these edges to ground citations):\n"
+        f"{json.dumps(answer_graph_view, ensure_ascii=False)}\n"
     )
     prompt_log["stage_15_explain"] = {
         "system": prompts.SYS_EXPLAIN,
