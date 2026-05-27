@@ -130,18 +130,30 @@ applied.
 In TRAPI 1.5, `edge_bindings` lives under
 `result["analyses"][i]["edge_bindings"]`, not directly on the result.
 Each analysis is one path through the query graph using one resource
-(e.g. `infores:rtx-kg2`). For a one-hop pipeline a result almost always
-has exactly one analysis with exactly one edge binding; if a result has
-multiple analyses or multiple edge bindings we take the first
-deterministically (iterating the dict in insertion order).
+(e.g. `infores:rtx-kg2`). A single result CAN bind multiple kg edges
+to the same qg edge — this happens when several KG2c sources
+independently assert the same fact (e.g. an edge from SemMedDB AND an
+edge from an automated source both pointing CFTR → cystic fibrosis).
 
-For each result, compute three derived values:
+For each result we compute:
 
-- `primary_edge_id`: the first edge id found by walking
-  `result["analyses"][0]["edge_bindings"]` and taking the first value
-  from the first key. If the result has no `analyses` block, no
-  `edge_bindings` block, or empty bindings, the result is dropped (a
-  TRAPI-malformedness signal, logged at WARNING).
+- `bound_edge_ids`: every kg edge id the result binds, across every
+  analysis and every binding-key, in insertion order, deduplicated.
+  If the result has no resolvable bindings at all, the result is
+  dropped (TRAPI-malformed, logged at WARNING).
+- `representative_edge_id`: of all `bound_edge_ids` that exist in
+  `kg_edges`, the one whose individual sort key (§4.5) is smallest
+  (i.e. strongest). The result inherits this edge's sort key and
+  predicate for grouping purposes.
+
+**Why "strongest edge represents the result."** A result that binds
+both a 20-PMID text-mining edge AND a 1-PMID automated edge is
+*better-corroborated* than a result that binds only the 1-PMID edge.
+Letting the strong edge represent the result rewards multi-source
+corroboration. When a result survives the top-N, ALL of its
+`bound_edge_ids` (not just the representative) are kept in the
+reduced `knowledge_graph.edges` block, so the full provenance is
+preserved.
 - `primary_predicate`: `kg_edges[primary_edge_id]["predicate"]`. If the
   edge is missing from `kg_edges` the result is dropped — that is a
   TRAPI-malformedness signal, logged at WARNING.
@@ -157,14 +169,31 @@ for row in enriched_results:
 
 ### 4.5 Rank within each group
 
-The sort tuple is `(rank_kl, rank_at, -n_pubs, edge_id)`, ascending:
+The sort tuple is `(rank_kl, -n_pubs, rank_at, edge_id)`, ascending:
 
 | Position | Meaning | Stronger value comes first |
 |----------|---------|-----------------------------|
 | 0 | `rank_kl` — knowledge_level rank | smaller integer = stronger |
-| 1 | `rank_at` — agent_type rank | smaller integer = stronger |
-| 2 | `-n_pubs` — negative count of `supporting_publications` | more pubs = more negative = first |
+| 1 | `-n_pubs` — negative count of `supporting_publications` | more pubs = more negative = first |
+| 2 | `rank_at` — agent_type rank | smaller integer = stronger |
 | 3 | `edge_id` — alphabetical | tie-break for full determinism |
+
+**Why `n_pubs` outranks `agent_type`.** Publication count is a
+continuous signal of cross-source corroboration — 20 supporting PMIDs
+means 20 independent papers mention the relationship, regardless of
+which extraction tool tagged the edge. `agent_type` is a binary label
+about *who/what* produced the assertion (a manual curator vs an
+automated tool vs a text-miner) and within a single `knowledge_level`
+group it discriminates much less than n_pubs does.
+
+This ordering was confirmed empirically against a failing CFTR ↔
+cystic fibrosis case. In KG2c, every gene-disease edge has
+`knowledge_level=prediction`, so the primary key ties for the whole
+predicate group. The textbook association (CFTR ↔ cystic fibrosis,
+20 PMIDs, `text_mining_agent`) was being dropped by Strategy B in
+favour of single-PMID `automated_agent` edges to unrelated diseases,
+because `agent_type` ranked ahead of `n_pubs`. Promoting `n_pubs`
+restored the canonical answer to the top-N.
 
 `rank_kl` mapping (lower is stronger):
 

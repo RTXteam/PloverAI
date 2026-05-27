@@ -94,6 +94,34 @@ def _result(
     }
 
 
+def _multi_binding_result(
+    edge_ids: list[str],
+    subj_id: str,
+    obj_id: str,
+    *,
+    subj_qg: str = "n0",
+    obj_qg: str = "n1",
+    edge_qg: str = "e0",
+) -> dict[str, object]:
+    # multi-binding variant: the result binds several kg edges to one
+    # qg edge. happens in TRAPI 1.5 whenever multiple KG2c sources
+    # assert the same fact and the answer-side curie matches.
+    return {
+        "node_bindings": {
+            subj_qg: [{"id": subj_id}],
+            obj_qg: [{"id": obj_id}],
+        },
+        "analyses": [
+            {
+                "resource_id": "infores:rtx-kg2",
+                "edge_bindings": {
+                    edge_qg: [{"id": eid} for eid in edge_ids],
+                },
+            },
+        ],
+    }
+
+
 def _body(
     *,
     edges: dict[str, dict[str, object]] | None = None,
@@ -295,7 +323,7 @@ def test_manual_agent_beats_text_mining_agent_within_same_kl():
 
 
 def test_more_publications_beats_fewer_within_same_kl_and_at():
-    # same kl + at; n_pubs is the third sort key, descending. the
+    # same kl + at; n_pubs is the second sort key (now), descending. the
     # edge with more PMIDs wins.
     body = _body(
         results=[
@@ -311,6 +339,64 @@ def test_more_publications_beats_fewer_within_same_kl_and_at():
     out = _reduce(body, top_n=1)
     kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
     assert kept == ["well_cited"]
+
+
+def test_more_pubs_beats_better_agent_type_when_kl_ties():
+    # the CFTR ↔ cystic fibrosis case in real data: every edge in a
+    # predicate group shares the same kl (e.g. all kl=prediction for
+    # gene-disease edges in KG2c). under the *prior* sort order
+    # (kl, at, -pubs, edge_id), a 1-PMID automated_agent edge would
+    # beat a 20-PMID text_mining_agent edge because at was the second
+    # key. under the corrected order (kl, -pubs, at, edge_id), the
+    # 20-PMID text-mining edge wins because n_pubs is now ahead of
+    # at. this test pins the new ordering.
+    body = _body(
+        results=[
+            _result("cftr_cf_text_mined", "NCBIGene:1080", "MONDO:0009061"),
+            _result("cftr_other_automated", "NCBIGene:1080", "MONDO:0004975"),
+        ],
+        edges={
+            "cftr_cf_text_mined": _edge(
+                subject="NCBIGene:1080",
+                object_="MONDO:0009061",
+                predicate="biolink:gene_associated_with_condition",
+                knowledge_level="prediction",
+                agent_type="text_mining_agent",
+                pubs=[f"PMID:{i}" for i in range(20)],
+            ),
+            "cftr_other_automated": _edge(
+                subject="NCBIGene:1080",
+                object_="MONDO:0004975",
+                predicate="biolink:gene_associated_with_condition",
+                knowledge_level="prediction",
+                agent_type="automated_agent",
+                pubs=["PMID:99"],
+            ),
+        },
+        nodes={"NCBIGene:1080": {}, "MONDO:0009061": {}, "MONDO:0004975": {}},
+    )
+    out = _reduce(body, top_n=1)
+    kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
+    assert kept == ["cftr_cf_text_mined"]
+
+
+def test_better_agent_type_breaks_tie_when_pubs_equal():
+    # when kl AND n_pubs both tie, agent_type is the next tiebreaker
+    # (still earns its keep — just no longer outranks evidence count).
+    body = _body(
+        results=[
+            _result("manual_pick", "S", "O"),
+            _result("nlp_pick", "S", "O"),
+        ],
+        edges={
+            "manual_pick": _edge(agent_type="manual_agent", pubs=["PMID:1"]),
+            "nlp_pick": _edge(agent_type="text_mining_agent", pubs=["PMID:1"]),
+        },
+        nodes={"S": {}, "O": {}},
+    )
+    out = _reduce(body, top_n=1)
+    kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
+    assert kept == ["manual_pick"]
 
 
 def test_edge_id_alphabetical_breaks_total_ties():
@@ -580,3 +666,82 @@ def test_strategy_field_always_B():
     assert isinstance(out, ReductionResult)
     assert isinstance(out.metadata, ReductionMetadata)
     assert out.metadata.strategy_applied == "B"
+
+
+# ============================================================
+# multi-binding result tests (the cystic-fibrosis pathology)
+# ============================================================
+
+def test_multi_binding_result_scored_by_strongest_bound_edge():
+    # the canonical CFTR ↔ cystic fibrosis case: one TRAPI result binds
+    # two kg edges — a weak one (1 PMID, automated_agent) AND a strong
+    # one (20 PMIDs, text_mining_agent). under the prior "first
+    # binding wins" rule, the result was scored by the weak edge and
+    # dropped out of the top-N. now the strongest edge represents the
+    # result and the result survives.
+    body = _body(
+        results=[
+            _multi_binding_result(
+                edge_ids=["weak", "strong"],
+                subj_id="NCBIGene:1080",
+                obj_id="MONDO:0009061",
+            ),
+            _result("other", "NCBIGene:1080", "MONDO:0004975"),
+        ],
+        edges={
+            "weak": _edge(
+                subject="NCBIGene:1080", object_="MONDO:0009061",
+                predicate="biolink:gene_associated_with_condition",
+                knowledge_level="prediction",
+                agent_type="automated_agent",
+                pubs=["PMID:1"],
+            ),
+            "strong": _edge(
+                subject="NCBIGene:1080", object_="MONDO:0009061",
+                predicate="biolink:gene_associated_with_condition",
+                knowledge_level="prediction",
+                agent_type="text_mining_agent",
+                pubs=[f"PMID:{i}" for i in range(20)],
+            ),
+            "other": _edge(
+                subject="NCBIGene:1080", object_="MONDO:0004975",
+                predicate="biolink:gene_associated_with_condition",
+                knowledge_level="prediction",
+                agent_type="automated_agent",
+                pubs=["PMID:99"],
+            ),
+        },
+        nodes={"NCBIGene:1080": {}, "MONDO:0009061": {}, "MONDO:0004975": {}},
+    )
+    out = _reduce(body, top_n=1)
+    # the multi-binding result wins because its strongest edge (20 PMIDs)
+    # beats the single-binding "other" result (1 PMID).
+    nodes_kept = set(out.reduced_body["message"]["knowledge_graph"]["nodes"].keys())
+    assert "MONDO:0009061" in nodes_kept     # CF survived
+    assert "MONDO:0004975" not in nodes_kept # the other-disease result was dropped
+
+
+def test_multi_binding_result_retains_all_bound_edges_when_kept():
+    # when a multi-binding result survives top-N, ALL its bound edges
+    # are kept in the reduced kg_edges — not just the representative.
+    # this preserves the full provenance trail (every source asserting
+    # the fact stays visible) for citation in Stage 15.
+    body = _body(
+        results=[
+            _multi_binding_result(
+                edge_ids=["source_a", "source_b"],
+                subj_id="S", obj_id="O",
+            ),
+        ],
+        edges={
+            "source_a": _edge(pubs=["PMID:1", "PMID:2"]),
+            "source_b": _edge(pubs=["PMID:9"]),
+        },
+        nodes={"S": {}, "O": {}},
+    )
+    out = _reduce(body, top_n=1)
+    kept_edges = out.reduced_body["message"]["knowledge_graph"]["edges"]
+    assert set(kept_edges.keys()) == {"source_a", "source_b"}
+    # metadata counts every retained edge id, not just one per result
+    assert out.metadata.reduced_edge_count == 2
+    assert out.metadata.reduced_result_count == 1

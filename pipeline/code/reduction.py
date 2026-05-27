@@ -97,7 +97,17 @@ class _Enriched:
     # everything reduce_plover_response needs to know about one result
     # after it has been validated and scored. kept private to the
     # module — the only public types are ReductionResult / Metadata.
-    primary_edge_id: str
+    #
+    # bound_edge_ids holds EVERY edge id the result binds (across all
+    # analyses + binding keys), in insertion order. representative_edge_id
+    # is the single one with the strongest sort_key — used for predicate
+    # grouping and as the sort key for the result itself. when the
+    # result survives the top-N, ALL bound edges are retained in the
+    # reduced knowledge_graph (so a result with strong + weak source
+    # corroboration keeps both — the strong elevates the result, the
+    # weak goes along for the ride as additional provenance).
+    bound_edge_ids: tuple[str, ...]
+    representative_edge_id: str
     primary_predicate: str
     sort_key: tuple[int, int, int, str]
     original: dict[str, Any]
@@ -139,29 +149,36 @@ def _n_publications(edge: dict[str, Any]) -> int:
     return 0
 
 
-def _primary_edge_id(result: dict[str, Any]) -> str | None:
-    # TRAPI 1.5: edge_bindings live under analyses[i].edge_bindings.
-    # for one-hop pipelines there's typically exactly one analysis
-    # with one edge-binding key holding one edge id. we walk the
-    # structure defensively and take the first id we find. returning
-    # None marks the result as malformed; the caller logs and drops it.
+def _all_edge_ids_in_result(result: dict[str, Any]) -> tuple[str, ...]:
+    # TRAPI 1.5: edge_bindings live under analyses[i].edge_bindings as
+    # {qg_edge_id: [{"id": kg_edge_id, ...}, ...]}. a single result can
+    # bind MULTIPLE kg edges to the same qg edge — this happens when
+    # several KG2c sources independently assert the same fact. we walk
+    # the structure defensively and collect every kg edge id in
+    # insertion order. an empty result is a TRAPI-malformedness signal:
+    # the caller drops it with a WARNING.
+    out: list[str] = []
+    seen: set[str] = set()
     analyses = result.get("analyses")
-    if not isinstance(analyses, list) or not analyses:
-        return None
-    first_analysis = analyses[0]
-    if not isinstance(first_analysis, dict):
-        return None
-    edge_bindings = first_analysis.get("edge_bindings")
-    if not isinstance(edge_bindings, dict) or not edge_bindings:
-        return None
-    for binding_list in edge_bindings.values():
-        if isinstance(binding_list, list) and binding_list:
-            first_binding = binding_list[0]
-            if isinstance(first_binding, dict):
-                eid = first_binding.get("id")
-                if isinstance(eid, str) and eid:
-                    return eid
-    return None
+    if not isinstance(analyses, list):
+        return ()
+    for analysis in analyses:
+        if not isinstance(analysis, dict):
+            continue
+        edge_bindings = analysis.get("edge_bindings")
+        if not isinstance(edge_bindings, dict):
+            continue
+        for binding_list in edge_bindings.values():
+            if not isinstance(binding_list, list):
+                continue
+            for b in binding_list:
+                if not isinstance(b, dict):
+                    continue
+                eid = b.get("id")
+                if isinstance(eid, str) and eid and eid not in seen:
+                    seen.add(eid)
+                    out.append(eid)
+    return tuple(out)
 
 
 def _node_ids_in_bindings(result: dict[str, Any]) -> tuple[str, ...]:
@@ -212,38 +229,69 @@ def _enrich_results(
                 f"reduction  result idx={idx} is not a dict; dropped"
             )
             continue
-        eid = _primary_edge_id(result)
-        if eid is None:
+        bound = _all_edge_ids_in_result(result)
+        if not bound:
             logger.warning(
                 f"reduction  result idx={idx} has no resolvable "
-                f"primary edge binding; dropped"
+                f"edge bindings; dropped"
             )
             continue
-        edge = kg_edges.get(eid)
-        if edge is None:
+        # filter to only bound edges that actually exist in kg_edges.
+        # in a well-formed TRAPI message all bound edges are present,
+        # but a malformed message can reference an edge id that isn't
+        # in the kg_edges dict.
+        present = tuple(eid for eid in bound if eid in kg_edges)
+        if not present:
             logger.warning(
-                f"reduction  result idx={idx} references unknown "
-                f"edge id={eid!r}; dropped"
+                f"reduction  result idx={idx} references edge ids "
+                f"{bound!r} none of which exist in kg_edges; dropped"
             )
             continue
+        # sort tuple ordering, ascending (smaller = stronger):
+        #   1. knowledge_level rank  (smaller = stronger)
+        #   2. -n_publications       (more pubs = first; continuous evidence signal)
+        #   3. agent_type rank       (smaller = stronger; binary provenance label)
+        #   4. edge_id alphabetical  (full determinism tie-break)
+        #
+        # n_pubs is promoted ahead of agent_type because publication
+        # count is a continuous corroboration signal across sources,
+        # whereas agent_type is a binary label about extraction
+        # provenance. when knowledge_level ties across a whole
+        # predicate group (as it does for KG2c gene-disease edges
+        # where every edge is kl=prediction), letting agent_type
+        # outrank n_pubs drops well-cited text_mining_agent edges
+        # below single-PMID automated_agent edges. see the spec at
+        # docs/specs/response-reduction-strategy-b.md §4.5.
+        #
+        # multi-binding handling: a single result can bind multiple
+        # kg edges (one per source asserting the same fact). we score
+        # the result by the STRONGEST (min sort_key) of its bound
+        # edges. that lets multi-source corroboration help: one
+        # high-quality source elevates the whole result, even if the
+        # other bindings are weak. all bound edges are retained in
+        # the reduced kg_edges if the result survives the top-N.
+        def edge_sort_key(eid: str) -> tuple[int, int, int, str]:
+            e = kg_edges[eid]
+            return (
+                _rank_knowledge_level(e),
+                -_n_publications(e),
+                _rank_agent_type(e),
+                eid,
+            )
+        representative_eid = min(present, key=edge_sort_key)
+        rep_edge = kg_edges[representative_eid]
         # predicate is the grouping key. missing predicates land in
         # "<unknown>" so a malformed TRAPI message degrades to "all
         # edges in one bucket" rather than crashing.
-        predicate = edge.get("predicate")
+        predicate = rep_edge.get("predicate")
         if not isinstance(predicate, str) or not predicate:
             predicate = "<unknown>"
-        sort_key = (
-            _rank_knowledge_level(edge),
-            _rank_agent_type(edge),
-            # negative so MORE pubs sorts FIRST under ascending sort.
-            -_n_publications(edge),
-            eid,
-        )
         enriched.append(
             _Enriched(
-                primary_edge_id=eid,
+                bound_edge_ids=present,
+                representative_edge_id=representative_eid,
                 primary_predicate=predicate,
-                sort_key=sort_key,
+                sort_key=edge_sort_key(representative_eid),
                 original=result,
                 node_ids_in_bindings=_node_ids_in_bindings(result),
             )
@@ -352,9 +400,13 @@ def reduce_plover_response(
         edges_dropped_per_group[predicate] = max(0, len(group) - len(retained))
 
     # rebuild knowledge_graph + auxiliary_graphs from the surviving
-    # rows. edge ids are deduped via set (two results binding the same
-    # edge contribute one entry to the kg_edges dict).
-    retained_edge_ids: set[str] = {row.primary_edge_id for row in kept_rows}
+    # rows. all bound edges of each surviving result are retained (so a
+    # result with multi-source corroboration keeps every source in the
+    # reduced kg_edges, not just the one we scored by). edge ids are
+    # deduped across results via set.
+    retained_edge_ids: set[str] = set()
+    for row in kept_rows:
+        retained_edge_ids.update(row.bound_edge_ids)
     retained_node_ids: set[str] = set()
     for row in kept_rows:
         retained_node_ids.update(row.node_ids_in_bindings)
