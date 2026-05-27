@@ -679,41 +679,64 @@ question gets its own folder.
 
 ```
 outputs/
-└── RUN_2026-04-29T08-30-12Z/                ← one folder per pipeline invocation
-    ├── run.json                             ← top-level summary: which models + questions ran together
-    ├── m5_anthropic_claude-haiku-4.5/
-    │   ├── run.json                         ← per-model summary
-    │   ├── q1/
-    │   │   ├── question.json                ← gold record, frozen, NEVER seen by the LLM
-    │   │   ├── prompt.json                  ← exactly what we sent the LLM at each stage (all 6 LLM stages)
-    │   │   ├── nameres.json                 ← Stage 3: top-20 candidates + biolink filter applied + rerank vs BM25 top-1
-    │   │   ├── candidate_probes.json        ← Stage 4 setup: per-candidate kg2c_edges_to_<answer_cat> + fallback flag
-    │   │   ├── nodenorm.json                ← Stage 6 (pinned) + Stage 12 (answers) NodeNorm output
-    │   │   ├── predicate_probe.json         ← Stage 8 setup: predicate-density probe for the CHOSEN CURIE
-    │   │   ├── trapi_query.json             ← Stage 8: the LLM-built TRAPI query
-    │   │   ├── validation.json              ← Stage 9: whether reasoner-validator accepted it
-    │   │   ├── plover_request.json          ← Stage 10: exact bytes POSTed to PloverDB
-    │   │   ├── plover_response.json         ← Stage 10: what PloverDB returned
-    │   │   ├── answer.json                  ← Stage 11: the LLM's picks (raw + canonicalized by Stage 12)
-    │   │   ├── answer_graph_view.json       ← Stage 13: node-link graph view rendered by the frontend
-    │   │   ├── explanation.md               ← Stage 15: the structured Markdown paragraph
-    │   │   ├── cost.json                    ← tokens + USD + latency for each LLM call
-    │   │   └── meta.json                    ← status + outcome + outcome_reason + counts
-    │   ├── q2/...
-    │   └── ...
-    ├── m7_openai_gpt-5/                     ← if this model ran in the same invocation
-    │   ├── run.json
-    │   ├── q1/...
-    │   └── ...
-    └── ...
+└── <guest_uuid>/                            ← per-visitor namespace (X-Guest-Id from the UI;
+    │                                          isolates sidebar history between browsers)
+    └── RUN_2026-05-27T18-15-07Z_9c239c57/   ← one folder per pipeline invocation
+        ├── run.json                         ← top-level summary: which models + questions ran together
+        ├── m5_anthropic_claude-haiku-4.5/
+        │   ├── run.json                     ← per-model summary
+        │   └── grounded/
+        │       └── adhoc/                   ← one folder per question (q1, q2, … or "adhoc"
+        │           │                          for live API-driven runs)
+        │           ├── question.json            ← gold record (or NL question), frozen, NEVER seen by the LLM
+        │           ├── prompt.json              ← exactly what we sent the LLM at each stage (all 6 LLM stages)
+        │           ├── nameres.json             ← Stage 3: top-20 candidates + biolink filter applied + rerank vs BM25 top-1
+        │           ├── candidate_probes.json    ← Stage 4 setup: per-candidate kg2c_edges_to_<answer_cat> + fallback flag
+        │           ├── nodenorm.json            ← Stage 6 (pinned) + Stage 12 (answers) NodeNorm output
+        │           ├── predicate_probe.json     ← Stage 8 setup: predicate-density probe for the CHOSEN CURIE
+        │           ├── trapi_query.json         ← Stage 8: the LLM-built TRAPI query
+        │           ├── validation.json          ← Stage 9: whether reasoner-validator accepted it
+        │           ├── plover_request.json      ← Stage 10: exact bytes POSTed to PloverDB
+        │           ├── plover_response.json     ← Stage 10: what PloverDB returned (full)
+        │           ├── reduced_data.json        ← Stage 10b: PloverDB response after Strategy B
+        │           │                              reduction (top-N per predicate); this is what
+        │           │                              Stage 11 actually saw, and what the faithfulness
+        │           │                              metric evaluates the LLM's claims against
+        │           ├── reduction_metadata.json  ← Stage 10b: per-predicate kept/dropped counts +
+        │           │                              the strategy + N applied
+        │           ├── answer.json              ← Stage 11: the LLM's picks (raw + canonicalized by Stage 12)
+        │           ├── answer_graph_view.json   ← Stage 13: node-link graph view rendered by the
+        │           │                              frontend (each edge carries id, source, target,
+        │           │                              predicate, knowledge_level, agent_type,
+        │           │                              primary_knowledge_source, supporting_publications,
+        │           │                              supporting_text_snippets, and a pubtator_verified
+        │           │                              block when PubTator ran)
+        │           ├── explanation.md           ← Stage 15: the structured Markdown paragraph
+        │           ├── cost.json                ← tokens + USD + latency for each LLM call
+        │           └── meta.json                ← status + outcome + outcome_reason + counts
+        ├── m7_openai_gpt-5/                     ← if this model ran in the same invocation
+        │   └── grounded/adhoc/...
+        └── ...
 ```
 
-**Why this shape.** The top-level `RUN_*` folder makes it obvious
-which models were *run together* — they're literal siblings inside
-that folder. The previous shape (`outputs/<model>/<timestamp>/...`)
-buried that grouping. Now `ls outputs/RUN_<ts>/` is enough to see
-the run's full model list. Re-running the same model twice creates
-two `RUN_*` folders, never overwrites.
+**Why this shape.** Three layers carry meaning:
+1. **`<guest_uuid>/`** — namespace per browser (mints a UUID v4 into
+   localStorage on first visit, sent as `X-Guest-Id` on every API
+   request). Two visitors can't see each other's sidebar history,
+   but anyone with a direct run URL can still open it (capability
+   lookup; see `pipeline/code/api.py:_find_run_dir_any_guest`).
+2. **`RUN_<utc_ts>_<nonce>/`** — one invocation. Multiple models
+   that ran together are siblings inside the same RUN folder, so
+   `ls` answers "which models were compared in this run."
+3. **`<model_id>_<slug>/grounded/<q_id>/`** — the leaf where the
+   per-question artifacts live. `grounded` is the condition (the
+   only one the live API exposes; the offline benchmark also writes
+   an `ungrounded` peer for baseline runs). `q_id` is the gold
+   question id (`q1`, `q2`, …) for benchmark runs, or `adhoc` for
+   live API queries.
+
+Re-running the same model twice creates two `RUN_*` folders, never
+overwrites.
 
 **Logs use the same layout.** The per-run log lives at
 `logs/RUN_<run_timestamp>/run.log` — same folder name as the

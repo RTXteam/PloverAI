@@ -91,6 +91,7 @@ export type AnswerGraphEdge = {
   target: string;
   predicate: string | null;
   knowledge_level: string | null;
+  agent_type: string | null;
   primary_knowledge_source: string | null;
   supporting_publications: string[];
   supporting_text_snippets: SupportingTextSnippet[];

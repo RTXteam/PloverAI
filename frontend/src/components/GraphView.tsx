@@ -597,6 +597,19 @@ function EdgeDetails({ edge }: { edge: AnswerGraphEdge | null }) {
         </div>
       )}
 
+      {edge.agent_type && (
+        <div>
+          <div className="text-zinc-500">Agent type</div>
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded font-mono ${
+            edge.agent_type === "manual_agent"
+              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+              : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
+          }`}>
+            {edge.agent_type}
+          </span>
+        </div>
+      )}
+
       {edge.primary_knowledge_source && (
         <div>
           <div className="text-zinc-500">Primary knowledge source</div>

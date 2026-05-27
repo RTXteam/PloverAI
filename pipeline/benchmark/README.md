@@ -10,9 +10,11 @@ one-hop TRAPI questions.
 ## Read-only at runtime
 
 This folder is **input** to the pipeline. The pipeline never writes
-here. Run outputs go to `../code/outputs/RUN_<timestamp>/`. See
-[`../code/README.md`](../code/README.md) for the full per-question
-flow and disk layout.
+here. Run outputs go to
+`../code/outputs/<guest_uuid>/RUN_<timestamp>_<nonce>/<model>/grounded/<q_id>/`.
+See [`../code/README.md`](../code/README.md) for the full per-question
+flow and disk layout (including the guest-id namespacing the live API
+uses and the per-question artifacts each stage writes).
 
 ## Scope
 

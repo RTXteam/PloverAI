@@ -516,6 +516,13 @@ function EdgeDetailRow({ edge }: { edge: AnswerGraphEdge }) {
           )}
         </dd>
 
+        <dt className="text-zinc-500">Agent type</dt>
+        <dd className="font-mono text-zinc-700 dark:text-zinc-200">
+          {edge.agent_type || (
+            <span className="text-zinc-400 italic">not recorded</span>
+          )}
+        </dd>
+
         <dt className="text-zinc-500">Source</dt>
         <dd className="font-mono text-zinc-700 dark:text-zinc-200">
           {edge.primary_knowledge_source || (
