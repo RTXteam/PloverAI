@@ -64,6 +64,10 @@ def _minimal_plover_kg():
                                 "value": "knowledge_assertion",
                             },
                             {
+                                "attribute_type_id": "biolink:agent_type",
+                                "value": "manual_agent",
+                            },
+                            {
                                 "attribute_type_id": "biolink:primary_knowledge_source",
                                 "value": "infores:drugcentral",
                             },
@@ -140,6 +144,7 @@ def test_edge_evidence_attributes_extracted():
     )
     e = view["edges"][0]
     assert e["knowledge_level"] == "knowledge_assertion"
+    assert e["agent_type"] == "manual_agent"
     assert e["primary_knowledge_source"] == "infores:drugcentral"
     assert e["supporting_publications"] == ["PMID:12345", "PMID:67890"]
     # supporting_text is dict-of-dict in TRAPI; the view flattens to a list
@@ -206,6 +211,7 @@ def test_edge_with_no_attributes_block_yields_nones():
     )
     e = view["edges"][0]
     assert e["knowledge_level"] is None
+    assert e["agent_type"] is None
     assert e["primary_knowledge_source"] is None
     assert e["supporting_publications"] == []
     assert e["supporting_text_snippets"] == []

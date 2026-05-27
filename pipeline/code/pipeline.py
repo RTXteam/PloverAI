@@ -241,6 +241,7 @@ def _pubtator_verified_edge_rate(
 # in the answer_graph_view. defined once at module level so tests and
 # the Stage 13 builder reference the same strings.
 _ATTR_KNOWLEDGE_LEVEL = "biolink:knowledge_level"
+_ATTR_AGENT_TYPE = "biolink:agent_type"
 _ATTR_PRIMARY_KS = "biolink:primary_knowledge_source"
 _ATTR_PUBLICATIONS = "biolink:publications"
 _ATTR_SUPPORTING_TEXT = "biolink:supporting_text"
@@ -321,6 +322,7 @@ def _build_answer_graph_view(
         # walk the attributes list once, picking up each provenance field
         # by its attribute_type_id. None / empty defaults for absent ones.
         knowledge_level: str | None = None
+        agent_type: str | None = None
         primary_ks: str | None = None
         supporting_publications: list[str] = []
         supporting_text_raw: dict[str, Any] = {}
@@ -329,6 +331,8 @@ def _build_answer_graph_view(
             value = attr.get("value")
             if type_id == _ATTR_KNOWLEDGE_LEVEL and isinstance(value, str):
                 knowledge_level = value
+            elif type_id == _ATTR_AGENT_TYPE and isinstance(value, str):
+                agent_type = value
             elif type_id == _ATTR_PRIMARY_KS and isinstance(value, str):
                 primary_ks = value
             elif type_id == _ATTR_PUBLICATIONS and isinstance(value, list):
@@ -351,6 +355,7 @@ def _build_answer_graph_view(
             "target": obj,
             "predicate": e.get("predicate"),
             "knowledge_level": knowledge_level,
+            "agent_type": agent_type,
             "primary_knowledge_source": primary_ks,
             "supporting_publications": supporting_publications,
             "supporting_text_snippets": supporting_text_snippets,
