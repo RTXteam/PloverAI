@@ -1527,11 +1527,24 @@ def run_grounded(
             lines.append(f"  - {pred}: {stats['count']} edges ({direction})")
         lines.append("")
         lines.append(
-            "Prefer the HIGHEST-COUNT predicate above. Orient your TRAPI "
-            "edge (subject/object) to match its dominant direction. The "
-            "counts above are the ACTUAL number of edges in KG2c for this "
-            "pinned CURIE — predicates not listed have ZERO edges from "
-            "this CURIE to the answer category and will return no results."
+            "Pick the predicate whose MEANING best matches the verb / "
+            "intent in the user's question. Examples:\n"
+            "  - 'what treats X' → biolink:treats (or biolink:applied_to_treat\n"
+            "    if 'treats' is not in the list)\n"
+            "  - 'what causes X' → biolink:causes\n"
+            "  - 'genes associated with X' → biolink:gene_associated_with_condition\n"
+            "  - 'what's in trials for X' → biolink:in_clinical_trials_for\n"
+            "Do NOT pick a predicate just because it has the highest edge\n"
+            "count. The counts are shown only for ORIENTATION and as a\n"
+            "tie-breaker between predicates with the SAME meaning. A\n"
+            "predicate with 50 edges that matches the user's verb beats a\n"
+            "predicate with 500 edges that doesn't.\n"
+            "\n"
+            "After picking the predicate, orient your TRAPI edge\n"
+            "(subject/object) to match the dominant direction shown\n"
+            "above. Predicates not listed have ZERO edges from this\n"
+            "pinned CURIE to the answer category and will return no\n"
+            "results."
         )
         predicate_block = "\n".join(lines) + "\n\n"
     elif valid_predicates_forward or valid_predicates_reverse:

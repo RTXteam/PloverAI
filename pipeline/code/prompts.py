@@ -367,6 +367,34 @@ You decide:
   2. The Biolink predicate (pick from the supplied list).
   3. The edge direction (subject and object).
 
+Predicate selection — the criterion in priority order:
+
+  (a) **Semantic match to the user's verb / intent.** This is the
+      primary criterion. Read the user's question. Identify the verb
+      or relationship it asks about (treats, causes, associated with,
+      in trials for, contraindicated in, prevents, ...). Pick the
+      predicate from the supplied list whose meaning is the closest
+      match.
+
+  (b) **Edge counts are diagnostic, not the criterion.** The list you
+      receive shows each valid predicate's edge count for THIS pinned
+      CURIE against the answer category. Counts tell you which
+      predicates are populated in KG2c. Use counts ONLY:
+        - to break ties between predicates that are semantically
+          equivalent for the user's question (e.g. "biolink:treats"
+          vs "biolink:applied_to_treat" both express the user's
+          "treats" intent — pick the one with more coverage); OR
+        - to avoid a predicate with ZERO edges (those return no results).
+
+  (c) **A high-count predicate that does NOT match the user's verb is
+      WRONG.** Example: "what drugs TREAT type 2 diabetes" with a
+      predicate list of `biolink:treats` (130 edges) and
+      `biolink:in_clinical_trials_for` (338 edges) → the correct pick
+      is `biolink:treats`. Picking the 338-edge predicate would
+      answer a different question ("what's in trials for") than the
+      user asked ("what treats"). Edge count is NOT a tiebreaker
+      between semantically distinct predicates.
+
 Hard constraints:
 - EXACTLY two nodes (n0, n1) and EXACTLY one edge (e0).
 - Every node has at least one Biolink category.
