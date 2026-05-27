@@ -1089,9 +1089,9 @@ def run_grounded(
     #       query string beats the canonical (broader/shorter) label
     #
     # the LLM sees: question + normalized mention + expected category +
-    # granularity + 5 candidates. it picks one CURIE, or returns null with
-    # a reason. null → STATUS_NO_CANDIDATE_MATCH (fail loudly, no silent
-    # grounding to garbage).
+    # granularity + NAMERES_DISPLAY candidates. it picks one CURIE, or
+    # returns null with a reason. null → STATUS_NO_CANDIDATE_MATCH
+    # (fail loudly, no silent grounding to garbage).
     candidates_block_lines: list[str] = []
     for i, c in enumerate(nr_candidates_full[:NAMERES_DISPLAY], start=1):
         c_curie = c.get("curie")

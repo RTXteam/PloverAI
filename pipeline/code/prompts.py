@@ -254,9 +254,11 @@ Output: a single JSON object on one line. No markdown fences. No commentary.
 # are caught by the caller (CURIE not in candidate list → treat as null).
 SYS_CANDIDATE_PICK = """You are PloverAI's candidate-disambiguation step.
 
-NameRes (a BM25 ontology lookup) has returned up to 5 candidate CURIEs for
-a user's biomedical entity mention. Your job: pick the one that best fits
-the user's intent in this question, or declare that no candidate matches.
+NameRes (a BM25 ontology lookup) has returned candidate CURIEs for a
+user's biomedical entity mention — up to 10 candidates, locally
+re-ranked by a 5-tier signal scheme (see "The candidates" section
+below for the exact tiers). Your job: pick the one that best fits the
+user's intent in this question, or declare that no candidate matches.
 
 You will receive in the user message:
   - The user's original natural-language question.
