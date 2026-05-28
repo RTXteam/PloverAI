@@ -1914,8 +1914,37 @@ def run_grounded(
     # PloverDB body. this is a structural anti-hallucination measure:
     # the explainer can only ground citations in edges that are in its
     # prompt, so it cannot invent citations from non-picked edges.
+    #
+    # we ALSO pass a small "pipeline context" block so the explainer can
+    # ground its caveats in specific numbers — what predicate Stage 8
+    # picked, how many edges PloverDB returned, how many survived
+    # Strategy B reduction, and which predicate group(s) are represented.
+    # without this, the explainer's caveats read as abstract claims
+    # ("the knowledge graph returned candidates...") rather than as
+    # grounded conclusions ("PloverDB returned 35 edges via predicate X,
+    # reduction kept 10, all 10 share the same provenance profile of...").
+    qg_edges = trapi_msg.get("message", {}).get("query_graph", {}).get("edges", {})
+    qg_e0 = qg_edges.get("e0") or {}
+    qg_predicates = qg_e0.get("predicates") or []
+    pipeline_context = {
+        "predicate_used": qg_predicates[0] if qg_predicates else None,
+        "plover_total_results": plover_n_results,
+        "reduction_strategy": reduction.metadata.strategy_applied,
+        "reduction_top_n_per_predicate": reduction.metadata.top_n_per_predicate,
+        "reduction_results_kept": reduction.metadata.reduced_result_count,
+        "reduction_results_dropped": (
+            reduction.metadata.original_result_count
+            - reduction.metadata.reduced_result_count
+        ),
+        "reduction_predicate_groups": reduction.metadata.predicate_groups,
+        "reduction_edges_kept_per_group": reduction.metadata.edges_kept_per_group,
+        "reduction_edges_dropped_per_group": reduction.metadata.edges_dropped_per_group,
+        "picked_edges_count": len(answer_graph_view.get("edges") or []),
+    }
     user_msg_5 = (
         f"User question: {nl_question}\n\n"
+        f"Pipeline context (cite these numbers in your Confidence and "
+        f"Limitations sections):\n{json.dumps(pipeline_context, ensure_ascii=False)}\n\n"
         f"Selected answers (Stage 11):\n{json.dumps(answer_obj, ensure_ascii=False)}\n\n"
         f"Picked-edge view (use ONLY these edges to ground citations):\n"
         f"{json.dumps(answer_graph_view, ensure_ascii=False)}\n"
