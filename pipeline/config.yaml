@@ -23,15 +23,18 @@ endpoints:
 # 4 western providers (anthropic, google, openai, xai), so the
 # frontier-vs-budget comparison is held constant on provider identity.
 # DeepSeek (Chinese) is intentionally excluded.
+# context_window is the max input tokens per model, set MANUALLY here. it
+# drives the iterative chunk budget (context_window * stage11.context_fraction).
+# adjust by hand when a provider changes a model's window.
 models:
-  - { id: m1, tier: frontier, slug: "anthropic/claude-opus-4.6",      provider: anthropic, price_in: 5.00,  price_out: 25.00 }
-  - { id: m2, tier: frontier, slug: "google/gemini-3.1-pro-preview",  provider: google,    price_in: 2.00,  price_out: 12.00 }
-  - { id: m3, tier: frontier, slug: "openai/gpt-5.5",                 provider: openai,    price_in: 5.00,  price_out: 30.00 }
-  - { id: m4, tier: frontier, slug: "x-ai/grok-4",                    provider: xai,       price_in: 3.00,  price_out: 15.00 }
-  - { id: m5, tier: budget,   slug: "anthropic/claude-haiku-4.5",     provider: anthropic, price_in: 1.00,  price_out: 5.00  }
-  - { id: m6, tier: budget,   slug: "google/gemini-3-flash-preview",  provider: google,    price_in: 0.50,  price_out: 3.00  }
-  - { id: m7, tier: budget,   slug: "openai/gpt-5",                   provider: openai,    price_in: 1.25,  price_out: 10.00 }
-  - { id: m8, tier: budget,   slug: "x-ai/grok-4.3",                  provider: xai,       price_in: 1.25,  price_out: 2.50  }
+  - { id: m1, tier: frontier, slug: "anthropic/claude-opus-4.6",      provider: anthropic, price_in: 5.00,  price_out: 25.00, context_window: 1000000 }
+  - { id: m2, tier: frontier, slug: "google/gemini-3.1-pro-preview",  provider: google,    price_in: 2.00,  price_out: 12.00, context_window: 1048576 }
+  - { id: m3, tier: frontier, slug: "openai/gpt-5.5",                 provider: openai,    price_in: 5.00,  price_out: 30.00, context_window: 1050000 }
+  - { id: m4, tier: frontier, slug: "x-ai/grok-4",                    provider: xai,       price_in: 3.00,  price_out: 15.00, context_window: 256000  }
+  - { id: m5, tier: budget,   slug: "anthropic/claude-haiku-4.5",     provider: anthropic, price_in: 1.00,  price_out: 5.00,  context_window: 200000  }
+  - { id: m6, tier: budget,   slug: "google/gemini-3-flash-preview",  provider: google,    price_in: 0.50,  price_out: 3.00,  context_window: 1048576 }
+  - { id: m7, tier: budget,   slug: "openai/gpt-5",                   provider: openai,    price_in: 1.25,  price_out: 10.00, context_window: 400000  }
+  - { id: m8, tier: budget,   slug: "x-ai/grok-4.3",                  provider: xai,       price_in: 1.25,  price_out: 2.50,  context_window: 1000000 }
 
 # LLM sampling parameters. shared across every stage of every model.
 # temperature=0 where the provider supports it; max_tokens caps any
@@ -65,5 +68,27 @@ paths:
 # top_n_per_predicate is the v1 default. the benchmark sweeps it
 # across {5, 10, 15, 20} to characterise the answer-quality vs
 # token-cost curve before locking the published default.
+# Stage 1 scope-check guardrail (an LLM call that refuses non-biomedical
+# input). default OFF: it is an extra OpenRouter call per query and a
+# rate-limit source. when off, every input is treated as in-scope and flows
+# to entity extraction; scope is checked manually. re-enable for the
+# irrelevant-probe benchmark or to refuse chit-chat in the live UI.
+scope_check:
+  enabled: true
+
 reduction:
   top_n_per_predicate: 10
+
+# iterative chunked answer-picking (Stage 11). default OFF — the
+# single-shot Strategy B path above runs unless this is enabled, so the
+# baseline stays runnable for the A/B comparison. when enabled, the full
+# sorted PloverDB response is split into token-budgeted chunks the LLM
+# reads in order until confident, instead of truncating to
+# top_n_per_predicate (which can drop correct answers before the LLM
+# ever sees them).
+stage11:
+  iterative:
+    enabled: true
+    context_fraction: 0.8   # chunk budget = model.context_window * this
+    answer_target: 5        # stop once this many good answers are found
+    max_chunks: 16

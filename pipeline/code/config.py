@@ -53,6 +53,10 @@ class ModelSpec:
     provider: str      # anthropic / google / openai / xai / deepseek
     price_in: float    # USD per 1M input tokens
     price_out: float   # USD per 1M output tokens
+    # max input context window in tokens, set MANUALLY in config.yaml. drives
+    # the iterative chunk budget (context_window * context_fraction). adjust
+    # by hand when a provider changes a model's window.
+    context_window: int = 128000
 
 
 @dataclass(frozen=True)
@@ -87,6 +91,24 @@ class ReductionConfig:
 
 
 @dataclass(frozen=True)
+class Stage11IterativeConfig:
+    # iterative chunked answer-picking. default OFF: the single-shot
+    # Strategy B path runs unless this is enabled, so the baseline stays
+    # runnable for the A/B comparison. when enabled, the full sorted
+    # PloverDB response is split into chunks the LLM reads strongest-first
+    # until it has good answers, instead of truncating to top_n_per_predicate.
+    enabled: bool
+    # the chunk budget is dynamic per model: context_window * context_fraction
+    # tokens. 0.8 leaves headroom for the system prompt and the completion.
+    context_fraction: float
+    # soft target for how many answers to return. the loop stops once it has
+    # this many good picks (or the LLM is satisfied with fewer); the final
+    # set is clamped to this many. NOT a hard truncation of the response.
+    answer_target: int
+    max_chunks: int
+
+
+@dataclass(frozen=True)
 class Paths:
     # absolute filesystem locations derived from the YAML's relative paths.
     questions: Path    # benchmark/golden_questions/evidence/ (directory of q*.json)
@@ -101,6 +123,11 @@ class Config:
     generation: Generation
     paths: Paths
     reduction: ReductionConfig
+    stage11_iterative: Stage11IterativeConfig
+    # Stage 1 scope-check guardrail. default OFF: it is an extra OpenRouter
+    # call per query (and a rate-limit source). when off, every input is
+    # treated as in-scope; scope is checked manually instead.
+    scope_check_enabled: bool
 
     def model(self, model_id: str) -> ModelSpec:
         # tiny lookup helper. raising explicitly here means a typo in
@@ -138,12 +165,23 @@ def load_config() -> Config:
     reduction = ReductionConfig(
         top_n_per_predicate=int(reduction_raw.get("top_n_per_predicate", 10)),
     )
+    # stage11.iterative is optional and defaults to OFF, so existing
+    # configs (and the single-shot baseline) load unchanged.
+    iterative_raw = (raw.get("stage11") or {}).get("iterative") or {}
+    stage11_iterative = Stage11IterativeConfig(
+        enabled=bool(iterative_raw.get("enabled", False)),
+        context_fraction=float(iterative_raw.get("context_fraction", 0.8)),
+        answer_target=int(iterative_raw.get("answer_target", 5)),
+        max_chunks=int(iterative_raw.get("max_chunks", 16)),
+    )
     return Config(
         endpoints=eps,
         models=models,
         generation=gen,
         paths=paths,
         reduction=reduction,
+        stage11_iterative=stage11_iterative,
+        scope_check_enabled=bool((raw.get("scope_check") or {}).get("enabled", False)),
     )
 
 
@@ -163,4 +201,13 @@ def load_questions(cfg: Config) -> list[dict[str, Any]]:
         qdir.glob("q*.json"),
         key=lambda p: int(p.stem[1:]) if p.stem[1:].isdigit() else 1_000_000,
     )
-    return [json.loads(p.read_text()) for p in paths]
+    # gold files key the id as `question_id`, but the pipeline and runner
+    # read `q["id"]` everywhere (the ad-hoc path also uses id="adhoc"), so
+    # normalise to `id` at load time. without this, `runner --questions q1`
+    # KeyErrors on q["id"] and the gold set cannot run at all.
+    out: list[dict[str, Any]] = []
+    for p in paths:
+        record = json.loads(p.read_text())
+        record.setdefault("id", record.get("question_id"))
+        out.append(record)
+    return out
