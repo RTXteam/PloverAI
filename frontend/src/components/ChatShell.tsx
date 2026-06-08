@@ -157,10 +157,12 @@ export default function ChatShell() {
         const ms = modelsRes.value as ModelInfo[];
         setModels(ms);
         if (ms.length > 0) {
+          // prefer the backend-recommended model; fall back to the cheapest.
           const cheapest = [...ms].sort(
             (a, b) => (a.price_in + a.price_out) - (b.price_in + b.price_out),
           )[0];
-          setModelId(cheapest.id);
+          const defaultModel = ms.find((m) => m.recommended) ?? cheapest;
+          setModelId(defaultModel.id);
         }
       }
       const runsList =

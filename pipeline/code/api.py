@@ -238,6 +238,7 @@ class ModelInfo(BaseModel):
     tier: str
     price_in: float
     price_out: float
+    recommended: bool = False
 
 
 class ModelsResponse(BaseModel):
@@ -474,6 +475,7 @@ def list_models() -> ModelsResponse:
                 tier=m.tier,
                 price_in=m.price_in,
                 price_out=m.price_out,
+                recommended=m.recommended,
             )
             for m in cfg.models
         ]

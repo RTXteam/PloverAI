@@ -135,9 +135,18 @@ function ModelLabel({ m, highlight }: { m: ModelInfo; highlight?: boolean }) {
       <span className={`font-semibold ${highlight ? "text-blue-700 dark:text-blue-300" : ""}`}>{m.id}</span>
       <span>{name}</span>
       <TierBadge tier={m.tier} />
+      {m.recommended && <RecommendedBadge />}
       <span className="text-zinc-500 dark:text-zinc-400 text-xs">
         ${m.price_in.toFixed(2)} in · ${m.price_out.toFixed(2)} out per 1M
       </span>
+    </span>
+  );
+}
+
+function RecommendedBadge() {
+  return (
+    <span className="text-[10px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
+      recommended
     </span>
   );
 }

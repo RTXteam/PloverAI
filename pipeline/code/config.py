@@ -57,6 +57,9 @@ class ModelSpec:
     # the iterative chunk budget (context_window * context_fraction). adjust
     # by hand when a provider changes a model's window.
     context_window: int = 128000
+    # UI hint: the dropdown pre-selects and badges this model as
+    # "recommended". At most one row in config.yaml should set it true.
+    recommended: bool = False
 
 
 @dataclass(frozen=True)
