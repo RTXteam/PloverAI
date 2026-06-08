@@ -102,6 +102,11 @@ export type AnswerGraphView = {
   pinned_node: AnswerGraphNode;
   answer_nodes: AnswerGraphNode[];
   edges: AnswerGraphEdge[];
+  // edge endpoints that are NEITHER the pinned node nor a picked answer —
+  // the "matched concepts" KG2c found by expanding the pinned node to
+  // descendant/equivalent terms. Used to render the query → matched → answer
+  // chain in each evidence card. Absent on older runs.
+  edge_endpoint_nodes?: { curie: string; label: string | null; category: string | null }[];
   pubtator_metrics?: {
     verified: number;
     unverified: number;
@@ -139,6 +144,8 @@ export type ModelInfo = {
   tier: "frontier" | "budget" | string;
   price_in: number;
   price_out: number;
+  // backend-driven UI hint: pre-selected default + "recommended" badge.
+  recommended?: boolean;
 };
 
 export type ServiceInfo = {

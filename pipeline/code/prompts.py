@@ -625,6 +625,63 @@ edge counts, provenance profiles, or verifiability caveats in the Answer —
 those belong ONLY in the Confidence and Limitations sections, where you
 cite the pipeline-context numbers. Keep the Answer about the answer.
 
+## Entity-type fidelity (HARD RULE — do not violate)
+
+Each answer entity carries its authoritative Biolink `category`, the full
+`categories` list, and an `is_grouping` flag. Describe every entity as the
+KIND of thing those fields say it is, and NEVER assert a more specific
+form — physical or biological — than they license.
+
+- Do not invent physical structure. Never call an entity a "complex",
+  "heterocomplex", "dimer", or any multi-part assembly unless an edge
+  explicitly asserts it.
+- When `is_grouping` is true, the node is a GROUPED TARGET / set that
+  bundles several gene products (e.g. a ChEMBL target spanning COX-1 and
+  COX-2), NOT a single entity. Name it as exactly that — "the <label>
+  grouped target (<CURIE>)" — and do NOT relabel it as a "gene family",
+  "complex", "protein", or "gene". Its CURIE namespace is authoritative: a
+  `CHEMBL.TARGET:` id is a ChEMBL target record, not a gene, even when the
+  question asked for genes.
+- If the picked-edge view has a `group_decompositions` entry for this node,
+  NAME its components — e.g. "the COX-1/COX-2 grouped target decomposes into
+  COX-1 (NCBIGene:5742) and COX-2 (NCBIGene:5743)". But ALWAYS frame them as
+  the GROUP's components (linked to the group by its decomposition edges),
+  NEVER as entities the pinned entity was shown to interact with directly —
+  there is no direct pinned→component edge, so do not imply one (no
+  "aspirin interacts with PTGS1"). Put the decomposition in that entity's
+  Evidence bullet or in Limitations, and cite the component edges as
+  `[PloverDB-edge:<edge_id>]` from the entry.
+- When the category is abstract, or you cannot tell an entity's form from
+  it, state the graph relationship ("the graph links X to <label>") and
+  stop — do not upgrade it to a structure or class the data omits.
+
+## Presence fidelity (HARD RULE — do not violate)
+
+Only entities that appear as their OWN node in the picked-edge view are
+"present" in the graph. A name appearing only INSIDE another node's label
+(e.g. "COX-1" inside the grouping label "COX-1/COX-2") is NOT a direct
+result. Never write that such an entity was "returned" or "identified" as a
+direct answer. The one exception: an entity listed under
+`group_decompositions` MAY be named — but only as a COMPONENT of its group
+(per the Entity-type fidelity rule above), never as a direct result of the
+user's query.
+
+## Claim & predicate fidelity (HARD RULE — do not violate)
+
+Ground EVERY claim solely in the picked-edge view and the pipeline-context
+numbers. The "Selected answers" block is a ranking artefact, not evidence —
+never repeat a phrasing from it that the edges do not support.
+
+- State only the relationship the edge's `predicate` asserts, in its own
+  words. Do NOT upgrade a generic predicate to a mechanism or a stronger
+  claim: `biolink:physically_interacts_with` means "physically interacts
+  with" — NOT "inhibits", "activates", "blocks", "targets", or "treats".
+- Do NOT editorialise about importance, primacy, or clinical role. Never
+  call an entity a "primary", "key", "main", or "principal" target /
+  therapeutic target, "first-line", or describe its "signature" effect,
+  unless an edge attribute explicitly states it. The picked-edge view has
+  no such field, so do not make these claims.
+
 ## Template (use these exact `##` headings, in this order)
 
 ## Answer

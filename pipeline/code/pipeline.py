@@ -244,6 +244,37 @@ _ATTR_AGENT_TYPE = "biolink:agent_type"
 _ATTR_PRIMARY_KS = "biolink:primary_knowledge_source"
 _ATTR_PUBLICATIONS = "biolink:publications"
 _ATTR_SUPPORTING_TEXT = "biolink:supporting_text"
+_ATTR_CATEGORY = "biolink:category"
+
+
+def _canonical_category(kg_node: dict[str, Any]) -> str | None:
+    # RTX-KG2 records each node's authoritative single type in a
+    # biolink:category attribute (e.g. biolink:GeneFamily for a ChEMBL
+    # selectivity group). that's more reliable than categories[0], whose
+    # order can put a generic mixin (biolink:Protein) ahead of the specific
+    # type and mislead the explainer into inventing a physical structure.
+    for attr in kg_node.get("attributes") or []:
+        if attr.get("attribute_type_id") == _ATTR_CATEGORY:
+            value = attr.get("value")
+            if isinstance(value, str):
+                return value
+    return None
+
+
+# Biolink categories whose members are GROUPINGS / aggregates (a family, set,
+# or group of gene products) rather than one physical entity. Matched by
+# suffix so the check generalises across the model (…Family, …Grouping,
+# …Mixture, …Group, …Set) instead of pinning a fixed list. ChEMBL "target"
+# records that bundle several proteins (e.g. selectivity groups) land here as
+# biolink:GeneFamily — flagging them lets the explainer name them as the
+# grouped target they are instead of guessing a biological category.
+_GROUPING_CATEGORY_SUFFIXES = ("Family", "Grouping", "Mixture", "Group", "Set")
+
+
+def _is_grouping_category(category: str | None) -> bool:
+    if not category:
+        return False
+    return category.split(":", 1)[-1].endswith(_GROUPING_CATEGORY_SUFFIXES)
 
 
 def _build_answer_graph_view(
@@ -297,10 +328,18 @@ def _build_answer_graph_view(
     for curie in picked_answer_curies:
         kg_node = nodes_block.get(curie) or {}
         cats = kg_node.get("categories") or []
+        category = _canonical_category(kg_node) or (cats[0] if cats else None)
         answer_nodes.append({
             "curie": curie,
             "label": kg_node.get("name"),
-            "category": cats[0] if cats else None,
+            # authoritative KG type (falls back to the top-level list) so the
+            # explainer never mistakes a grouping node for a physical entity.
+            "category": category,
+            "categories": cats,
+            # grouped/aggregate node (e.g. a ChEMBL target spanning several
+            # genes) — the explainer must name it as a grouped target, not a
+            # single gene / protein / complex.
+            "is_grouping": _is_grouping_category(category),
             "role": "answer",
         })
 
@@ -375,11 +414,101 @@ def _build_answer_graph_view(
             "supporting_text_snippets": supporting_text_snippets,
         })
 
+    # "matched concept" nodes: edge endpoints that are NEITHER the pinned
+    # node NOR a picked answer. KG2c expands the pinned node to descendant /
+    # equivalent concepts, so a picked edge's real subject is often one of
+    # those (e.g. "Focal hemiclonic seizure" for a query of "Focal-onset
+    # seizure"). Surfacing them with label + category lets the UI draw the
+    # honest chain (query → matched concept → answer) instead of pretending
+    # the pinned node is the edge's subject.
+    known_curies = {pinned_curie} | picked_set
+    matched_curies = {
+        c
+        for e in edges_out
+        for c in (e["source"], e["target"])
+        if isinstance(c, str) and c not in known_curies
+    }
+    edge_endpoint_nodes: list[dict[str, Any]] = []
+    for cid in sorted(matched_curies):
+        kg_node = nodes_block.get(cid) or {}
+        cats = kg_node.get("categories") or []
+        edge_endpoint_nodes.append({
+            "curie": cid,
+            "label": kg_node.get("name"),
+            "category": _canonical_category(kg_node) or (cats[0] if cats else None),
+        })
+
     return {
         "pinned_node": pinned_node,
         "answer_nodes": answer_nodes,
         "edges": edges_out,
+        "edge_endpoint_nodes": edge_endpoint_nodes,
     }
+
+
+# Predicates that mean "this group is COMPOSED OF these members". A ChEMBL
+# target group links to its component genes via has_part; it ALSO links to
+# sibling/narrower target records via subclass_of — those are more grouping
+# records, not gene members, so we keep only the membership edges and drop
+# the taxonomy ones. (has_member / has_gene_product included for generality
+# across other grouping namespaces.)
+_MEMBERSHIP_PREDICATES = (
+    "biolink:has_part",
+    "biolink:has_member",
+    "biolink:has_gene_product",
+)
+
+
+def _decompose_grouping_node(
+    *,
+    group_curie: str,
+    plover: PloverClient,
+) -> list[dict[str, Any]]:
+    # A grouped target (e.g. a ChEMBL selectivity group) bundles several gene
+    # products. We resolve its component GENES with a SEPARATE one-hop query
+    # (group -> Gene) so the explainer can name them WITHOUT the pipeline ever
+    # asserting a direct pinned->component edge. The answer stays strictly
+    # one-hop: components are reported as what the group decomposes into, not
+    # as direct interactors of the pinned entity. Returns [] on any error or
+    # when the group has no gene members.
+    msg: dict[str, Any] = {
+        "message": {
+            "query_graph": {
+                "nodes": {
+                    "n0": {"ids": [group_curie]},
+                    "n1": {"categories": ["biolink:Gene"]},
+                },
+                "edges": {"e0": {"subject": "n0", "object": "n1"}},
+            }
+        }
+    }
+    try:
+        reply = plover.query(msg)
+    except PloverError:
+        return []
+    kg = reply.body.get("message", {}).get("knowledge_graph", {}) or {}
+    nodes = kg.get("nodes") or {}
+    edges = kg.get("edges") or {}
+    preds_by_comp: dict[str, set[str]] = {}
+    edge_ids_by_comp: dict[str, list[str]] = {}
+    for eid, e in edges.items():
+        subj, obj = e.get("subject"), e.get("object")
+        comp = obj if subj == group_curie else subj
+        pred = e.get("predicate")
+        if not comp or comp == group_curie or pred not in _MEMBERSHIP_PREDICATES:
+            continue
+        preds_by_comp.setdefault(comp, set()).add(pred)
+        edge_ids_by_comp.setdefault(comp, []).append(eid)
+    components: list[dict[str, Any]] = []
+    for cid in preds_by_comp:
+        node = nodes.get(cid) or {}
+        components.append({
+            "curie": cid,
+            "label": node.get("name"),
+            "predicates": sorted(preds_by_comp[cid]),
+            "edge_ids": edge_ids_by_comp[cid],
+        })
+    return components
 
 
 # Stage 7 threshold. exposed as a module constant so tests can assert
@@ -1962,6 +2091,30 @@ def run_grounded(
         supporting_edge_ids=picked_edge_ids or None,
     )
 
+    # ---------- Stage 13b: decompose grouped-target answers ----------
+    # If an answer is a GROUPED TARGET (is_grouping — e.g. a ChEMBL
+    # selectivity group), resolve its component genes with a separate one-hop
+    # query so the explainer can name them (e.g. "covers COX-1 and COX-2")
+    # WITHOUT claiming a direct pinned->component edge. This surfaces the
+    # more-specific members — here PTGS1/COX-1, which has no direct edge to
+    # the pinned entity — while every asserted edge stays one-hop.
+    group_decompositions: list[dict[str, Any]] = []
+    for node in answer_graph_view["answer_nodes"]:
+        if not node.get("is_grouping"):
+            continue
+        comps = _decompose_grouping_node(group_curie=node["curie"], plover=plover)
+        if comps:
+            group_decompositions.append({
+                "group_curie": node["curie"],
+                "group_label": node["label"],
+                "components": comps,
+            })
+            logger.info(
+                f"{tag}  group_decomposition  {node['curie']} -> "
+                f"{len(comps)} component gene(s)"
+            )
+    answer_graph_view["group_decompositions"] = group_decompositions
+
     # ---------- Stage 13 enrichment: PubTator co-mention verification ----------
     # for each edge with supporting_publications, ask PubTator whether
     # the cited PMIDs actually mention BOTH endpoints (via any of their
@@ -2139,11 +2292,23 @@ def run_grounded(
             "reduction_edges_kept_per_group": reduction.metadata.edges_kept_per_group,
             "reduction_edges_dropped_per_group": reduction.metadata.edges_dropped_per_group,
         })
+    # Stage 11's free-text `why` / `rationale` are ranking notes that can
+    # carry background knowledge NOT in the graph (e.g. "primary therapeutic
+    # target"). The explainer grounds claims ONLY in the picked-edge view +
+    # pipeline context, so strip those notes here to stop them leaking into
+    # the faithful explanation. The full Stage 11 object is still written to
+    # answer.json for traceability.
+    answer_obj_for_explain = dict(answer_obj)
+    answer_obj_for_explain["answers"] = [
+        {k: v for k, v in a.items() if k != "why"}
+        for a in (answer_obj.get("answers") or [])
+    ]
+    answer_obj_for_explain.pop("rationale", None)
     user_msg_5 = (
         f"User question: {nl_question}\n\n"
         f"Pipeline context (cite these numbers in your Confidence and "
         f"Limitations sections):\n{json.dumps(pipeline_context, ensure_ascii=False)}\n\n"
-        f"Selected answers (Stage 11):\n{json.dumps(answer_obj, ensure_ascii=False)}\n\n"
+        f"Selected answers (Stage 11):\n{json.dumps(answer_obj_for_explain, ensure_ascii=False)}\n\n"
         f"Picked-edge view (use ONLY these edges to ground citations):\n"
         f"{json.dumps(answer_graph_view, ensure_ascii=False)}\n"
     )

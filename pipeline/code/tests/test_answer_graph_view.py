@@ -10,7 +10,9 @@
 #   1. emit `pinned_node` with curie/label/category/role="pinned"
 #   2. emit `answer_nodes` — one per picked CURIE, role="answer".
 #      labels/categories come from the PloverDB knowledge_graph.nodes
-#      block. unknown CURIEs (not in KG) still get a node but with
+#      block. `category` is the node's authoritative biolink:category
+#      attribute when present (else categories[0]); `categories` carries
+#      the full list. unknown CURIEs (not in KG) still get a node but with
 #      label=None and category=None — we never drop a picked answer.
 #   3. emit `edges` — only edges that touch BOTH the pinned node AND
 #      one of the picked answer nodes. edges between two non-answer
@@ -27,7 +29,8 @@
 #   6. an empty answer list → empty answer_nodes + empty edges, but
 #      pinned_node is still emitted.
 
-from code.pipeline import _build_answer_graph_view
+from code.pipeline import _build_answer_graph_view, _decompose_grouping_node
+from code.plover_client import PloverError, PloverReply
 
 
 # ---- a minimal but realistic fabricated TRAPI response ----
@@ -377,3 +380,177 @@ def test_legacy_node_pair_filter_keeps_both_without_supporting_ids():
         plover_response=_two_edge_kg(),
     )
     assert {e["id"] for e in view["edges"]} == {"edge_cited", "edge_uncited"}
+
+
+# ---- canonical category: grouping nodes must not be mistyped ----
+
+def _selectivity_group_kg():
+    # mirrors the real ChEMBL "selectivity group" case: the node's
+    # top-level categories put biolink:Protein first, but its authoritative
+    # biolink:category attribute is biolink:GeneFamily. the view must
+    # surface the authoritative type so the explainer can't read the
+    # grouping label ("COX-1/COX-2") as a physical "complex".
+    return {
+        "message": {
+            "knowledge_graph": {
+                "nodes": {
+                    "CHEBI:15365": {"name": "acetylsalicylic acid",
+                                    "categories": ["biolink:SmallMolecule"]},
+                    "CHEMBL.TARGET:CHEMBL4523964": {
+                        "name": "COX-1/COX-2",
+                        "categories": ["biolink:Protein", "biolink:GeneFamily"],
+                        "attributes": [
+                            {"attribute_type_id": "biolink:category",
+                             "value": "biolink:GeneFamily"},
+                        ],
+                    },
+                },
+                "edges": {
+                    "e_grp": {"subject": "CHEBI:15365",
+                              "object": "CHEMBL.TARGET:CHEMBL4523964",
+                              "predicate": "biolink:physically_interacts_with",
+                              "attributes": []},
+                },
+            }
+        }
+    }
+
+
+def test_canonical_category_overrides_misleading_categories_order():
+    # categories[0] is biolink:Protein (misleading — reads as a complex);
+    # the biolink:category attribute (biolink:GeneFamily) is authoritative
+    # and must win, with the full list also surfaced for the explainer.
+    view = _build_answer_graph_view(
+        pinned_curie="CHEBI:15365",
+        pinned_label="acetylsalicylic acid",
+        pinned_category="biolink:SmallMolecule",
+        picked_answer_curies=["CHEMBL.TARGET:CHEMBL4523964"],
+        plover_response=_selectivity_group_kg(),
+    )
+    a = view["answer_nodes"][0]
+    assert a["category"] == "biolink:GeneFamily"
+    assert a["categories"] == ["biolink:Protein", "biolink:GeneFamily"]
+    # the grouping flag lets the explainer name it as a grouped target
+    # rather than guess "gene family" / "complex".
+    assert a["is_grouping"] is True
+
+
+def test_category_falls_back_to_first_when_no_category_attribute():
+    # nodes without a biolink:category attribute (most KG2c nodes) keep the
+    # previous behaviour: category = categories[0], categories = full list.
+    view = _build_answer_graph_view(
+        pinned_curie="MONDO:0005148",
+        pinned_label="type 2 diabetes mellitus",
+        pinned_category="biolink:Disease",
+        picked_answer_curies=["CHEBI:6801"],
+        plover_response=_minimal_plover_kg(),
+    )
+    a = view["answer_nodes"][0]
+    assert a["category"] == "biolink:Drug"
+    assert a["categories"] == ["biolink:Drug"]
+    # an individual small molecule is not a grouping
+    assert a["is_grouping"] is False
+
+
+# ---- grouped-target decomposition (Stage 13b) ----
+
+class _FakePlover:
+    # stands in for PloverClient.query — returns a canned has_part response
+    # for the group -> Gene decomposition query.
+    def __init__(self, body):
+        self._body = body
+
+    def query(self, _msg):
+        return PloverReply(body=self._body, status_code=200,
+                           latency_s=0.0, response_bytes=0)
+
+
+def _cox_decomposition_body():
+    # mirrors the live KG2c response: the group links to its gene members via
+    # has_part AND to a sibling target record via subclass_of. Only the
+    # has_part gene members must survive decomposition.
+    return {"message": {"knowledge_graph": {
+        "nodes": {
+            "CHEMBL.TARGET:CHEMBL4523964": {"name": "COX-1/COX-2"},
+            "CHEMBL.TARGET:CHEMBL221": {"name": "Cyclooxygenase-1"},
+            "NCBIGene:5742": {"name": "PTGS1"},
+            "NCBIGene:5743": {"name": "PTGS2"},
+        },
+        "edges": {
+            # taxonomy, not membership — a sibling target record, must drop
+            "s1": {"subject": "CHEMBL.TARGET:CHEMBL4523964",
+                   "object": "CHEMBL.TARGET:CHEMBL221",
+                   "predicate": "biolink:subclass_of"},
+            "h1": {"subject": "CHEMBL.TARGET:CHEMBL4523964",
+                   "object": "NCBIGene:5742", "predicate": "biolink:has_part"},
+            "h2": {"subject": "CHEMBL.TARGET:CHEMBL4523964",
+                   "object": "NCBIGene:5743", "predicate": "biolink:has_part"},
+        },
+    }}}
+
+
+def test_decompose_grouping_node_surfaces_component_genes():
+    # the durable fix for COX-1 being hidden: decomposing the selectivity
+    # group surfaces PTGS1 (NCBIGene:5742, COX-1) and PTGS2, each with the
+    # has_part predicate and the structural edge id for citation. The
+    # subclass_of sibling target record (CHEMBL221) is filtered out.
+    comps = _decompose_grouping_node(
+        group_curie="CHEMBL.TARGET:CHEMBL4523964",
+        plover=_FakePlover(_cox_decomposition_body()),
+    )
+    by_curie = {c["curie"]: c for c in comps}
+    assert set(by_curie) == {"NCBIGene:5742", "NCBIGene:5743"}
+    assert "CHEMBL.TARGET:CHEMBL221" not in by_curie
+    assert by_curie["NCBIGene:5742"]["label"] == "PTGS1"
+    assert by_curie["NCBIGene:5742"]["predicates"] == ["biolink:has_part"]
+    assert by_curie["NCBIGene:5742"]["edge_ids"] == ["h1"]
+
+
+def test_edge_endpoint_nodes_surface_matched_concepts():
+    # KG2c expands the pinned node to descendant concepts, so a picked edge's
+    # real subject can be NEITHER the pinned node NOR a picked answer. that
+    # 'matched concept' must appear in edge_endpoint_nodes with label +
+    # category so the UI can draw the honest query -> matched -> answer chain.
+    kg = {
+        "message": {"knowledge_graph": {
+            "nodes": {
+                "HP:0007359": {"name": "Focal-onset seizure",
+                               "categories": ["biolink:PhenotypicFeature"]},
+                "HP:0006813": {"name": "Focal hemiclonic seizure",
+                               "categories": ["biolink:PhenotypicFeature"]},
+                "MONDO:0100135": {"name": "Dravet syndrome",
+                                  "categories": ["biolink:Disease"]},
+            },
+            "edges": {
+                # the real subject is a DESCENDANT of the pinned node
+                "e1": {"subject": "HP:0006813", "object": "MONDO:0100135",
+                       "predicate": "biolink:manifestation_of", "attributes": []},
+            },
+        }}
+    }
+    view = _build_answer_graph_view(
+        pinned_curie="HP:0007359", pinned_label="Focal-onset seizure",
+        pinned_category="biolink:PhenotypicFeature",
+        picked_answer_curies=["MONDO:0100135"],
+        plover_response=kg,
+        supporting_edge_ids={"e1"},
+    )
+    eps = {n["curie"]: n for n in view["edge_endpoint_nodes"]}
+    assert set(eps) == {"HP:0006813"}
+    assert eps["HP:0006813"]["label"] == "Focal hemiclonic seizure"
+    assert eps["HP:0006813"]["category"] == "biolink:PhenotypicFeature"
+    # the pinned node and the picked answer are NOT matched-concept nodes
+    assert "HP:0007359" not in eps
+    assert "MONDO:0100135" not in eps
+
+
+def test_decompose_grouping_node_empty_on_plover_error():
+    # a failed decomposition query must degrade to [] (the explainer then
+    # just names the group as a grouped target) — never raise.
+    class _Boom:
+        def query(self, _msg):
+            raise PloverError("ploverdb down")
+
+    assert _decompose_grouping_node(
+        group_curie="CHEMBL.TARGET:CHEMBL4523964", plover=_Boom(),
+    ) == []

@@ -52,9 +52,20 @@ export function StructuredAnswer({ explanation, view }: Props) {
   // edges from different sources). we want one card per answer node,
   // listing all of its edges inside.
   const edgesByAnswerCurie = useMemo(
-    () => groupEdgesByAnswerCurie(view.edges, view.pinned_node.curie),
-    [view.edges, view.pinned_node.curie],
+    () => groupEdgesByAnswerCurie(view.edges, view.pinned_node.curie, view.answer_nodes),
+    [view.edges, view.pinned_node.curie, view.answer_nodes],
   );
+
+  // resolve ANY edge endpoint (pinned, answer, or a "matched concept" from
+  // KG2c's descendant expansion) to its label + category, so the evidence
+  // chain and the per-edge detail row can name the real endpoints.
+  const nodeByCurie = useMemo(() => {
+    const m = new Map<string, { curie: string; label: string | null; category: string | null }>();
+    m.set(view.pinned_node.curie, view.pinned_node);
+    for (const a of view.answer_nodes) m.set(a.curie, a);
+    for (const n of view.edge_endpoint_nodes ?? []) m.set(n.curie, n);
+    return m;
+  }, [view.pinned_node, view.answer_nodes, view.edge_endpoint_nodes]);
 
   return (
     <article className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
@@ -86,6 +97,7 @@ export function StructuredAnswer({ explanation, view }: Props) {
                 answer={answer}
                 edges={edgesByAnswerCurie.get(answer.curie) ?? []}
                 prose={proseByCurie.get(answer.curie) ?? null}
+                nodeByCurie={nodeByCurie}
               />
             </li>
           ))}
@@ -117,11 +129,13 @@ function EvidenceCard({
   answer,
   edges,
   prose,
+  nodeByCurie,
 }: {
   pinned: AnswerGraphNode;
   answer: AnswerGraphNode;
   edges: AnswerGraphEdge[];
   prose: string | null;
+  nodeByCurie: Map<string, { curie: string; label: string | null; category: string | null }>;
 }) {
   // compute the "best" provenance line across the edges for this
   // answer — knowledge_level (highest tier wins) + KS list. small
@@ -130,6 +144,8 @@ function EvidenceCard({
   const headerProvenance = summarizeProvenance(edges);
   // PubTator verification summary: at least one edge verified?
   const pubtatorBest = bestPubTatorStatus(edges);
+  // one honest chain per query-side concept (query → matched → answer).
+  const chains = buildChains(answer, edges, pinned, nodeByCurie);
 
   return (
     <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -161,10 +177,15 @@ function EvidenceCard({
         </div>
       </div>
 
-      {/* mini-graph: pinned → edges → answer. horizontal layout, three
-          columns wide. clicking an edge highlights its provenance below. */}
-      <div className="px-4 py-4">
-        <MiniGraph pinned={pinned} answer={answer} edges={edges} />
+      {/* evidence chain(s): query → (matched concept) → answer. one row per
+          query-side concept, showing the REAL edge endpoints rather than
+          pretending the pinned node is always the subject. */}
+      <div className="px-4 py-4 flex flex-col gap-2.5">
+        {chains.length === 0 ? (
+          <p className="text-xs text-zinc-400 italic">No supporting edges for this answer.</p>
+        ) : (
+          chains.map((chain, i) => <EvidenceChain key={i} chain={chain} />)
+        )}
       </div>
 
       {/* LLM's per-entity prose (extracted from the markdown bullet
@@ -186,7 +207,7 @@ function EvidenceCard({
         </summary>
         <ul className="px-4 pb-4 pt-1 flex flex-col gap-3">
           {edges.map((e) => (
-            <EdgeDetailRow key={e.id} edge={e} />
+            <EdgeDetailRow key={e.id} edge={e} nodeByCurie={nodeByCurie} />
           ))}
         </ul>
       </details>
@@ -194,86 +215,103 @@ function EvidenceCard({
   );
 }
 
-// ---- the inline mini-graph ----
+// ---- evidence chain: query → matched concept → answer ----
+//
+// KG2c expands the pinned node to descendant / equivalent concepts, so a
+// picked edge's real subject is often NOT the pinned node but a more
+// specific "matched concept" (e.g. "Focal hemiclonic seizure" for a query
+// of "Focal-onset seizure"). We render the honest path per query-side
+// concept:
+//   [your query] ⇢ expanded to ⇢ [matched concept] —predicate→ [answer]
+// When the edge's real subject IS the pinned node, the middle hop is omitted.
 
-function MiniGraph({
-  pinned,
-  answer,
-  edges,
-}: {
-  pinned: AnswerGraphNode;
-  answer: AnswerGraphNode;
-  edges: AnswerGraphEdge[];
-}) {
-  // ONE arrow per node-pair (NOT one parallel line per edge). multiple
-  // supporting edges between the same nodes are conceptually one
-  // relation supported by N sources — drawing N parallel lines made
-  // labels overlap and didn't add information. instead we stack all
-  // edge IDs ABOVE the single arrow with the canonical
-  // "PloverDB-edge:N" notation so the user knows what kind of ID it
-  // is, and the predicate sits as a chip BELOW the arrow line.
-  //
-  // SVG height is computed from the actual content so labels never
-  // clip: top band for the stacked edge IDs, middle for the arrow
-  // and predicate chip, bottom for each node's label + curie +
-  // category line. width is fixed at 640 and scales via class="w-full"
-  // so it always fits the card column.
+type ChainNode = { curie: string; label: string | null; category: string | null };
+type ChainStop = { node: ChainNode; role: "query" | "matched" | "answer" };
+type ChainSpec = {
+  stops: ChainStop[];
+  predicate: string;
+  edgeIds: string[];
+  expand: boolean; // a query → matched hop precedes the predicate hop
+  reverse: boolean; // the real edge points answer → matched (predicate drawn ←)
+  stroke: string; // PubTator-derived arrow colour
+};
 
-  // unique predicates list (e.g. usually all "treats" — collapse to one)
-  const uniquePredicates = Array.from(
-    new Set(edges.map((e) => (e.predicate || "?").replace(/^biolink:/, ""))),
-  );
+function arrowStrokeFor(edges: AnswerGraphEdge[]): string {
+  if (edges.some((e) => e.pubtator_verified?.verified)) return "#10b981";
+  if (edges.some((e) => e.pubtator_verified != null)) return "#f59e0b";
+  return "#71717a";
+}
 
-  // height budget computed from real content. the bottom band has to
-  // fit, IN ORDER below the circle: 16px gap → N wrapped label lines
-  // (15px each) → CURIE line (~15px) → category line (~15px) → ~8px
-  // bottom padding for font descenders + the card border. NODE_R
-  // accounts for the half of the circle below ARROW_Y. labels are
-  // wrapped here (instead of inside MiniNode) so we know the actual
-  // line count before computing H — a 3-line label needs ~30px more
-  // bottom band than a 1-line label, and an over-eager constant for
-  // the worst case adds dead space for short-label cards.
-  const W = 640;
-  const TOP_PADDING = 16;
-  const EDGE_ID_LINE_H = 16;
-  const TOP_BAND = TOP_PADDING + edges.length * EDGE_ID_LINE_H + 12;
-  const NODE_R = 32;
+function buildChains(
+  answer: AnswerGraphNode,
+  edges: AnswerGraphEdge[],
+  pinned: AnswerGraphNode,
+  nodeByCurie: Map<string, ChainNode>,
+): ChainSpec[] {
+  // group the card's edges by their query-side endpoint (the endpoint that
+  // is NOT the answer). each distinct query-side concept becomes one chain.
+  const groups = new Map<string, AnswerGraphEdge[]>();
+  for (const e of edges) {
+    const querySide = e.source === answer.curie ? e.target : e.source;
+    if (!groups.has(querySide)) groups.set(querySide, []);
+    groups.get(querySide)!.push(e);
+  }
+  const specs: ChainSpec[] = [];
+  for (const [querySide, gedges] of groups) {
+    const isPinned = querySide === pinned.curie;
+    const matched: ChainNode =
+      nodeByCurie.get(querySide) ?? { curie: querySide, label: null, category: null };
+    const stops: ChainStop[] = isPinned
+      ? [
+          { node: pinned, role: "query" },
+          { node: answer, role: "answer" },
+        ]
+      : [
+          { node: pinned, role: "query" },
+          { node: matched, role: "matched" },
+          { node: answer, role: "answer" },
+        ];
+    const predicate = Array.from(
+      new Set(gedges.map((e) => (e.predicate || "?").replace(/^biolink:/, ""))),
+    ).join(" / ");
+    specs.push({
+      stops,
+      predicate,
+      edgeIds: gedges.map((e) => e.id),
+      expand: !isPinned,
+      reverse: gedges[0]?.source === answer.curie,
+      stroke: arrowStrokeFor(gedges),
+    });
+  }
+  return specs;
+}
+
+// SVG chain: real circles for nodes, real drawn edges (lines + arrowheads).
+// generalises the original 2-node mini-graph to a 2- or 3-node row:
+//   (QUERY) ┄expanded to┄▶ (MATCH) ──predicate──▶ (ANSWER)
+// the expansion hop is a DASHED grey edge (it's KG2c query expansion, not a
+// KG predicate); the predicate hop is a solid coloured edge with its edge
+// IDs stacked above and the predicate chip below — exactly as before.
+function EvidenceChain({ chain }: { chain: ChainSpec }) {
+  const stops = chain.stops;
+  const n = stops.length;
+  const W = 680;
+  const NODE_R = 30;
+  const TOP_PADDING = 14;
+  const EDGE_ID_LINE_H = 15;
+  const TOP_BAND = TOP_PADDING + chain.edgeIds.length * EDGE_ID_LINE_H + 16;
   const ARROW_Y = TOP_BAND + NODE_R + 4;
-  const pinnedLines = wrapLabel(pinned.label || pinned.curie, 18, 3);
-  const answerLines = wrapLabel(answer.label || answer.curie, 18, 3);
-  const maxLabelLines = Math.max(pinnedLines.length, answerLines.length, 1);
-  const NODE_BOTTOM_BAND =
-    NODE_R       // bottom half of the circle (sits below ARROW_Y)
-    + 16         // gap between circle and first label line
-    + maxLabelLines * 15  // wrapped label
-    + 18         // CURIE line (offset 4 below last label, ~14 line-height)
-    + 16         // category line (offset 17 below CURIE)
-    + 8;         // font-descender + bottom padding so nothing hugs the border
-  const H = ARROW_Y + NODE_BOTTOM_BAND;
-
-  const LEFT_X = 90;
-  const RIGHT_X = W - 90;
-  const palettePinned = categoryPalette(pinned.category);
-  const paletteAnswer = categoryPalette(answer.category);
-
-  // arrow colour: emerald if ANY edge is PubTator-verified, amber if
-  // checked-but-none-verified, zinc otherwise. matches the badge in
-  // the card header so the visual story is consistent.
-  const arrowStroke = useMemo(() => {
-    const anyVerified = edges.some((e) => e.pubtator_verified?.verified);
-    if (anyVerified) return "#10b981";
-    const anyChecked = edges.some((e) => e.pubtator_verified !== null);
-    if (anyChecked) return "#f59e0b";
-    return "#71717a";
-  }, [edges]);
-
-  // unique marker id per-instance so multiple MiniGraphs on the same
-  // page (one per evidence card) don't share a single <marker> def
-  // and overwrite each other's colour.
-  const arrowId = useMemo(
-    () => `arrow-${pinned.curie}-${answer.curie}`.replace(/[^a-zA-Z0-9_-]/g, "_"),
-    [pinned.curie, answer.curie],
-  );
+  // wrap each node label so we know the line count before sizing the SVG.
+  const wrapped = stops.map((s) => wrapLabel(s.node.label || s.node.curie, n === 3 ? 15 : 18, 3));
+  const maxLabelLines = Math.max(1, ...wrapped.map((l) => l.length));
+  const BOTTOM = NODE_R + 16 + maxLabelLines * 15 + 18 + 14 + 8;
+  const H = ARROW_Y + BOTTOM;
+  const margin = 66;
+  const xs = stops.map((_, i) => margin + (i * (W - 2 * margin)) / (n - 1));
+  // unique marker ids per chain (edge ids are globally unique on the page).
+  const salt = (chain.edgeIds[0] ?? stops[n - 1].node.curie).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const predMarker = `pm-${salt}`;
+  const expMarker = `em-${salt}`;
 
   return (
     <svg
@@ -282,172 +320,94 @@ function MiniGraph({
       className="w-full max-w-full"
       style={{ maxHeight: H }}
       role="img"
-      aria-label={`Mini graph: ${pinned.curie} to ${answer.curie}`}
+      aria-label={`Evidence chain for ${stops[n - 1].node.curie}`}
     >
       <defs>
-        <marker
-          id={arrowId}
-          viewBox="0 0 10 10"
-          refX="9"
-          refY="5"
-          markerWidth="6"
-          markerHeight="6"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" fill={arrowStroke} />
+        <marker id={predMarker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill={chain.stroke} />
+        </marker>
+        <marker id={expMarker} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#a1a1aa" />
         </marker>
       </defs>
 
-      {/* stacked PloverDB edge IDs ABOVE the arrow, one per line, with
-          the full "PloverDB-edge:N" label so the user knows what kind
-          of identifier it is */}
-      {edges.map((edge, i) => (
-        <g key={edge.id}>
-          <title>
-            {edge.predicate ?? "(no predicate)"} · PloverDB-edge:{edge.id}
-            {edge.pubtator_verified?.verified ? " · PubTator: verified" : ""}
-          </title>
-          <text
-            x={W / 2}
-            y={TOP_PADDING + i * EDGE_ID_LINE_H + 11}
-            textAnchor="middle"
-            fontSize="11"
-            fontFamily="ui-monospace, SFMono-Regular, monospace"
-            className="fill-zinc-600 dark:fill-zinc-400"
-          >
-            PloverDB-edge:{edge.id}
-          </text>
-        </g>
+      {/* drawn edges between consecutive circles */}
+      {stops.slice(0, -1).map((_, i) => {
+        const isExpand = chain.expand && i === 0;
+        const leftPos = xs[i] + NODE_R;
+        const rightPos = xs[i + 1] - NODE_R - 4;
+        const mid = (xs[i] + xs[i + 1]) / 2;
+        if (isExpand) {
+          return (
+            <g key={`c${i}`}>
+              <line x1={leftPos} y1={ARROW_Y} x2={rightPos} y2={ARROW_Y} stroke="#a1a1aa" strokeWidth={1.75} strokeDasharray="5 4" markerEnd={`url(#${expMarker})`} />
+              <text x={mid} y={ARROW_Y - 8} textAnchor="middle" fontSize="10" fontStyle="italic" fontFamily="ui-sans-serif, system-ui" className="fill-zinc-400">
+                expanded to
+              </text>
+            </g>
+          );
+        }
+        // predicate hop — preserve real edge direction (answer→matched = ←)
+        const startX = chain.reverse ? rightPos : leftPos;
+        const endX = chain.reverse ? leftPos : rightPos;
+        return (
+          <g key={`c${i}`}>
+            {chain.edgeIds.map((id, k) => (
+              <text key={id} x={mid} y={TOP_PADDING + k * EDGE_ID_LINE_H + 10} textAnchor="middle" fontSize="10.5" fontFamily="ui-monospace, SFMono-Regular, monospace" className="fill-zinc-500 dark:fill-zinc-400">
+                PloverDB-edge:{id}
+              </text>
+            ))}
+            <line x1={startX} y1={ARROW_Y} x2={endX} y2={ARROW_Y} stroke={chain.stroke} strokeWidth={2.5} markerEnd={`url(#${predMarker})`} />
+            <ChainPredicateChip x={mid} y={ARROW_Y + 15} text={chain.predicate} />
+          </g>
+        );
+      })}
+
+      {/* circle nodes */}
+      {stops.map((s, i) => (
+        <ChainCircle key={i} node={s.node} role={s.role} x={xs[i]} y={ARROW_Y} r={NODE_R} lines={wrapped[i]} />
       ))}
-
-      {/* the single arrow between pinned and answer */}
-      <line
-        x1={LEFT_X + NODE_R}
-        y1={ARROW_Y}
-        x2={RIGHT_X - NODE_R - 4 /* leave room for arrowhead */}
-        y2={ARROW_Y}
-        stroke={arrowStroke}
-        strokeWidth={2.5}
-        markerEnd={`url(#${arrowId})`}
-      />
-
-      {/* predicate chip BELOW the arrow line. if multiple distinct
-          predicates exist across the edges, join them with " / " so
-          we surface the variation. */}
-      <PredicateChip
-        x={W / 2}
-        y={ARROW_Y + 16}
-        text={uniquePredicates.join(" / ")}
-      />
-
-      {/* pinned node — left side, color-coded as "pinned" (deeper hue) */}
-      <MiniNode
-        node={pinned}
-        x={LEFT_X}
-        y={ARROW_Y}
-        r={NODE_R}
-        fill={palettePinned.pinned}
-        stroke={palettePinned.pinnedStroke}
-        role="pinned"
-      />
-      {/* answer node — right side */}
-      <MiniNode
-        node={answer}
-        x={RIGHT_X}
-        y={ARROW_Y}
-        r={NODE_R}
-        fill={paletteAnswer.fill}
-        stroke={paletteAnswer.stroke}
-        role="answer"
-      />
     </svg>
   );
 }
 
-function MiniNode({
+function ChainCircle({
   node,
+  role,
   x,
   y,
   r,
-  fill,
-  stroke,
-  role,
+  lines,
 }: {
-  node: AnswerGraphNode;
+  node: ChainNode;
+  role: "query" | "matched" | "answer";
   x: number;
   y: number;
   r: number;
-  fill: string;
-  stroke: string;
-  role: "pinned" | "answer";
+  lines: string[];
 }) {
-  // wrap into up to 3 lines × 18 chars; full label in tooltip.
-  const lines = wrapLabel(node.label || node.curie, 18, 3);
+  const pal = categoryPalette(node.category);
+  // the query node keeps the deeper "pinned" hue + thicker ring, as before.
+  const fill = role === "query" ? pal.pinned : pal.fill;
+  const stroke = role === "query" ? pal.pinnedStroke : pal.stroke;
+  const inner = role === "query" ? "PINNED" : role === "matched" ? "MATCH" : "ANSWER";
   return (
     <g>
-      <title>{`${role.toUpperCase()}: ${node.label || node.curie}\n${node.curie}${node.category ? "\n" + node.category : ""}`}</title>
-      <circle
-        cx={x}
-        cy={y}
-        r={r}
-        fill={fill}
-        stroke={stroke}
-        strokeWidth={role === "pinned" ? 3 : 2}
-      />
-      {/* tiny role label INSIDE the circle — readable, no overlap.
-          replaces the cryptic "P" glyph with explicit "PINNED" / "ANSWER"
-          text so the user knows what they're looking at at a glance.
-          the node fill colours (categoryPalette) are pastels in BOTH
-          themes, so the text inside must always be dark — a "dark:"
-          variant that lightens here ends up white-on-pastel and is
-          unreadable in dark mode. fill-zinc-900 holds strong contrast
-          against every pastel in the palette. */}
-      <text
-        x={x}
-        y={y + 4}
-        textAnchor="middle"
-        fontSize="9"
-        fontWeight="bold"
-        fontFamily="ui-sans-serif, system-ui"
-        className="fill-zinc-900"
-      >
-        {role.toUpperCase()}
+      <title>{`${inner}: ${node.label || node.curie}\n${node.curie}${node.category ? "\n" + node.category : ""}`}</title>
+      <circle cx={x} cy={y} r={r} fill={fill} stroke={stroke} strokeWidth={role === "query" ? 3 : 2} />
+      <text x={x} y={y + 3.5} textAnchor="middle" fontSize="8.5" fontWeight="bold" fontFamily="ui-sans-serif, system-ui" className="fill-zinc-900">
+        {inner}
       </text>
-      {/* label below */}
       {lines.map((line, i) => (
-        <text
-          key={i}
-          x={x}
-          y={y + r + 16 + i * 15}
-          textAnchor="middle"
-          fontSize="12"
-          fontFamily="ui-sans-serif, system-ui"
-          className="fill-zinc-900 dark:fill-zinc-100 font-semibold"
-        >
+        <text key={i} x={x} y={y + r + 16 + i * 15} textAnchor="middle" fontSize="12" fontFamily="ui-sans-serif, system-ui" className="fill-zinc-900 dark:fill-zinc-100 font-semibold">
           {line}
         </text>
       ))}
-      {/* CURIE */}
-      <text
-        x={x}
-        y={y + r + 16 + lines.length * 15 + 4}
-        textAnchor="middle"
-        fontSize="10"
-        fontFamily="ui-monospace, SFMono-Regular, monospace"
-        className="fill-zinc-500 dark:fill-zinc-400"
-      >
+      <text x={x} y={y + r + 16 + lines.length * 15 + 4} textAnchor="middle" fontSize="10" fontFamily="ui-monospace, SFMono-Regular, monospace" className="fill-zinc-500 dark:fill-zinc-400">
         {node.curie}
       </text>
-      {/* category */}
       {node.category && (
-        <text
-          x={x}
-          y={y + r + 16 + lines.length * 15 + 17}
-          textAnchor="middle"
-          fontSize="9"
-          fontFamily="ui-monospace, SFMono-Regular, monospace"
-          className="fill-zinc-500 dark:fill-zinc-400 uppercase tracking-wider"
-        >
+        <text x={x} y={y + r + 16 + lines.length * 15 + 18} textAnchor="middle" fontSize="9" fontFamily="ui-monospace, SFMono-Regular, monospace" className="fill-zinc-500 dark:fill-zinc-400 uppercase tracking-wider">
           {node.category.replace(/^biolink:/, "")}
         </text>
       )}
@@ -455,30 +415,13 @@ function MiniNode({
   );
 }
 
-function PredicateChip({ x, y, text }: { x: number; y: number; text: string }) {
+function ChainPredicateChip({ x, y, text }: { x: number; y: number; text: string }) {
   const w = text.length * 6.5 + 14;
   const h = 18;
   return (
     <g pointerEvents="none">
-      <rect
-        x={x - w / 2}
-        y={y - h / 2}
-        width={w}
-        height={h}
-        rx={4}
-        fill="white"
-        stroke="#a1a1aa"
-        strokeWidth={1.25}
-        className="dark:fill-zinc-900 dark:stroke-zinc-600"
-      />
-      <text
-        x={x}
-        y={y + 4}
-        textAnchor="middle"
-        fontSize="11"
-        fontFamily="ui-monospace, SFMono-Regular, monospace"
-        className="fill-zinc-700 dark:fill-zinc-200"
-      >
+      <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx={4} fill="white" stroke="#a1a1aa" strokeWidth={1.25} className="dark:fill-zinc-900 dark:stroke-zinc-600" />
+      <text x={x} y={y + 4} textAnchor="middle" fontSize="11" fontFamily="ui-monospace, SFMono-Regular, monospace" className="fill-zinc-700 dark:fill-zinc-200">
         {text}
       </text>
     </g>
@@ -487,12 +430,19 @@ function PredicateChip({ x, y, text }: { x: number; y: number; text: string }) {
 
 // ---- per-edge provenance row inside the collapsible accordion ----
 
-function EdgeDetailRow({ edge }: { edge: AnswerGraphEdge }) {
+function EdgeDetailRow({
+  edge,
+  nodeByCurie,
+}: {
+  edge: AnswerGraphEdge;
+  nodeByCurie: Map<string, { curie: string; label: string | null; category: string | null }>;
+}) {
   // each edge row is one PloverDB knowledge-graph record. it has its
   // own predicate, knowledge_level, primary knowledge source (KS), and
   // optional list of supporting PMIDs assigned BY THAT KS. lay this
   // out with explicit field labels so the reader can map every value
   // to its meaning without prior knowledge of TRAPI / Biolink shape.
+  const labelFor = (c: string) => nodeByCurie.get(c)?.label ?? c;
   return (
     <li className="text-xs rounded border border-zinc-200 dark:border-zinc-700 bg-zinc-50/40 dark:bg-zinc-900/40 p-3">
       {/* edge-id header */}
@@ -502,6 +452,17 @@ function EdgeDetailRow({ edge }: { edge: AnswerGraphEdge }) {
 
       {/* labeled field rows — each one explicit about what it is */}
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[11px] mb-2">
+        {/* the ACTUAL edge endpoints — subject may be a descendant/equivalent
+            of the queried entity, not the pinned node itself */}
+        <dt className="text-zinc-500">Edge</dt>
+        <dd className="text-zinc-700 dark:text-zinc-200">
+          {labelFor(edge.source)}{" "}
+          <span className="font-mono text-zinc-400">({edge.source})</span>
+          {" → "}
+          {labelFor(edge.target)}{" "}
+          <span className="font-mono text-zinc-400">({edge.target})</span>
+        </dd>
+
         <dt className="text-zinc-500">Predicate</dt>
         <dd className="font-mono text-zinc-700 dark:text-zinc-200">
           {edge.predicate || "(not set)"}
@@ -910,8 +871,12 @@ function extractEvidenceProseByCurie(
 ): Map<string, string> {
   // each bullet in the Evidence section is one entity. parse bullets,
   // detect which CURIE each one references, and stash the prose.
-  // matching strategy: each answer's CURIE is in the answers array;
-  // we look for that CURIE substring inside each bullet.
+  // matching strategy: assign the bullet to the answer whose CURIE appears
+  // EARLIEST in it — i.e. the bullet's header entity ("**Label (CURIE)** —
+  // …"). A bullet may mention OTHER answers' CURIEs later in its prose (e.g.
+  // a grouped target naming its component genes), so "first answer in array
+  // order that appears anywhere" would let such a bullet steal another
+  // card's prose.
   const out = new Map<string, string>();
   if (!evidenceMd) return out;
   // split into bullets (lines starting with "- " or "* "), keeping
@@ -929,11 +894,18 @@ function extractEvidenceProseByCurie(
   if (cur) bullets.push(cur);
   for (const b of bullets) {
     const bLower = b.toLowerCase();
+    let bestCurie: string | null = null;
+    let bestIdx = Infinity;
     for (const a of answers) {
-      if (bLower.includes(a.curie.toLowerCase())) {
-        out.set(a.curie, b.trim());
-        break;
+      const idx = bLower.indexOf(a.curie.toLowerCase());
+      if (idx >= 0 && idx < bestIdx) {
+        bestIdx = idx;
+        bestCurie = a.curie;
       }
+    }
+    // first bullet wins for a given answer (defensive — one bullet/entity)
+    if (bestCurie && !out.has(bestCurie)) {
+      out.set(bestCurie, b.trim());
     }
   }
   return out;
@@ -942,12 +914,29 @@ function extractEvidenceProseByCurie(
 function groupEdgesByAnswerCurie(
   edges: AnswerGraphEdge[],
   pinnedCurie: string,
+  answers: AnswerGraphNode[],
 ): Map<string, AnswerGraphEdge[]> {
+  // key each edge by the endpoint that is an ANSWER node. KG2c often
+  // expands the pinned node to its descendant concepts (e.g. "partial
+  // seizure" HP:0007359 → many specific seizure phenotypes), so a picked
+  // edge may connect a DESCENDANT of the pinned node — not the pinned curie
+  // itself — to the answer. Keying on "the non-pinned endpoint" then files
+  // the edge under that descendant, and the answer card shows 0 edges + an
+  // empty predicate chip. Keying on the answer endpoint keeps each edge with
+  // its card. Fall back to the non-pinned endpoint when neither end is an
+  // answer (shouldn't happen, but stays safe).
+  const answerSet = new Set(answers.map((a) => a.curie));
   const out = new Map<string, AnswerGraphEdge[]>();
   for (const e of edges) {
-    const other = e.source === pinnedCurie ? e.target : e.source;
-    if (!out.has(other)) out.set(other, []);
-    out.get(other)!.push(e);
+    const key = answerSet.has(e.target)
+      ? e.target
+      : answerSet.has(e.source)
+        ? e.source
+        : e.source === pinnedCurie
+          ? e.target
+          : e.source;
+    if (!out.has(key)) out.set(key, []);
+    out.get(key)!.push(e);
   }
   return out;
 }
