@@ -74,7 +74,7 @@ from .pubtator_client import PubTatorClient, PubTatorError
 # reduction: Strategy B reduces the PloverDB body to top-N results per
 # predicate before Stage 11 sees it, ranked by knowledge_level then
 # agent_type. full spec: docs/specs/response-reduction-strategy-b.md.
-from .reduction import reduce_plover_response
+from .reduction import chunk_plover_response, reduce_plover_response
 
 # prompts: SYS_ENTITY_EXTRACT, SYS_TRAPI_BUILD, SYS_ANSWER_PICK,
 # SYS_EXPLAIN. flat strings re-exported by name so diffs for tuning
@@ -97,6 +97,9 @@ from .trapi_validator import validate_query
 # plover_executed_rate, etc. keep them stable across runs.
 STATUS_OK = "ok"
 STATUS_INVALID_QUERY = "invalid_query"     # validator rejected the LLM's TRAPI
+STATUS_INVALID_QUERY_ARITY = "invalid_query_arity"  # query graph is not one-hop
+                                           # (not exactly 2 nodes + 1 edge);
+                                           # caught in code before the validator
 STATUS_LLM_BAD_JSON = "llm_bad_json"       # LLM returned non-JSON in a JSON-only stage
 STATUS_PLOVER_ERROR = "plover_error"       # PloverDB returned non-200 / network error
 STATUS_LLM_ERROR = "llm_error"             # OpenRouter returned non-200 / network error
@@ -106,10 +109,6 @@ STATUS_ENTITY_EMPTY = "entity_empty"       # LLM produced an empty entity mentio
 STATUS_NO_CANDIDATE_MATCH = "no_candidate_match"  # Stage 4 LLM declared none of the NameRes
                                                   # candidates fits the user's intent (typo
                                                   # survived Stage 2, or all candidates wrong)
-STATUS_LOW_CONFIDENCE_RESOLUTION = "low_confidence_resolution"  # Stage 7: resolved label
-                                                  # has low textual similarity to the user
-                                                  # mention; pipeline refuses to query KG
-                                                  # against a probably-wrong entity
 # Stage 1 (scope check) decided the input is outside PloverAI's
 # biomedical-KG scope (politics, weather, chit-chat, ...). this is a
 # deliberate refusal, not a failure — pipeline exits cleanly with a
@@ -254,17 +253,22 @@ def _build_answer_graph_view(
     pinned_category: str | None,
     picked_answer_curies: list[str],
     plover_response: dict[str, Any],
+    supporting_edge_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     # Stage 13: reshape (pinned entity + picked answers + PloverDB KG)
     # into a node-link graph view with full provenance per edge. pure
     # function, no IO. consumed by the frontend to render a research-
-    # grade graph card with hover-able evidence on each edge.
+    # grade graph card with hover-able evidence on each edge, and fed to
+    # the Stage 15 explainer — so its edge set IS the anti-hallucination
+    # boundary: the explainer can only cite edges that appear here.
     #
     # contract (see test_answer_graph_view.py for the strict spec):
     #   - never drop a picked answer, even if it's missing from the KG
     #     (label/category fall back to None)
-    #   - keep only edges that touch the pinned node AND a picked answer
-    #     (edges between two non-relevant nodes are noise — drop them)
+    #   - when supporting_edge_ids is given, keep ONLY those edges (the
+    #     answer-picker's cited support) — the faithfulness invariant. when
+    #     None (legacy), keep edges that structurally touch the pinned node
+    #     AND a picked answer.
     #   - preserve TRAPI subject/object orientation verbatim (don't flip)
     #   - degrade gracefully on missing/empty attributes blocks
     nodes_block: dict[str, Any] = (
@@ -309,15 +313,25 @@ def _build_answer_graph_view(
     for edge_id, e in edges_block.items():
         subj = e.get("subject")
         obj = e.get("object")
-        if not (subj in relevant_pair and obj in relevant_pair):
-            continue
-        if pinned_curie not in (subj, obj):
-            continue
-        # at least one endpoint must be a picked answer (otherwise it's a
-        # pinned↔pinned self-edge, which TRAPI shouldn't produce but
-        # we guard against)
-        if not ((subj in picked_set) or (obj in picked_set)):
-            continue
+        if supporting_edge_ids is not None:
+            # faithfulness invariant: keep ONLY edges the answer-picker
+            # cited as support. the edge id is authoritative, so we do NOT
+            # re-apply the structural node-pair filter here — the explainer
+            # sees exactly the picked edges, nothing the picker didn't select.
+            if edge_id not in supporting_edge_ids:
+                continue
+        else:
+            # legacy structural filter (no cited edges supplied): keep edges
+            # that touch the pinned node AND a picked answer; drop the rest.
+            if not (subj in relevant_pair and obj in relevant_pair):
+                continue
+            if pinned_curie not in (subj, obj):
+                continue
+            # at least one endpoint must be a picked answer (otherwise it's a
+            # pinned↔pinned self-edge, which TRAPI shouldn't produce but
+            # we guard against)
+            if not ((subj in picked_set) or (obj in picked_set)):
+                continue
         attrs = e.get("attributes") or []
         # walk the attributes list once, picking up each provenance field
         # by its attribute_type_id. None / empty defaults for absent ones.
@@ -395,20 +409,24 @@ def _rerank_nameres_candidates(
     candidates: list[dict[str, Any]],
     mention: str,
     expected_category: str | None,
+    coverage_by_curie: dict[str, int] | None = None,
 ) -> list[dict[str, Any]]:
     # local re-rank that the BM25 score alone won't deliver. tiers go
     # MOST-discriminating first, BM25 last. lexicographic sort over the
     # tier tuple means a Tier-1 hit (exact label match) wins over a
     # Tier-4 BM25 spike no matter how big the BM25 difference is.
     #
-    # tiers (each is 0 or 1, summed in a tuple and sorted DESC):
+    # tiers (sorted DESC):
     #   T1 exact_label    — candidate.label == mention (case-folded)
     #   T2 exact_synonym  — mention appears verbatim in candidate.synonyms
     #   T3 token_match    — mention appears as a whole token (split on
     #                       whitespace) in label OR any synonym; catches
     #                       "seizures" inside "Febrile Seizure" / etc.
     #   T4 type_match     — Stage 2's expected_category is in candidate.types
-    #   T5 bm25_score     — fall-through; NameRes's original ranking
+    #   T5 has_edges      — candidate has >=1 edge to the answer category in
+    #                       the hosted graph (from the coverage probe)
+    #   T6 edge_count     — more edges first, within has_edges
+    #   T7 bm25_score     — fall-through; NameRes's original ranking
     #
     # rationale per tier:
     # - T1/T2 fix the canonical-short-label problem: "Seizure" (HP) gets
@@ -420,11 +438,17 @@ def _rerank_nameres_candidates(
     #   biolink_type filter lets adjacent-type entries in. for "seizures"
     #   that means HP (PhenotypicFeature) candidates beat MONDO (Disease)
     #   candidates even though MONDO scores ~165 points higher in BM25.
-    # - T5 is the safety net so candidates with NO discriminating signal
+    # - T5/T6 sit BELOW type_match on purpose: graph coverage breaks ties
+    #   among same-type candidates (so we stop pinning a real-looking but
+    #   data-less entity) WITHOUT overriding the type-match fix — a
+    #   type-matched candidate with zero edges still beats a wrong-type one
+    #   with more edges. inert when coverage_by_curie is None (the first,
+    #   pre-probe rerank used only to choose which candidates to probe).
+    # - T7 is the safety net so candidates with NO discriminating signal
     #   are still ordered deterministically by their original rank.
     m = mention.lower().strip()
 
-    def key(c: dict[str, Any]) -> tuple[int, int, int, int, float]:
+    def key(c: dict[str, Any]) -> tuple[int, int, int, int, int, int, float]:
         label = str(c.get("label") or "").lower().strip()
         synonyms = [
             str(s).lower().strip()
@@ -444,7 +468,16 @@ def _rerank_nameres_candidates(
         token_match = 1 if (m in label_tokens or m in syn_tokens) else 0
         type_match = 1 if expected_category and expected_category in types else 0
 
-        return (exact_label, exact_syn, token_match, type_match, bm25)
+        edge_count = 0
+        if coverage_by_curie is not None:
+            count = coverage_by_curie.get(str(c.get("curie")))
+            edge_count = count if isinstance(count, int) and count > 0 else 0
+        has_edges = 1 if edge_count > 0 else 0
+
+        return (
+            exact_label, exact_syn, token_match, type_match,
+            has_edges, edge_count, bm25,
+        )
 
     return sorted(candidates, key=key, reverse=True)
 
@@ -510,6 +543,17 @@ def _has_any_kg_coverage(probes: dict[str, Any]) -> bool:
     )
 
 
+def _coverage_from_probes(probes: dict[str, Any]) -> dict[str, int]:
+    # extract per-candidate edge counts from the probe results so they can
+    # be folded into the rerank as the coverage tier. failed probes (error
+    # set) are skipped — a probe failure is "unknown", not "zero edges".
+    return {
+        curie: int(p.get("total_edges") or 0)
+        for curie, p in probes.items()
+        if not p.get("error")
+    }
+
+
 def _check_label_consistency(mention: str, label: str) -> tuple[float, dict[str, Any]]:
     # Stage 7's similarity check, factored out for unit-testability.
     # returns (similarity_score, debug_info_dict). pure function — no
@@ -549,33 +593,25 @@ def _check_label_consistency(mention: str, label: str) -> tuple[float, dict[str,
     }
 
 
-def _format_low_confidence_explanation(
-    question: str, mention: str, canonical: str, label: str, similarity: float,
-) -> str:
-    # Markdown body for the explanation.md artifact when Stage 7 refuses
-    # to query PloverDB because the resolved entity has low textual
-    # similarity to what the user typed. mirrors the section structure of
-    # the normal explainer + the out_of_scope refusal so the UI renders
-    # the same component, just with a low_confidence_resolution badge.
-    return (
-        "## Answer\n\n"
-        f"PloverAI could not confidently resolve **{mention}** to a "
-        f"known biomedical entity in RTX-KG2.10.2c.\n\n"
-        "## Reason\n\n"
-        f"The closest match found was **{canonical}** "
-        f"(*{label}*), but the resolved label is too different from what "
-        f"you typed (similarity {similarity:.2f}, threshold 0.50). "
-        f"Querying PloverDB with this entity would likely return results "
-        f"for a different concept than you intended, so the pipeline "
-        f"stopped here rather than silently grounding the wrong entity.\n\n"
-        "## What to try\n\n"
-        "- Check the spelling of the entity in your question.\n"
-        "- Use the canonical name (e.g., *type 2 diabetes mellitus* "
-        "instead of *type 2 diabites*).\n"
-        "- Expand abbreviations if the entity is well-known by its full "
-        "name (e.g., *T2DM* → *type 2 diabetes mellitus*).\n"
-        "- If you intended a different entity, please rephrase the "
-        "question with the entity's full name.\n"
+def _check_query_graph_arity(trapi_msg: dict[str, Any]) -> tuple[bool, str]:
+    # one-hop arity gate: PloverDB accepts exactly 2 query-graph nodes and
+    # 1 edge. Stage 8 has an LLM assemble the query graph, and Stage 9's
+    # reasoner-validator only checks Biolink term compliance, NOT shape, so
+    # this is the only code that structurally enforces the one-hop
+    # invariant before the query is sent. returns (ok, reason); reason is
+    # "" when ok and names the offending counts otherwise. degrades
+    # gracefully (False, reason) on a malformed message rather than raising.
+    message = trapi_msg.get("message")
+    query_graph = message.get("query_graph") if isinstance(message, dict) else None
+    nodes = query_graph.get("nodes") if isinstance(query_graph, dict) else None
+    edges = query_graph.get("edges") if isinstance(query_graph, dict) else None
+    n_nodes = len(nodes) if isinstance(nodes, dict) else 0
+    n_edges = len(edges) if isinstance(edges, dict) else 0
+    if n_nodes == 2 and n_edges == 1:
+        return True, ""
+    return False, (
+        f"query graph has {n_nodes} nodes and {n_edges} edges; "
+        f"one-hop requires exactly 2 nodes and 1 edge"
     )
 
 
@@ -722,6 +758,27 @@ def _extract_json(text: str) -> dict[str, Any]:
         return loaded2
 
 
+def _valid_iterative_picks(
+    answers: list[Any], chunk_node_ids: set[str], prior_curies: set[str],
+) -> list[dict[str, Any]]:
+    # keep only answers whose curie is in THIS chunk's nodes or was already a
+    # valid prior pick (carry-forward). drops invented/hallucinated curies so
+    # selection is enforced in code, not trusted from the model. dedupes by
+    # curie, first occurrence wins.
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for answer in answers:
+        if not isinstance(answer, dict):
+            continue
+        curie = answer.get("curie")
+        if not isinstance(curie, str) or curie in seen:
+            continue
+        if curie in chunk_node_ids or curie in prior_curies:
+            out.append(answer)
+            seen.add(curie)
+    return out
+
+
 def run_grounded(
     *,
     cfg: Config,
@@ -768,63 +825,65 @@ def run_grounded(
     # by referencing it.
     _ = cfg
 
-    # ---------- Stage 1: scope-check guardrail ----------
-    # decides whether the question is biomedical at all. refusing
-    # here costs ~1 cheap LLM call and saves the full pipeline cost
-    # (~6 LLM calls + 4 RENCI calls + PloverDB) on out-of-scope
-    # input. failures fall through to STAGE_0 (fail-open) because
-    # blocking a real biomedical question on a guardrail glitch is
-    # worse than letting the rare chit-chat through.
-    user_msg_scope = f"Question: {nl_question}"
-    prompt_log["stage_1_scope_check"] = {
-        "system": prompts.SYS_SCOPE_CHECK,
-        "user": user_msg_scope,
-    }
-    write_json(qp.prompt, prompt_log)
-    try:
-        rep_scope = llm.chat(
-            model=model,
-            system=prompts.SYS_SCOPE_CHECK,
-            user=user_msg_scope,
-            stage="scope_check",
+    # ---------- Stage 1: scope-check guardrail (optional) ----------
+    # an LLM call that decides whether the question is biomedical at all,
+    # refusing chit-chat / out-of-scope input before the full pipeline cost.
+    # DISABLED by default (cfg.scope_check_enabled): it is an extra OpenRouter
+    # call per query and a rate-limit source. when off, every input is treated
+    # as in-scope and flows to entity extraction; scope is checked manually.
+    if cfg.scope_check_enabled:
+        user_msg_scope = f"Question: {nl_question}"
+        prompt_log["stage_1_scope_check"] = {
+            "system": prompts.SYS_SCOPE_CHECK,
+            "user": user_msg_scope,
+        }
+        write_json(qp.prompt, prompt_log)
+        try:
+            rep_scope = llm.chat(
+                model=model,
+                system=prompts.SYS_SCOPE_CHECK,
+                user=user_msg_scope,
+                stage="scope_check",
+            )
+        except OpenRouterError as e:
+            return _finish_failure(qp, ledger, t_start, q["id"], STATUS_LLM_ERROR, str(e))
+        prompt_log["stage_1_scope_check"]["response"] = _llm_response_meta(rep_scope)
+        write_json(qp.prompt, prompt_log)
+        ledger.add(
+            "scope_check", model.id, model.slug,
+            rep_scope.input_tokens, rep_scope.output_tokens,
+            rep_scope.cost.input_usd, rep_scope.cost.output_usd, rep_scope.cost.total_usd,
+            rep_scope.latency_s,
         )
-    except OpenRouterError as e:
-        return _finish_failure(qp, ledger, t_start, q["id"], STATUS_LLM_ERROR, str(e))
-    prompt_log["stage_1_scope_check"]["response"] = _llm_response_meta(rep_scope)
-    write_json(qp.prompt, prompt_log)
-    ledger.add(
-        "scope_check", model.id, model.slug,
-        rep_scope.input_tokens, rep_scope.output_tokens,
-        rep_scope.cost.input_usd, rep_scope.cost.output_usd, rep_scope.cost.total_usd,
-        rep_scope.latency_s,
-    )
-    scope = _parse_scope_check_output(rep_scope.content)
-    logger.info(
-        f"{tag}  scope_check  in_scope={scope.in_scope}  "
-        f"reason=[white]{scope.reason or '(none)'!r}[/]"
-    )
-    if not scope.in_scope:
-        # write a clean markdown explanation so the UI has something
-        # to render — no TRAPI query, no graph hit, no further cost.
-        explanation = _format_out_of_scope_explanation(nl_question, scope.reason)
-        write_text(qp.explanation, explanation)
-        _flush_meta_and_cost(
-            qp, ledger, t_start, q["id"],
-            STATUS_OUT_OF_SCOPE, scope.reason or "question is outside biomedical-KG scope",
-            outcome="out_of_scope",
-            outcome_reason=scope.reason,
-            plover_n_results=-1, answers_n_picked=-1,
+        scope = _parse_scope_check_output(rep_scope.content)
+        logger.info(
+            f"{tag}  scope_check  in_scope={scope.in_scope}  "
+            f"reason=[white]{scope.reason or '(none)'!r}[/]"
         )
-        return QuestionResult(
-            q_id=q["id"],
-            status=STATUS_OUT_OF_SCOPE,
-            cost_total_usd=ledger.total_usd(),
-            cost_total_tokens=ledger.total_tokens(),
-            elapsed_s=round(time.perf_counter() - t_start, 3),
-            error=None,
-            outcome="out_of_scope",
-            outcome_reason=scope.reason,
-        )
+        if not scope.in_scope:
+            # write a clean markdown explanation so the UI has something
+            # to render — no TRAPI query, no graph hit, no further cost.
+            explanation = _format_out_of_scope_explanation(nl_question, scope.reason)
+            write_text(qp.explanation, explanation)
+            _flush_meta_and_cost(
+                qp, ledger, t_start, q["id"],
+                STATUS_OUT_OF_SCOPE, scope.reason or "question is outside biomedical-KG scope",
+                outcome="out_of_scope",
+                outcome_reason=scope.reason,
+                plover_n_results=-1, answers_n_picked=-1,
+            )
+            return QuestionResult(
+                q_id=q["id"],
+                status=STATUS_OUT_OF_SCOPE,
+                cost_total_usd=ledger.total_usd(),
+                cost_total_tokens=ledger.total_tokens(),
+                elapsed_s=round(time.perf_counter() - t_start, 3),
+                error=None,
+                outcome="out_of_scope",
+                outcome_reason=scope.reason,
+            )
+    else:
+        logger.info(f"{tag}  scope_check  skipped (disabled in config)")
 
     # ---------- Stage 2: extract focal entity mention from NL ----------
     # we inject the list of Biolink categories PloverDB ACTUALLY has
@@ -954,6 +1013,17 @@ def run_grounded(
         logger=logger,
         tag=f"{tag}  strict",
     )
+    # fold the probe's edge counts back into the rerank so the order the
+    # LLM sees already prefers candidates with graph coverage (a tier below
+    # type_match, so the type-match fix still dominates).
+    nr_candidates_full = _rerank_nameres_candidates(
+        nr_candidates_full, mention, expected_category,
+        coverage_by_curie=_coverage_from_probes(candidate_probes_by_curie),
+    )
+    rerank_top1 = nr_candidates_full[0].get("curie") if nr_candidates_full else None
+    rerank_top1_label = (
+        nr_candidates_full[0].get("label") if nr_candidates_full else None
+    )
     nameres_filter_used: list[str] | None = strict_filter
     strict_has_coverage = _has_any_kg_coverage(candidate_probes_by_curie)
     fallback_to_loose = False
@@ -985,6 +1055,10 @@ def run_grounded(
                 plover=plover,
                 logger=logger,
                 tag=f"{tag}  loose",
+            )
+            loose_reranked = _rerank_nameres_candidates(
+                loose_reranked, mention, expected_category,
+                coverage_by_curie=_coverage_from_probes(loose_probes),
             )
             # adopt the loose pass as the working set. strict results stay
             # available for the audit trail in `strict_attempt` below.
@@ -1105,9 +1179,9 @@ def run_grounded(
         c_score = c.get("score")
         # if we ran the candidate-density probe, attach the per-candidate
         # edge count to the answer category. this lets the LLM avoid
-        # the "lexical match but zero KG2c coverage" trap (e.g. picking
+        # the "lexical match but zero graph coverage" trap (e.g. picking
         # PANTHER.PATHWAY:P00014 for cholesterol biosynthesis when
-        # PANTHER pathways have 0 edges to Gene nodes in KG2c — the
+        # PANTHER pathways have 0 edges to Gene nodes in the graph — the
         # Reactome / GO equivalents in the same candidate set are the
         # ones that actually have edges).
         probe_suffix = ""
@@ -1116,9 +1190,9 @@ def run_grounded(
             n = cp.get("total_edges", 0)
             err = cp.get("error")
             if err:
-                probe_suffix = f"  kg2c_edges_to_{answer_category}=probe_failed({err})"
+                probe_suffix = f"  kg_edges_to_{answer_category}=probe_failed({err})"
             else:
-                probe_suffix = f"  kg2c_edges_to_{answer_category}={n}"
+                probe_suffix = f"  kg_edges_to_{answer_category}={n}"
         candidates_block_lines.append(
             f"  {i}. curie={c_curie!r}  label={c_label!r}  "
             f"types={c_types}  bm25_score={c_score}{probe_suffix}"
@@ -1130,13 +1204,12 @@ def run_grounded(
     density_preamble = ""
     if candidate_probes_by_curie:
         density_preamble = (
-            f"Each candidate carries a `kg2c_edges_to_{answer_category}` "
-            f"count: the number of edges in KG2c from that CURIE to any "
-            f"node of the answer category (in either direction). A "
-            f"high-BM25 candidate with ZERO KG2c edges will produce no "
-            f"results downstream — prefer a slightly lower-ranked "
-            f"candidate that has actual edges over a perfect-label one "
-            f"with no data.\n\n"
+            f"Each candidate carries a `kg_edges_to_{answer_category}` "
+            f"count: the number of edges in the hosted knowledge graph "
+            f"from that CURIE to any node of the answer category (in "
+            f"either direction). The candidate ORDER already prefers "
+            f"non-zero coverage; a candidate with ZERO edges will produce "
+            f"no results downstream.\n\n"
         )
     user_msg_pick = (
         f"User question: {nl_question}\n"
@@ -1262,54 +1335,6 @@ def run_grounded(
         )
         candidate_pick_fell_back = True
 
-    # ---------- Stage 5: re-rank NameRes candidates by information_content ----------
-    # NameRes ranks by Solr BM25 — biased toward longer labels that
-    # contain the query string ("Hypoglycemic seizures" beats "Seizure"
-    # for the query "seizures"). when the question wants a broad concept
-    # (granularity=general), we override that by sorting candidates by
-    # information_content ASCENDING (lower IC = more general concept).
-    # for granularity=specific we leave the Stage-4 pick alone.
-    #
-    # information_content comes from NodeNorm, so this costs one extra
-    # NodeNorm batch call on the top-K (K=5). NodeNorm is fast and
-    # batches all 5 in a single POST.
-    reranked = False
-    if granularity == "general" and len(candidate_curies) > 1:
-        try:
-            nn_candidates = nodenorm.normalize(candidate_curies)
-            # smaller IC = more general → lowest IC first. NodeNorm
-            # returns None for unresolvable CURIEs; we treat those as
-            # large (sort them last) so unresolvable candidates can't
-            # accidentally win the broad-concept lottery.
-            def _ic_key(curie: str) -> float:
-                ic = nn_candidates.information_content.get(curie)
-                return ic if ic is not None else float("inf")
-            sorted_by_ic = sorted(candidate_curies, key=_ic_key)
-            if sorted_by_ic[0] != chosen_curie:
-                prev_curie = chosen_curie
-                chosen_curie = sorted_by_ic[0]
-                reranked = True
-                logger.info(
-                    f"{tag}  ic_rerank  SWAP  "
-                    f"{prev_curie} (IC={nn_candidates.information_content.get(prev_curie)}) "
-                    f"→ {chosen_curie} (IC={nn_candidates.information_content.get(chosen_curie)})  "
-                    f"granularity=general"
-                )
-            else:
-                # log "ran but didn't swap" so the progress stream shows
-                # the IC rerank was considered — silent inaction looks
-                # the same as "stage didn't run" without this line.
-                logger.info(
-                    f"{tag}  ic_rerank  no_swap  "
-                    f"{chosen_curie} is already lowest-IC "
-                    f"(IC={nn_candidates.information_content.get(chosen_curie)})  "
-                    f"granularity=general"
-                )
-        except NodeNormError as e:
-            # don't fail the pipeline over a re-rank optimisation —
-            # fall back to the existing chosen_curie.
-            logger.warning(f"Stage 5 IC re-rank skipped (NodeNorm error): {e}")
-
     # ---------- Stage 6: NodeNorm canonicalises the chosen CURIE ----------
     try:
         nn_pinned = nodenorm.normalize([chosen_curie])
@@ -1343,7 +1368,6 @@ def run_grounded(
             "fell_back_to_top1": candidate_pick_fell_back,
         },
         "chosen_curie": chosen_curie,
-        "reranked_by_ic": reranked,
         "latency_s": round(nr.latency_s, 3),
     })
 
@@ -1382,8 +1406,17 @@ def run_grounded(
         f"substring={sim_debug['substring_match']})"
     )
     if similarity < LOW_CONFIDENCE_THRESHOLD:
-        # write the failure-resolution info to nameres.json so the
-        # artifact captures why the pipeline stopped here
+        # low textual similarity between the user's mention and the
+        # resolved label. this used to hard-abort, but the 0.50 cutoff is
+        # only anecdotally calibrated, so we now WARN, record the flag in
+        # nameres.json, and continue rather than refuse a possibly-valid
+        # question. the flag is available downstream for an answer caveat.
+        logger.warning(
+            f"Stage 7 low-confidence resolution: mention={mention!r} "
+            f"resolved to {canonical_pinned!r} ({pinned_label!r}) at "
+            f"similarity {similarity:.2f} < {LOW_CONFIDENCE_THRESHOLD}; "
+            f"continuing (flagged low_confidence_resolution)"
+        )
         write_json(qp.nameres, {
             "mention": nr.mention,
             "expected_category": expected_category,
@@ -1400,7 +1433,7 @@ def run_grounded(
                 "fell_back_to_top1": candidate_pick_fell_back,
             },
             "chosen_curie": chosen_curie,
-            "reranked_by_ic": reranked,
+            "low_confidence_resolution": True,
             "latency_s": round(nr.latency_s, 3),
             "consistency_check": {
                 "mention": sim_debug["mention_normalized"],
@@ -1412,30 +1445,6 @@ def run_grounded(
                 "passed": False,
             },
         })
-        # surface a "did you mean?" style failure to the user via the
-        # standard explanation.md path (same Markdown structure as the
-        # OUT_OF_SCOPE refusal so the UI renders the same component).
-        # the message names both the user's mention and what we resolved
-        # it to, so the user can tell whether to rephrase.
-        did_you_mean_md = _format_low_confidence_explanation(
-            question=nl_question,
-            mention=mention,
-            canonical=canonical_pinned,
-            label=pinned_label or "(no label)",
-            similarity=similarity,
-        )
-        write_text(qp.explanation, did_you_mean_md)
-        short_err = (
-            f"Resolved {canonical_pinned!r} ({pinned_label!r}) has low "
-            f"similarity ({similarity:.2f} < {LOW_CONFIDENCE_THRESHOLD}) to "
-            f"user mention {mention!r}; pipeline refused to query KG against "
-            f"a probably-wrong entity."
-        )
-        return _finish_failure(
-            qp, ledger, t_start, q["id"],
-            STATUS_LOW_CONFIDENCE_RESOLUTION,
-            short_err,
-        )
 
     # ---------- Stage 8: LLM builds TRAPI query graph ----------
     # the predicate list (fix B) is the meta_KG slice for the
@@ -1627,6 +1636,18 @@ def run_grounded(
 
     write_json(qp.trapi_query, trapi_msg)
 
+    # one-hop arity gate (code-enforced, BEFORE the Biolink-compliance
+    # validator): a hallucinated multi-hop / wrong-node-count query is
+    # stopped here rather than sent to PloverDB. reasoner-validator checks
+    # Biolink terms, not shape, so this is the only structural one-hop check.
+    arity_ok, arity_reason = _check_query_graph_arity(trapi_msg)
+    if not arity_ok:
+        logger.warning(f"Stage 9 arity gate rejected: {arity_reason}")
+        return _finish_failure(
+            qp, ledger, t_start, q["id"],
+            STATUS_INVALID_QUERY_ARITY, arity_reason,
+        )
+
     # ---------- Stage 9: validate ----------
     val = validate_query(trapi_msg, logger=logger)
     write_json(qp.validation, {
@@ -1662,11 +1683,11 @@ def run_grounded(
     plover_n_results = len(prep.body.get("message", {}).get("results") or [])
 
     # ---------- Stage 11: LLM picks answer ----------
-    # Strategy B reduction (predicate-grouped knowledge_level ranking)
-    # shrinks the PloverDB body BEFORE the LLM sees it. the top-N is a
-    # config knob; the reduced body + per-group stats are written out
-    # as artifacts so the faithfulness evaluator can grade answers
-    # against what the LLM saw, not the full PloverDB response.
+    # reduction is computed in both modes: the single-shot path feeds its
+    # top-N reduced body to the LLM, and Stage 15's pipeline-context cites
+    # its metadata. when iterative mode is on, the LLM instead reads the
+    # FULL sorted response in token-budgeted chunks (no top-N truncation),
+    # so a correct answer can't be dropped before the LLM ever sees it.
     reduction = reduce_plover_response(
         prep.body,
         top_n_per_predicate=cfg.reduction.top_n_per_predicate,
@@ -1674,44 +1695,194 @@ def run_grounded(
     )
     write_json(qp.reduced_data, reduction.reduced_body)
     write_json(qp.reduction_metadata, asdict(reduction.metadata))
-    user_msg_4 = (
-        f"User question: {nl_question}\n\n"
-        f"TRAPI response (reduced — top "
-        f"{reduction.metadata.top_n_per_predicate} results per predicate, "
-        f"ranked by knowledge_level then agent_type):\n"
-        f"{json.dumps(reduction.reduced_body, ensure_ascii=False)}\n"
-    )
-    prompt_log["stage_11_answer_pick"] = {
-        "system": prompts.SYS_ANSWER_PICK,
-        "user_truncated": user_msg_4[:2000],
-    }
-    write_json(qp.prompt, prompt_log)
 
-    try:
-        rep4 = llm.chat(
-            model=model,
-            system=prompts.SYS_ANSWER_PICK,
-            user=user_msg_4,
-            stage="answer_pick",
+    answer_obj: dict[str, Any]
+    # selection_mode + iter_summary feed the Stage 15 pipeline-context so its
+    # caveats cite what ACTUALLY happened (single-shot top-N truncation vs
+    # iterative chunked reading), not the unused Strategy B numbers.
+    selection_mode = "single_shot"
+    iter_summary: dict[str, Any] = {}
+    if cfg.stage11_iterative.enabled:
+        # iterative chunked answer-picking: read chunks strongest-first and
+        # stop as soon as the model has `answer_target` good picks (or is
+        # satisfied with fewer). chunk 0 carries the strongest evidence, so
+        # most questions finish in one call; we only read further chunks when
+        # a chunk was a dud. the chunk budget is sized to THIS model's context
+        # window (context_window * context_fraction), so a big-context model
+        # sends the whole response in one chunk while a small one splits it.
+        # every returned curie is re-validated in code against the chunk's
+        # nodes or the carry-forward set, so invented curies are dropped.
+        question_dir = qp.answer.parent
+        chunk_budget = max(
+            1, int(model.context_window * cfg.stage11_iterative.context_fraction),
         )
-    except OpenRouterError as e:
-        return _finish_failure(qp, ledger, t_start, q["id"], STATUS_LLM_ERROR, str(e))
-    prompt_log["stage_11_answer_pick"]["response"] = _llm_response_meta(rep4)
-    write_json(qp.prompt, prompt_log)
-    ledger.add(
-        "answer_pick", model.id, model.slug,
-        rep4.input_tokens, rep4.output_tokens,
-        rep4.cost.input_usd, rep4.cost.output_usd, rep4.cost.total_usd,
-        rep4.latency_s,
-    )
+        chunkset = chunk_plover_response(
+            prep.body,
+            chunk_token_budget=chunk_budget,
+            max_chunks=cfg.stage11_iterative.max_chunks,
+            logger=logger,
+        )
+        picks: list[dict[str, Any]] = []
+        prior_curies: set[str] = set()
+        iter_tier: Any = None
+        iter_rationale = ""
+        iterations: list[dict[str, Any]] = []
+        termination = "chunks_exhausted"
+        for i, chunk in enumerate(chunkset.chunks):
+            chunk_nodes = chunk.get("message", {}).get("knowledge_graph", {}).get("nodes", {})
+            chunk_node_ids: set[str] = set(chunk_nodes) if isinstance(chunk_nodes, dict) else set()
+            # the compact running shortlist (curie + label + relevance
+            # reason) is carried forward so the LLM can rank-merge across
+            # chunks without re-reading full edge JSON.
+            shortlist_so_far = json.dumps(
+                [
+                    {"curie": p.get("curie"), "label": p.get("label"), "why": p.get("why")}
+                    for p in picks
+                ],
+                ensure_ascii=False,
+            )
+            user_msg_iter = (
+                f"User question: {nl_question}\n\n"
+                f"Return up to {cfg.stage11_iterative.answer_target} answers, "
+                f"ranked by relevance.\n\n"
+                f"shortlist_so_far: {shortlist_so_far}\n\n"
+                f"Chunk {i + 1} of {chunkset.n_chunks} (strongest evidence "
+                f"first; text-mined last):\n"
+                f"{json.dumps(chunk, ensure_ascii=False)}\n"
+            )
+            try:
+                rep_iter = llm.chat(
+                    model=model,
+                    system=prompts.SYS_ANSWER_PICK_ITER,
+                    user=user_msg_iter,
+                    stage="answer_pick",
+                )
+            except OpenRouterError as e:
+                return _finish_failure(
+                    qp, ledger, t_start, q["id"], STATUS_LLM_ERROR, str(e),
+                )
+            ledger.add(
+                "answer_pick", model.id, model.slug,
+                rep_iter.input_tokens, rep_iter.output_tokens,
+                rep_iter.cost.input_usd, rep_iter.cost.output_usd,
+                rep_iter.cost.total_usd, rep_iter.latency_s,
+            )
+            try:
+                chunk_obj = _extract_json(rep_iter.content)
+            except json.JSONDecodeError:
+                # a single malformed chunk response must not kill the run:
+                # keep picks_so_far and move to the next chunk.
+                logger.warning(f"Stage 11 chunk {i} returned non-JSON; skipping it")
+                write_json(question_dir / f"stage11_chunk_{i}.json", {
+                    "chunk_index": i,
+                    "error": "non_json_response",
+                    "response": _llm_response_meta(rep_iter),
+                })
+                continue
+            raw_answers = chunk_obj.get("answers")
+            picks = _valid_iterative_picks(
+                raw_answers if isinstance(raw_answers, list) else [],
+                chunk_node_ids, prior_curies,
+            )
+            prior_curies = {str(p["curie"]) for p in picks}
+            iter_tier = chunk_obj.get("evidence_tier", iter_tier)
+            iter_rationale = str(chunk_obj.get("rationale") or iter_rationale)
+            confident = bool(chunk_obj.get("confidence_sufficient"))
+            write_json(question_dir / f"stage11_chunk_{i}.json", {
+                "chunk_index": i,
+                "n_picks_after": len(picks),
+                "confidence_sufficient": confident,
+                "picks": picks,
+                "rationale": iter_rationale,
+                "response": _llm_response_meta(rep_iter),
+                "user_truncated": user_msg_iter[:2000],
+            })
+            iterations.append({
+                "chunk_index": i,
+                "n_picks": len(picks),
+                "confidence_sufficient": confident,
+            })
+            # relevance-ranking stop: only the LLM's confidence ends the loop
+            # early. we do NOT stop just because we hold answer_target picks —
+            # a more relevant answer can still be in a later (weaker-evidence)
+            # chunk, so the model decides when it has seen enough to rank.
+            if confident:
+                termination = "confidence_sufficient"
+                break
+        else:
+            termination = (
+                "max_chunks" if chunkset.truncated_at_max_chunks else "chunks_exhausted"
+            )
+        # clamp to the soft target: picks are the model's ranked set, so the
+        # first answer_target are the strongest. enforced in code, not trusted.
+        picks = picks[: cfg.stage11_iterative.answer_target]
+        write_json(question_dir / "stage11_loop_summary.json", {
+            "n_chunks_available": chunkset.n_chunks,
+            "total_rows": chunkset.total_rows,
+            "chunked_rows": chunkset.chunked_rows,
+            "truncated_at_max_chunks": chunkset.truncated_at_max_chunks,
+            "iterations": iterations,
+            "termination": termination,
+            "n_picks_final": len(picks),
+        })
+        selection_mode = "iterative"
+        iter_summary = {
+            "chunks_read": len(iterations),
+            "chunks_available": chunkset.n_chunks,
+            "total_results_available": chunkset.total_rows,
+            "termination": termination,
+        }
+        answer_obj = {
+            "answers": picks,
+            "evidence_tier": iter_tier,
+            "rationale": iter_rationale,
+        }
+        prompt_log["stage_11_answer_pick"] = {
+            "system": prompts.SYS_ANSWER_PICK_ITER,
+            "mode": "iterative",
+            "n_chunks": chunkset.n_chunks,
+            "termination": termination,
+        }
+        write_json(qp.prompt, prompt_log)
+    else:
+        user_msg_4 = (
+            f"User question: {nl_question}\n\n"
+            f"TRAPI response (reduced — top "
+            f"{reduction.metadata.top_n_per_predicate} results per predicate, "
+            f"ranked by source tier then knowledge_level then n_publications):\n"
+            f"{json.dumps(reduction.reduced_body, ensure_ascii=False)}\n"
+        )
+        prompt_log["stage_11_answer_pick"] = {
+            "system": prompts.SYS_ANSWER_PICK,
+            "user_truncated": user_msg_4[:2000],
+        }
+        write_json(qp.prompt, prompt_log)
 
-    try:
-        answer_obj = _extract_json(rep4.content)
-    except json.JSONDecodeError:
-        return _finish_failure(
-            qp, ledger, t_start, q["id"],
-            STATUS_LLM_BAD_JSON, "Stage 11 output was not valid JSON",
+        try:
+            rep4 = llm.chat(
+                model=model,
+                system=prompts.SYS_ANSWER_PICK,
+                user=user_msg_4,
+                stage="answer_pick",
+            )
+        except OpenRouterError as e:
+            return _finish_failure(qp, ledger, t_start, q["id"], STATUS_LLM_ERROR, str(e))
+        prompt_log["stage_11_answer_pick"]["response"] = _llm_response_meta(rep4)
+        write_json(qp.prompt, prompt_log)
+        ledger.add(
+            "answer_pick", model.id, model.slug,
+            rep4.input_tokens, rep4.output_tokens,
+            rep4.cost.input_usd, rep4.cost.output_usd, rep4.cost.total_usd,
+            rep4.latency_s,
         )
+
+        try:
+            answer_obj = _extract_json(rep4.content)
+        except json.JSONDecodeError:
+            return _finish_failure(
+                qp, ledger, t_start, q["id"],
+                STATUS_LLM_BAD_JSON, "Stage 11 output was not valid JSON",
+            )
 
     # ---------- Stage 12: NodeNorm canonicalises every answer CURIE ----------
     raw_answer_curies: list[str] = [
@@ -1764,12 +1935,31 @@ def run_grounded(
     # rendering as a hoverable graph card in the UI. pure function,
     # unit-tested in tests/test_answer_graph_view.py.
     canonical_curies_for_view: list[str] = answer_obj.get("canonical_curies") or []
+    # faithfulness invariant: feed the explainer ONLY the edges the
+    # answer-picker cited (supporting_edge_ids), not the full body filtered
+    # by node-pair. so the explainer cannot cite an edge the picker didn't
+    # select. if the picker cited nothing, fall back to the legacy node-pair
+    # filter (None) so the explanation isn't empty — and warn loudly.
+    picked_edge_ids: set[str] = {
+        eid
+        for answer in (answer_obj.get("answers") or [])
+        if isinstance(answer, dict)
+        for eid in (answer.get("supporting_edge_ids") or [])
+        if isinstance(eid, str)
+    }
+    if not picked_edge_ids:
+        logger.warning(
+            "Stage 13 answer-picker cited no supporting_edge_ids; graph view "
+            "falls back to node-pair edges (explainer may see edges beyond "
+            "the picked set)"
+        )
     answer_graph_view = _build_answer_graph_view(
         pinned_curie=canonical_pinned,
         pinned_label=pinned_label,
         pinned_category=primary_pinned_cat,
         picked_answer_curies=canonical_curies_for_view,
         plover_response=prep.body,
+        supporting_edge_ids=picked_edge_ids or None,
     )
 
     # ---------- Stage 13 enrichment: PubTator co-mention verification ----------
@@ -1926,21 +2116,29 @@ def run_grounded(
     qg_edges = trapi_msg.get("message", {}).get("query_graph", {}).get("edges", {})
     qg_e0 = qg_edges.get("e0") or {}
     qg_predicates = qg_e0.get("predicates") or []
-    pipeline_context = {
+    pipeline_context: dict[str, Any] = {
         "predicate_used": qg_predicates[0] if qg_predicates else None,
         "plover_total_results": plover_n_results,
-        "reduction_strategy": reduction.metadata.strategy_applied,
-        "reduction_top_n_per_predicate": reduction.metadata.top_n_per_predicate,
-        "reduction_results_kept": reduction.metadata.reduced_result_count,
-        "reduction_results_dropped": (
-            reduction.metadata.original_result_count
-            - reduction.metadata.reduced_result_count
-        ),
-        "reduction_predicate_groups": reduction.metadata.predicate_groups,
-        "reduction_edges_kept_per_group": reduction.metadata.edges_kept_per_group,
-        "reduction_edges_dropped_per_group": reduction.metadata.edges_dropped_per_group,
+        "selection_mode": selection_mode,
         "picked_edges_count": len(answer_graph_view.get("edges") or []),
     }
+    if selection_mode == "iterative":
+        # iterative read the FULL response in chunks (no top-N truncation),
+        # so cite the chunking numbers, not the unused Strategy B reduction.
+        pipeline_context.update(iter_summary)
+    else:
+        pipeline_context.update({
+            "reduction_strategy": reduction.metadata.strategy_applied,
+            "reduction_top_n_per_predicate": reduction.metadata.top_n_per_predicate,
+            "reduction_results_kept": reduction.metadata.reduced_result_count,
+            "reduction_results_dropped": (
+                reduction.metadata.original_result_count
+                - reduction.metadata.reduced_result_count
+            ),
+            "reduction_predicate_groups": reduction.metadata.predicate_groups,
+            "reduction_edges_kept_per_group": reduction.metadata.edges_kept_per_group,
+            "reduction_edges_dropped_per_group": reduction.metadata.edges_dropped_per_group,
+        })
     user_msg_5 = (
         f"User question: {nl_question}\n\n"
         f"Pipeline context (cite these numbers in your Confidence and "
