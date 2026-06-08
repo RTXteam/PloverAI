@@ -323,3 +323,57 @@ def test_multiple_edges_between_same_pair_all_kept():
     assert len(view["edges"]) == 2
     levels = sorted([e["knowledge_level"] for e in view["edges"]])
     assert levels == ["knowledge_assertion", "prediction"]
+
+
+# ---- anti-hallucination invariant: supporting_edge_ids restricts the view ----
+
+def _two_edge_kg():
+    # two edges BOTH connecting metformin -> T2DM (both pass the legacy
+    # node-pair filter); used to show supporting_edge_ids keeps only cited.
+    base_attrs = [{"attribute_type_id": "biolink:knowledge_level",
+                   "value": "knowledge_assertion"}]
+    return {
+        "message": {
+            "knowledge_graph": {
+                "nodes": {
+                    "MONDO:0005148": {"name": "type 2 diabetes mellitus",
+                                      "categories": ["biolink:Disease"]},
+                    "CHEBI:6801": {"name": "metformin", "categories": ["biolink:Drug"]},
+                },
+                "edges": {
+                    "edge_cited": {"subject": "CHEBI:6801", "object": "MONDO:0005148",
+                                   "predicate": "biolink:treats", "attributes": base_attrs},
+                    "edge_uncited": {"subject": "CHEBI:6801", "object": "MONDO:0005148",
+                                     "predicate": "biolink:treats", "attributes": base_attrs},
+                },
+            }
+        }
+    }
+
+
+def test_supporting_edge_ids_restricts_to_cited_edges_only():
+    # both edges connect metformin -> T2DM, so the legacy node-pair filter
+    # would keep both. citing only edge_cited must yield ONLY edge_cited —
+    # the explainer cannot see an edge the answer-picker did not select.
+    view = _build_answer_graph_view(
+        pinned_curie="MONDO:0005148",
+        pinned_label="type 2 diabetes mellitus",
+        pinned_category="biolink:Disease",
+        picked_answer_curies=["CHEBI:6801"],
+        plover_response=_two_edge_kg(),
+        supporting_edge_ids={"edge_cited"},
+    )
+    assert {e["id"] for e in view["edges"]} == {"edge_cited"}
+
+
+def test_legacy_node_pair_filter_keeps_both_without_supporting_ids():
+    # contrast: with no cited edges, the legacy filter keeps both edges
+    # connecting the pinned node to the picked answer (the old behaviour).
+    view = _build_answer_graph_view(
+        pinned_curie="MONDO:0005148",
+        pinned_label="type 2 diabetes mellitus",
+        pinned_category="biolink:Disease",
+        picked_answer_curies=["CHEBI:6801"],
+        plover_response=_two_edge_kg(),
+    )
+    assert {e["id"] for e in view["edges"]} == {"edge_cited", "edge_uncited"}

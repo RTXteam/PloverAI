@@ -46,6 +46,7 @@ def _edge(
     agent_type: str | None = "manual_agent",
     pubs: list[str] | None = None,
     support_graphs: list[str] | None = None,
+    primary_knowledge_source: str | None = None,
 ) -> dict[str, object]:
     # None for kl/at means "attribute deliberately absent" (tests
     # the missing-attribute degradation path). empty-list pubs means
@@ -59,12 +60,20 @@ def _edge(
         attrs.append(_attr("biolink:publications", pubs))
     if support_graphs is not None:
         attrs.append(_attr("biolink:support_graphs", support_graphs))
-    return {
+    edge: dict[str, object] = {
         "subject": subject,
         "object": object_,
         "predicate": predicate,
         "attributes": attrs,
     }
+    # primary_knowledge_source lives in the TRAPI `sources` block, not in
+    # attributes — used by the source-tier (text-mined) demotion.
+    if primary_knowledge_source is not None:
+        edge["sources"] = [{
+            "resource_id": primary_knowledge_source,
+            "resource_role": "primary_knowledge_source",
+        }]
+    return edge
 
 
 def _result(
@@ -341,22 +350,19 @@ def test_more_publications_beats_fewer_within_same_kl_and_at():
     assert kept == ["well_cited"]
 
 
-def test_more_pubs_beats_better_agent_type_when_kl_ties():
-    # the CFTR ↔ cystic fibrosis case in real data: every edge in a
-    # predicate group shares the same kl (e.g. all kl=prediction for
-    # gene-disease edges in KG2c). under the *prior* sort order
-    # (kl, at, -pubs, edge_id), a 1-PMID automated_agent edge would
-    # beat a 20-PMID text_mining_agent edge because at was the second
-    # key. under the corrected order (kl, -pubs, at, edge_id), the
-    # 20-PMID text-mining edge wins because n_pubs is now ahead of
-    # at. this test pins the new ordering.
+def test_text_mined_demoted_below_curated_regardless_of_pubs():
+    # text-mined edges are demoted below curated edges (source_tier is the
+    # leading sort key), so a 20-PMID text_mining_agent edge now LOSES to a
+    # 1-PMID automated_agent (curated) edge with the same knowledge_level.
+    # this is the deliberate reversal of the old "well-cited text-mining
+    # wins" behaviour — text-mined evidence can no longer dominate.
     body = _body(
         results=[
-            _result("cftr_cf_text_mined", "NCBIGene:1080", "MONDO:0009061"),
-            _result("cftr_other_automated", "NCBIGene:1080", "MONDO:0004975"),
+            _result("cf_text_mined", "NCBIGene:1080", "MONDO:0009061"),
+            _result("cf_automated", "NCBIGene:1080", "MONDO:0004975"),
         ],
         edges={
-            "cftr_cf_text_mined": _edge(
+            "cf_text_mined": _edge(
                 subject="NCBIGene:1080",
                 object_="MONDO:0009061",
                 predicate="biolink:gene_associated_with_condition",
@@ -364,7 +370,7 @@ def test_more_pubs_beats_better_agent_type_when_kl_ties():
                 agent_type="text_mining_agent",
                 pubs=[f"PMID:{i}" for i in range(20)],
             ),
-            "cftr_other_automated": _edge(
+            "cf_automated": _edge(
                 subject="NCBIGene:1080",
                 object_="MONDO:0004975",
                 predicate="biolink:gene_associated_with_condition",
@@ -377,20 +383,76 @@ def test_more_pubs_beats_better_agent_type_when_kl_ties():
     )
     out = _reduce(body, top_n=1)
     kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
-    assert kept == ["cftr_cf_text_mined"]
+    assert kept == ["cf_automated"]
+
+
+def test_text_mined_demoted_even_with_stronger_kl_and_more_pubs():
+    # source_tier dominates knowledge_level AND n_pubs: a text_mining edge
+    # with the strongest kl (knowledge_assertion) and 50 pubs still loses
+    # to a curated edge with a weaker kl (prediction) and a single pub.
+    body = _body(
+        results=[
+            _result("tm_strong", "S", "O"),
+            _result("curated_weak", "S", "O2"),
+        ],
+        edges={
+            "tm_strong": _edge(
+                object_="O", knowledge_level="knowledge_assertion",
+                agent_type="text_mining_agent",
+                pubs=[f"PMID:{i}" for i in range(50)],
+            ),
+            "curated_weak": _edge(
+                object_="O2", knowledge_level="prediction",
+                agent_type="automated_agent", pubs=["PMID:1"],
+            ),
+        },
+        nodes={"S": {}, "O": {}, "O2": {}},
+    )
+    out = _reduce(body, top_n=1)
+    kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
+    assert kept == ["curated_weak"]
+
+
+def test_semmeddb_source_demoted_even_without_text_mining_agent_type():
+    # demotion also triggers on the primary knowledge source: an edge
+    # sourced from infores:semmeddb is text-mined even when its agent_type
+    # is absent, so it sinks below a curated (drugcentral) edge.
+    body = _body(
+        results=[
+            _result("semmed", "S", "O"),
+            _result("curated", "S", "O2"),
+        ],
+        edges={
+            "semmed": _edge(
+                object_="O", knowledge_level="knowledge_assertion",
+                agent_type=None, pubs=[f"PMID:{i}" for i in range(30)],
+                primary_knowledge_source="infores:semmeddb",
+            ),
+            "curated": _edge(
+                object_="O2", knowledge_level="prediction",
+                agent_type="automated_agent", pubs=["PMID:1"],
+                primary_knowledge_source="infores:drugcentral",
+            ),
+        },
+        nodes={"S": {}, "O": {}, "O2": {}},
+    )
+    out = _reduce(body, top_n=1)
+    kept = list(out.reduced_body["message"]["knowledge_graph"]["edges"].keys())
+    assert kept == ["curated"]
 
 
 def test_better_agent_type_breaks_tie_when_pubs_equal():
-    # when kl AND n_pubs both tie, agent_type is the next tiebreaker
-    # (still earns its keep — just no longer outranks evidence count).
+    # within the SAME source tier (both curated), when kl AND n_pubs both
+    # tie, agent_type is the next tiebreaker: manual_agent beats
+    # automated_agent. (both non-text-mined, so source_tier ties at 0.)
     body = _body(
         results=[
             _result("manual_pick", "S", "O"),
-            _result("nlp_pick", "S", "O"),
+            _result("auto_pick", "S", "O"),
         ],
         edges={
             "manual_pick": _edge(agent_type="manual_agent", pubs=["PMID:1"]),
-            "nlp_pick": _edge(agent_type="text_mining_agent", pubs=["PMID:1"]),
+            "auto_pick": _edge(agent_type="automated_agent", pubs=["PMID:1"]),
         },
         nodes={"S": {}, "O": {}},
     )
@@ -700,7 +762,7 @@ def test_multi_binding_result_scored_by_strongest_bound_edge():
                 subject="NCBIGene:1080", object_="MONDO:0009061",
                 predicate="biolink:gene_associated_with_condition",
                 knowledge_level="prediction",
-                agent_type="text_mining_agent",
+                agent_type="automated_agent",
                 pubs=[f"PMID:{i}" for i in range(20)],
             ),
             "other": _edge(

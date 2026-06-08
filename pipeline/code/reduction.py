@@ -16,6 +16,9 @@ from __future__ import annotations
 # faithfulness evaluator) can rely on field names not silently
 # changing.
 from dataclasses import dataclass
+# json: stdlib. used only to estimate a chunk's token budget by measuring
+# the serialised character count of its sub-body.
+import json
 # logging: stdlib. one INFO line at exit summarising the reduction,
 # one WARNING per malformed result.
 import logging
@@ -53,6 +56,18 @@ _AT_RANK: dict[str, int] = {
 }
 _AT_RANK_UNKNOWN = 5
 _AT_RANK_ABSENT = 4
+
+# text-mining provenance. SemMedDB and similar text-mined sources are the
+# most abundant edges in KG2c but the noisiest; we DEMOTE every text-mined
+# edge below every curated edge (source_tier is the LEADING sort key) so a
+# well-cited text-mined edge can no longer dominate a curated one. an edge
+# is text-mined when its agent_type is text_mining_agent OR its primary
+# knowledge source is a known text-mining infores.
+_TEXT_MINING_AGENT = "text_mining_agent"
+_TEXT_MINING_SOURCES: frozenset[str] = frozenset({
+    "infores:semmeddb",
+    "infores:text-mining-provider-targeted",
+})
 
 # the strategy label that lands in the artifact. constant in v1; would
 # change here if we ever introduced a Strategy-C or hybrid variant.
@@ -109,7 +124,7 @@ class _Enriched:
     bound_edge_ids: tuple[str, ...]
     representative_edge_id: str
     primary_predicate: str
-    sort_key: tuple[int, int, int, str]
+    sort_key: tuple[int, int, int, int, str]
     original: dict[str, Any]
     node_ids_in_bindings: tuple[str, ...]
 
@@ -147,6 +162,29 @@ def _n_publications(edge: dict[str, Any]) -> int:
     if isinstance(value, list):
         return len(value)
     return 0
+
+
+def _primary_knowledge_source(edge: dict[str, Any]) -> str | None:
+    # TRAPI edges declare provenance via `sources` (a list of
+    # {resource_id, resource_role}); the primary source is the entry whose
+    # role is "primary_knowledge_source". returns None if absent.
+    sources = edge.get("sources")
+    if not isinstance(sources, list):
+        return None
+    for source in sources:
+        if isinstance(source, dict) and source.get("resource_role") == "primary_knowledge_source":
+            resource_id = source.get("resource_id")
+            return resource_id if isinstance(resource_id, str) else None
+    return None
+
+
+def _source_tier(edge: dict[str, Any]) -> int:
+    # 0 = curated, 1 = text-mined (demoted). leading key in the sort so
+    # text-mined edges sink below ALL curated edges within a predicate
+    # group, regardless of publication count.
+    if _read_attr(edge, _ATTR_AGENT_TYPE) == _TEXT_MINING_AGENT:
+        return 1
+    return 1 if _primary_knowledge_source(edge) in _TEXT_MINING_SOURCES else 0
 
 
 def _all_edge_ids_in_result(result: dict[str, Any]) -> tuple[str, ...]:
@@ -248,20 +286,19 @@ def _enrich_results(
             )
             continue
         # sort tuple ordering, ascending (smaller = stronger):
-        #   1. knowledge_level rank  (smaller = stronger)
-        #   2. -n_publications       (more pubs = first; continuous evidence signal)
-        #   3. agent_type rank       (smaller = stronger; binary provenance label)
-        #   4. edge_id alphabetical  (full determinism tie-break)
+        #   1. source_tier           (0 curated, 1 text-mined → text-mined last)
+        #   2. knowledge_level rank  (smaller = stronger)
+        #   3. -n_publications       (more pubs = first; continuous evidence signal)
+        #   4. agent_type rank       (smaller = stronger; binary provenance label)
+        #   5. edge_id alphabetical  (full determinism tie-break)
         #
-        # n_pubs is promoted ahead of agent_type because publication
-        # count is a continuous corroboration signal across sources,
-        # whereas agent_type is a binary label about extraction
-        # provenance. when knowledge_level ties across a whole
-        # predicate group (as it does for KG2c gene-disease edges
-        # where every edge is kl=prediction), letting agent_type
-        # outrank n_pubs drops well-cited text_mining_agent edges
-        # below single-PMID automated_agent edges. see the spec at
-        # docs/specs/response-reduction-strategy-b.md §4.5.
+        # source_tier is the LEADING key: SemMedDB-style text-mined edges
+        # are abundant in KG2c but noisy, so every text-mined edge sinks
+        # below every curated edge regardless of pub count — a well-cited
+        # text-mined edge can no longer dominate a curated one. within a
+        # tier, n_pubs is promoted ahead of agent_type because publication
+        # count is a continuous corroboration signal whereas agent_type is
+        # a binary provenance label.
         #
         # multi-binding handling: a single result can bind multiple
         # kg edges (one per source asserting the same fact). we score
@@ -270,9 +307,10 @@ def _enrich_results(
         # high-quality source elevates the whole result, even if the
         # other bindings are weak. all bound edges are retained in
         # the reduced kg_edges if the result survives the top-N.
-        def edge_sort_key(eid: str) -> tuple[int, int, int, str]:
+        def edge_sort_key(eid: str) -> tuple[int, int, int, int, str]:
             e = kg_edges[eid]
             return (
+                _source_tier(e),
                 _rank_knowledge_level(e),
                 -_n_publications(e),
                 _rank_agent_type(e),
@@ -299,29 +337,24 @@ def _enrich_results(
     return enriched
 
 
-def reduce_plover_response(
-    plover_body: dict[str, Any],
-    *,
-    top_n_per_predicate: int,
-    logger: logging.Logger,
-) -> ReductionResult:
-    # entry point. see docs/specs/response-reduction-strategy-b.md.
-    # this is a pure function: it does not mutate plover_body, does
-    # not write to disk, and does not call any network service.
+@dataclass(frozen=True)
+class _ParsedBody:
+    # the TRAPI sub-blocks pulled out of a PloverDB body once, so the
+    # single-shot reducer and the chunker parse identically.
+    message: dict[str, Any]
+    raw_results: list[Any]
+    kg_nodes: dict[str, Any]
+    kg_edges: dict[str, dict[str, Any]]
+    aux_graphs: dict[str, Any]
+    query_graph: dict[str, Any]
+    original_result_count: int
+    original_edge_count: int
+    original_node_count: int
 
-    # boundary guards: programmer-error cases. callers MUST pass a
-    # dict body and a positive top-N; anything else is a bug worth
-    # surfacing at the call site, not a runtime degradation we silently
-    # paper over.
-    if not isinstance(plover_body, dict):
-        raise TypeError(
-            f"plover_body must be a dict (got {type(plover_body).__name__})"
-        )
-    if top_n_per_predicate < 1:
-        raise ValueError(
-            f"top_n_per_predicate must be >= 1 (got {top_n_per_predicate!r})"
-        )
 
+def _parse_body(plover_body: dict[str, Any]) -> _ParsedBody:
+    # defensive extraction: any block may be missing or the wrong type in a
+    # malformed message, so each falls back to an empty container.
     message = plover_body.get("message")
     if not isinstance(message, dict):
         message = {}
@@ -341,21 +374,120 @@ def reduce_plover_response(
     if not isinstance(aux_graphs_in, dict):
         aux_graphs_in = {}
     query_graph = message.get("query_graph") or {"nodes": {}, "edges": {}}
+    return _ParsedBody(
+        message=message,
+        raw_results=raw_results,
+        kg_nodes=kg_nodes_in,
+        kg_edges=kg_edges_in,
+        aux_graphs=aux_graphs_in,
+        query_graph=query_graph,
+        original_result_count=len(raw_results),
+        original_edge_count=len(kg_edges_in),
+        original_node_count=len(kg_nodes_in),
+    )
 
-    original_result_count = len(raw_results)
-    original_edge_count = len(kg_edges_in)
-    original_node_count = len(kg_nodes_in)
 
-    # no-op fast paths. either case means "nothing to score, return
-    # the body unchanged and record matching counts". strategy is
-    # still recorded as "B" so the artifact shape stays uniform across
-    # runs (some runs being labelled "B" and others "no-op" would
-    # complicate the eval harness for no benefit).
-    if not raw_results or not kg_edges_in:
-        if raw_results and not kg_edges_in:
-            # results exist but reference no kg.edges — TRAPI-malformed
-            # at the source. one WARNING is enough; per-result warnings
-            # would be noisy.
+def _sorted_groups(
+    raw_results: list[Any],
+    kg_edges: dict[str, dict[str, Any]],
+    logger: logging.Logger,
+) -> tuple[dict[str, list[_Enriched]], list[str], list[_Enriched]]:
+    # enrich + group by predicate + sort each group by sort_key (strongest
+    # first), WITHOUT truncating. this is the un-fused "sort" half: the
+    # single-shot reducer then takes top-N per group, while the chunker
+    # partitions the flat ordered list by token budget. predicate groups
+    # are iterated alphabetically so the byte ordering is stable.
+    enriched = _enrich_results(raw_results, kg_edges, logger)
+    groups: dict[str, list[_Enriched]] = {}
+    for row in enriched:
+        groups.setdefault(row.primary_predicate, []).append(row)
+    predicate_groups_sorted = sorted(groups.keys())
+    ordered_rows: list[_Enriched] = []
+    for predicate in predicate_groups_sorted:
+        groups[predicate] = sorted(groups[predicate], key=lambda r: r.sort_key)
+        ordered_rows.extend(groups[predicate])
+    return groups, predicate_groups_sorted, ordered_rows
+
+
+def _rebuild_body(
+    rows: list[_Enriched],
+    parsed: _ParsedBody,
+    plover_body: dict[str, Any],
+) -> dict[str, Any]:
+    # rebuild a valid TRAPI body containing ONLY the nodes/edges/aux the
+    # given result rows reference. ALL bound edges of each row are retained
+    # (multi-source corroboration kept). keys emitted in sorted order so the
+    # body is byte-stable. shared by the single-shot reducer (top-N rows)
+    # and the chunker (per-chunk rows) — so a chunk reads exactly like a
+    # full reduced body.
+    retained_edge_ids: set[str] = set()
+    for row in rows:
+        retained_edge_ids.update(row.bound_edge_ids)
+    retained_node_ids: set[str] = set()
+    for row in rows:
+        retained_node_ids.update(row.node_ids_in_bindings)
+    retained_aux_ids: set[str] = set()
+    for eid in retained_edge_ids:
+        retained_aux_ids.update(_support_graph_ids(parsed.kg_edges[eid]))
+    reduced_kg_nodes = {
+        nid: parsed.kg_nodes[nid]
+        for nid in sorted(retained_node_ids)
+        if nid in parsed.kg_nodes
+    }
+    reduced_kg_edges = {
+        eid: parsed.kg_edges[eid] for eid in sorted(retained_edge_ids)
+    }
+    reduced_aux_graphs = {
+        gid: parsed.aux_graphs[gid]
+        for gid in sorted(retained_aux_ids)
+        if gid in parsed.aux_graphs
+    }
+    reduced_message: dict[str, Any] = {
+        **parsed.message,
+        "query_graph": parsed.query_graph,
+        "knowledge_graph": {
+            "nodes": reduced_kg_nodes,
+            "edges": reduced_kg_edges,
+        },
+        "results": [row.original for row in rows],
+        "auxiliary_graphs": reduced_aux_graphs,
+    }
+    return {**plover_body, "message": reduced_message}
+
+
+def reduce_plover_response(
+    plover_body: dict[str, Any],
+    *,
+    top_n_per_predicate: int,
+    logger: logging.Logger,
+) -> ReductionResult:
+    # single-shot entry point. see docs/specs/response-reduction-strategy-b.md.
+    # pure function: does not mutate plover_body, write to disk, or call any
+    # network service. sort + truncate are now un-fused (_sorted_groups does
+    # the sort; this function does the top-N truncation) so the chunker can
+    # consume the same sorted ranking without truncation.
+
+    # boundary guards: programmer-error cases. callers MUST pass a dict body
+    # and a positive top-N; anything else is a bug worth surfacing at the
+    # call site, not a runtime degradation we silently paper over.
+    if not isinstance(plover_body, dict):
+        raise TypeError(
+            f"plover_body must be a dict (got {type(plover_body).__name__})"
+        )
+    if top_n_per_predicate < 1:
+        raise ValueError(
+            f"top_n_per_predicate must be >= 1 (got {top_n_per_predicate!r})"
+        )
+
+    parsed = _parse_body(plover_body)
+
+    # no-op fast paths. either case means "nothing to score, return the body
+    # unchanged and record matching counts". strategy is still recorded as
+    # "B" so the artifact shape stays uniform across runs.
+    if not parsed.raw_results or not parsed.kg_edges:
+        if parsed.raw_results and not parsed.kg_edges:
+            # results exist but reference no kg.edges — TRAPI-malformed at
+            # the source. one WARNING is enough; per-result would be noisy.
             logger.warning(
                 "reduction  results present but knowledge_graph.edges "
                 "is empty; returning body unchanged"
@@ -363,101 +495,50 @@ def reduce_plover_response(
         metadata = ReductionMetadata(
             strategy_applied=_STRATEGY_NAME,
             top_n_per_predicate=top_n_per_predicate,
-            original_result_count=original_result_count,
-            original_edge_count=original_edge_count,
-            original_node_count=original_node_count,
-            reduced_result_count=0 if not raw_results else 0,
+            original_result_count=parsed.original_result_count,
+            original_edge_count=parsed.original_edge_count,
+            original_node_count=parsed.original_node_count,
+            reduced_result_count=0,
             reduced_edge_count=0,
             reduced_node_count=0,
             predicate_groups=[],
             edges_kept_per_group={},
             edges_dropped_per_group={},
         )
-        # echo the body verbatim. callers MUST treat the returned dict
-        # as read-only; we don't deepcopy here because the function is
-        # documented as not mutating its input.
+        # echo the body verbatim. callers MUST treat the returned dict as
+        # read-only; we don't deepcopy because the function does not mutate.
         return ReductionResult(reduced_body=plover_body, metadata=metadata)
 
-    # enrich + group
-    enriched = _enrich_results(raw_results, kg_edges_in, logger)
-    groups: dict[str, list[_Enriched]] = {}
-    for row in enriched:
-        groups.setdefault(row.primary_predicate, []).append(row)
+    groups, predicate_groups_sorted, _ = _sorted_groups(
+        parsed.raw_results, parsed.kg_edges, logger,
+    )
 
-    # sort each group by the 4-key tuple ascending (stronger first),
-    # then take top-N. predicate_groups is iterated in alphabetical
-    # order so the reduced_body's byte ordering is stable across runs
-    # — important for OpenRouter prompt-cache hit rates.
+    # truncate top-N per (already-sorted) predicate group.
     kept_rows: list[_Enriched] = []
     edges_kept_per_group: dict[str, int] = {}
     edges_dropped_per_group: dict[str, int] = {}
-    predicate_groups_sorted: list[str] = sorted(groups.keys())
     for predicate in predicate_groups_sorted:
-        group = sorted(groups[predicate], key=lambda r: r.sort_key)
+        group = groups[predicate]
         retained = group[: top_n_per_predicate]
         kept_rows.extend(retained)
         edges_kept_per_group[predicate] = len(retained)
         edges_dropped_per_group[predicate] = max(0, len(group) - len(retained))
 
-    # rebuild knowledge_graph + auxiliary_graphs from the surviving
-    # rows. all bound edges of each surviving result are retained (so a
-    # result with multi-source corroboration keeps every source in the
-    # reduced kg_edges, not just the one we scored by). edge ids are
-    # deduped across results via set.
-    retained_edge_ids: set[str] = set()
-    for row in kept_rows:
-        retained_edge_ids.update(row.bound_edge_ids)
-    retained_node_ids: set[str] = set()
-    for row in kept_rows:
-        retained_node_ids.update(row.node_ids_in_bindings)
-    retained_aux_ids: set[str] = set()
-    for eid in retained_edge_ids:
-        retained_aux_ids.update(_support_graph_ids(kg_edges_in[eid]))
-
-    # keys are emitted in sorted order so the reduced body is byte-
-    # stable across runs even when Python's dict insertion order would
-    # have differed (e.g. across interpreter restarts with different
-    # hash seeds — Python 3.7+ preserves order but the SOURCE order
-    # came from PloverDB and is itself nondeterministic).
-    reduced_kg_nodes = {
-        nid: kg_nodes_in[nid]
-        for nid in sorted(retained_node_ids)
-        if nid in kg_nodes_in
-    }
-    reduced_kg_edges = {
-        eid: kg_edges_in[eid] for eid in sorted(retained_edge_ids)
-    }
-    reduced_aux_graphs = {
-        gid: aux_graphs_in[gid]
-        for gid in sorted(retained_aux_ids)
-        if gid in aux_graphs_in
-    }
-    # results keep their group-ordered insertion order (sorted groups,
-    # each group sorted by sort_key) so the LLM sees the strongest
-    # evidence FIRST inside each predicate block.
-    reduced_results = [row.original for row in kept_rows]
-
-    reduced_message: dict[str, Any] = {
-        **message,
-        "query_graph": query_graph,
-        "knowledge_graph": {
-            "nodes": reduced_kg_nodes,
-            "edges": reduced_kg_edges,
-        },
-        "results": reduced_results,
-        "auxiliary_graphs": reduced_aux_graphs,
-    }
-    reduced_body: dict[str, Any] = {**plover_body, "message": reduced_message}
+    reduced_body = _rebuild_body(kept_rows, parsed, plover_body)
+    reduced_kg = reduced_body["message"]["knowledge_graph"]
+    reduced_result_count = len(reduced_body["message"]["results"])
+    reduced_edge_count = len(reduced_kg["edges"])
+    reduced_node_count = len(reduced_kg["nodes"])
 
     metadata = ReductionMetadata(
         strategy_applied=_STRATEGY_NAME,
         top_n_per_predicate=top_n_per_predicate,
-        original_result_count=original_result_count,
-        original_edge_count=original_edge_count,
-        original_node_count=original_node_count,
-        reduced_result_count=len(reduced_results),
-        reduced_edge_count=len(reduced_kg_edges),
-        reduced_node_count=len(reduced_kg_nodes),
+        original_result_count=parsed.original_result_count,
+        original_edge_count=parsed.original_edge_count,
+        original_node_count=parsed.original_node_count,
+        reduced_result_count=reduced_result_count,
+        reduced_edge_count=reduced_edge_count,
+        reduced_node_count=reduced_node_count,
         predicate_groups=predicate_groups_sorted,
         edges_kept_per_group=edges_kept_per_group,
         edges_dropped_per_group=edges_dropped_per_group,
@@ -466,10 +547,120 @@ def reduce_plover_response(
     logger.info(
         f"[bold cyan]→ reduction[/]  strategy={_STRATEGY_NAME}  "
         f"predicates={len(predicate_groups_sorted)}  "
-        f"results={original_result_count}→{len(reduced_results)}  "
-        f"edges={original_edge_count}→{len(reduced_kg_edges)}  "
-        f"nodes={original_node_count}→{len(reduced_kg_nodes)}  "
+        f"results={parsed.original_result_count}→{reduced_result_count}  "
+        f"edges={parsed.original_edge_count}→{reduced_edge_count}  "
+        f"nodes={parsed.original_node_count}→{reduced_node_count}  "
         f"top_n={top_n_per_predicate}"
     )
 
     return ReductionResult(reduced_body=reduced_body, metadata=metadata)
+
+
+_CHARS_PER_TOKEN = 4  # rough JSON+English heuristic for the chunk-budget estimate
+
+
+@dataclass(frozen=True)
+class ChunkSet:
+    # the result of partitioning the full sorted (untruncated) ranking into
+    # token-budgeted chunks. each chunk is a valid TRAPI sub-body the LLM
+    # reads exactly like a full reduced body. chunk 0 holds the strongest
+    # evidence (curated first, text-mined last) so an early-stopping reader
+    # sees the best answers first.
+    chunks: list[dict[str, Any]]
+    n_chunks: int
+    total_rows: int                 # sorted result rows available
+    chunked_rows: int               # rows actually placed into chunks
+    truncated_at_max_chunks: bool   # True if max_chunks cut off the tail
+
+
+def _row_weight(row: _Enriched, parsed: _ParsedBody) -> int:
+    # rough char-count proxy for a row's contribution to a chunk body: its
+    # result plus its bound edges plus its bound nodes. shared nodes across
+    # rows in the same chunk are double-counted, which makes the estimate an
+    # UPPER bound, so chunks land at or under budget (safe).
+    weight = len(json.dumps(row.original, ensure_ascii=False))
+    for eid in row.bound_edge_ids:
+        edge = parsed.kg_edges.get(eid)
+        if edge is not None:
+            weight += len(json.dumps(edge, ensure_ascii=False))
+    for nid in row.node_ids_in_bindings:
+        node = parsed.kg_nodes.get(nid)
+        if node is not None:
+            weight += len(json.dumps(node, ensure_ascii=False))
+    return weight
+
+
+def chunk_plover_response(
+    plover_body: dict[str, Any],
+    *,
+    chunk_token_budget: int,
+    max_chunks: int,
+    logger: logging.Logger,
+) -> ChunkSet:
+    # partition the full sorted-but-UNTRUNCATED ranking into chunks bounded
+    # by chunk_token_budget. each chunk is a valid TRAPI sub-body (built by
+    # _rebuild_body) containing only the nodes/edges/aux its results
+    # reference. the iterative Stage-11 loop reads chunks in order until it
+    # is confident, so nothing is truncated up front — only max_chunks caps
+    # the total. pure function: no IO, no network.
+    if not isinstance(plover_body, dict):
+        raise TypeError(
+            f"plover_body must be a dict (got {type(plover_body).__name__})"
+        )
+    if chunk_token_budget < 1:
+        raise ValueError(
+            f"chunk_token_budget must be >= 1 (got {chunk_token_budget!r})"
+        )
+    if max_chunks < 1:
+        raise ValueError(f"max_chunks must be >= 1 (got {max_chunks!r})")
+
+    parsed = _parse_body(plover_body)
+    if not parsed.raw_results or not parsed.kg_edges:
+        # nothing to chunk — hand back the body as a single chunk so the
+        # caller's loop runs exactly once and terminates cleanly.
+        return ChunkSet(
+            chunks=[plover_body], n_chunks=1, total_rows=0,
+            chunked_rows=0, truncated_at_max_chunks=False,
+        )
+
+    _, _, ordered_rows = _sorted_groups(parsed.raw_results, parsed.kg_edges, logger)
+
+    char_budget = chunk_token_budget * _CHARS_PER_TOKEN
+    chunk_rows: list[list[_Enriched]] = []
+    current: list[_Enriched] = []
+    current_weight = 0
+    for row in ordered_rows:
+        weight = _row_weight(row, parsed)
+        # close the current chunk before it would exceed the budget, but
+        # never emit an empty chunk (a single oversized row gets its own).
+        if current and current_weight + weight > char_budget:
+            chunk_rows.append(current)
+            current = []
+            current_weight = 0
+            if len(chunk_rows) >= max_chunks:
+                break
+        current.append(row)
+        current_weight += weight
+    if current and len(chunk_rows) < max_chunks:
+        chunk_rows.append(current)
+
+    chunked = sum(len(rows) for rows in chunk_rows)
+    truncated = chunked < len(ordered_rows)
+    if truncated:
+        logger.warning(
+            f"chunking  max_chunks={max_chunks} reached; "
+            f"{len(ordered_rows) - chunked} of {len(ordered_rows)} sorted "
+            f"results were not chunked"
+        )
+    chunks = [_rebuild_body(rows, parsed, plover_body) for rows in chunk_rows]
+    logger.info(
+        f"[bold cyan]→ chunking[/]  results={len(ordered_rows)}  "
+        f"chunks={len(chunks)}  budget={chunk_token_budget}tok"
+    )
+    return ChunkSet(
+        chunks=chunks,
+        n_chunks=len(chunks),
+        total_rows=len(ordered_rows),
+        chunked_rows=chunked,
+        truncated_at_max_chunks=truncated,
+    )

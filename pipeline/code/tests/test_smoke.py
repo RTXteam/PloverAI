@@ -18,6 +18,7 @@ from code import prompts
 EXPECTED_STATUSES = {
     "ok",
     "invalid_query",
+    "invalid_query_arity",
     "llm_bad_json",
     "plover_error",
     "llm_error",
@@ -26,7 +27,6 @@ EXPECTED_STATUSES = {
     "entity_empty",
     "out_of_scope",
     "no_candidate_match",
-    "low_confidence_resolution",
 }
 
 

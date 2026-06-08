@@ -381,6 +381,7 @@ def main() -> int:
                 "slug": m.slug,
                 "tier": m.tier,
                 "provider": m.provider,
+                "context_window": m.context_window,
             }
             for m in chosen_models
         ],
