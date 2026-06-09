@@ -360,25 +360,21 @@ function SystemInfoPanel({
 
 function StatusDot({ status }: { status?: string }) {
   // green = reachable, amber = degraded (5xx), red = down, grey = not yet
-  // checked. the title gives the plain-language status on hover.
-  const { color, label, pulse } =
+  // checked. live dots blink slowly to read as a real-time indicator; the
+  // title gives the plain-language status on hover.
+  const { color, label, blink } =
     status === "ok"
-      ? { color: "bg-emerald-500", label: "active", pulse: false }
+      ? { color: "bg-emerald-500", label: "active", blink: true }
       : status === "degraded"
-        ? { color: "bg-amber-500", label: "degraded", pulse: true }
+        ? { color: "bg-amber-500", label: "degraded", blink: true }
         : status === "down"
-          ? { color: "bg-red-500", label: "unreachable", pulse: true }
-          : { color: "bg-zinc-300 dark:bg-zinc-600", label: "checking…", pulse: false };
+          ? { color: "bg-red-500", label: "unreachable", blink: true }
+          : { color: "bg-zinc-300 dark:bg-zinc-600", label: "checking", blink: false };
   return (
     <span
-      className="relative inline-flex h-2 w-2 shrink-0"
-      title={`${status ? status : "checking"} — ${label}`}
-    >
-      {pulse && (
-        <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${color}`} />
-      )}
-      <span className={`relative inline-flex h-2 w-2 rounded-full ${color}`} />
-    </span>
+      title={label}
+      className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${color} ${blink ? "animate-slow-blink" : ""}`}
+    />
   );
 }
 

@@ -11,6 +11,16 @@
    default behaviour. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* slow, subtle blink for the live service-status dots in the sidebar. a
+   professional "breathing" indicator rather than a hard flash. */
+@theme {
+  --animate-slow-blink: slow-blink 2.4s ease-in-out infinite;
+  @keyframes slow-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
