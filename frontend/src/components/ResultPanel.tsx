@@ -142,21 +142,21 @@ const STAGE_ORDER: StageEntry[] = [
   {
     number: "11",
     label: "Answer pick",
-    description: "LLM selects the answer entities from the PloverDB response, ranked by evidence tier.",
+    description: "LLM selects the answer entities from the PloverDB response, ranked by relevance (evidence tier breaks ties).",
     kind: "LLM",
     promptKey: "stage_11_answer_pick",
   },
   {
     number: "12",
     label: "NodeNorm canonicalize answers",
-    description: "Canonicalize every CURIE the LLM picked + collect equivalents for downstream scoring.",
+    description: "Canonicalize every CURIE the LLM picked, then collapse cross-namespace duplicates (the same protein returned as both a gene id and a ChEMBL target id) so each target is counted once.",
     kind: "service",
     getData: (r) => nodenormSlice(r, "answers"),
   },
   {
     number: "13",
     label: "Build graph view",
-    description: "Reshape (pinned entity + picked answers + KG slice) into the node-link graph view the UI renders, with per-edge provenance.",
+    description: "Reshape (pinned entity + picked answers + KG slice) into the node-link graph view, with per-edge provenance, authoritative Biolink typing, and the matched-concept endpoints behind the query → matched concept → answer chain. Grouped targets are decomposed to their component genes.",
     kind: "function",
     getData: (r) =>
       r.answer_graph_view
@@ -180,7 +180,7 @@ const STAGE_ORDER: StageEntry[] = [
   {
     number: "15",
     label: "Explanation",
-    description: "LLM writes the structured Markdown summary you see above.",
+    description: "LLM writes the structured Markdown summary you see above, under faithfulness guards: cite every claim, keep to each edge's predicate, and never invent an entity type (such as a 'complex') the data doesn't assert.",
     kind: "LLM",
     promptKey: "stage_15_explain",
   },

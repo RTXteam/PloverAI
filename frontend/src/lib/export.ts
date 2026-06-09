@@ -107,10 +107,12 @@ export function downloadResultPDF(
   w.focus();
 }
 
-// pull every mini-graph SVG out of the live DOM and tag each one with
+// pull every evidence-chain SVG out of the live DOM and tag each one with
 // the answer entity it depicts. relies on the aria-label that
-// StructuredAnswer.MiniGraph sets ("Mini graph: <pinned> to <answer>")
-// to map an SVG back to its answer node. when the page isn't showing
+// StructuredAnswer.EvidenceChain sets ("Evidence chain for <answerCurie>")
+// to map an SVG back to its answer node. an answer matched via several
+// concepts has more than one chain; we keep its first one here, and the
+// textual graph summary below covers the rest. when the page isn't showing
 // a StructuredAnswer (no graph view, or only MarkdownAnswer fallback),
 // this returns an empty array and the PDF falls back to the textual
 // graph summary.
@@ -131,7 +133,7 @@ function captureMiniGraphSVGs(
   const seen = new Set<string>();
   for (const svg of Array.from(nodes)) {
     const aria = svg.getAttribute("aria-label") || "";
-    const m = aria.match(/Mini graph:.*to (.+)$/);
+    const m = aria.match(/Evidence chain for (.+)$/);
     if (!m) continue;
     const answerCurie = m[1].trim();
     if (seen.has(answerCurie)) continue;

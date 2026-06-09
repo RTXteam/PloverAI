@@ -652,6 +652,27 @@ function PubTatorExplainer() {
           </p>
         </section>
         <section>
+          <div className="font-semibold mb-1">
+            Why some cards show three nodes (query &rarr; matched concept &rarr; answer)
+          </div>
+          <p>
+            PloverDB expands your query entity to its more specific{" "}
+            <strong>descendant</strong> concepts before matching. So an answer is often
+            supported by an edge whose real subject is not the entity you typed but a more
+            specific one underneath it. Asking about{" "}
+            <em>Focal-onset seizure</em>, the supporting edge may actually start at{" "}
+            <em>Focal hemiclonic seizure</em>. When that happens the card draws the honest
+            chain: your <strong>query</strong> node, a dashed{" "}
+            <em>&ldquo;expanded to&rdquo;</em> link, the{" "}
+            <strong>matched concept</strong> KG2c actually found, then the solid predicate
+            edge to the <strong>answer</strong>. When the edge starts at your query entity
+            directly, the card shows the plain two-node graph. Separately, when the same
+            protein is returned under two namespaces (for example a gene id and a ChEMBL
+            target id), those nodes are collapsed to one answer so a single target is not
+            counted twice.
+          </p>
+        </section>
+        <section>
           <div className="font-semibold mb-1">What is a predicate?</div>
           <p>
             The <strong>predicate</strong> is the type of relation, drawn from{" "}

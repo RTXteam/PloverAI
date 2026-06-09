@@ -92,6 +92,12 @@ are helpers covered in their own sections lower in this doc):
 | 14 | PubTator enrichment              | service  | PubTator                 |
 | 15 | natural-language reply           | LLM      | OpenRouter               |
 
+Two stages grew an in-stage refinement after v15: **Stage 12b** collapses
+cross-vocabulary duplicate answers (the same protein returned under both
+an `NCBIGene` and a `CHEMBL.TARGET` id), and **Stage 13b** decomposes a
+grouped target into its component genes. Both are documented in their
+parent stage's section.
+
 The colour fill on each box just reinforces the rightmost column —
 yellow boxes are LLM calls, blue are RENCI, green is PloverDB, red
 is the validator, grey is input/terminal.
@@ -412,9 +418,13 @@ are weak text-mining co-occurrences. The user wants a short list of
 *best-supported* answers, not an unranked dump. This stage is the
 ranking + filtering step.
 
-**What it does.** The LLM gets the full TRAPI response and one
-question: out of these results, which entities are the actual
-answers, ranked by evidence strength? It returns a small JSON list:
+**What it does.** The LLM gets the response (already sorted
+strongest-first by the reduction step) and one question: out of these
+results, which entities are the actual answers? In the default
+iterative mode it reads the response in strongest-first chunks and
+ranks its picks by *relevance*, using evidence strength only to break
+ties; the single-shot fallback ranks strictly by strength. It returns
+a small JSON list:
 
 ```json
 {
@@ -426,10 +436,12 @@ answers, ranked by evidence strength? It returns a small JSON list:
 }
 ```
 
-The ranking rule is the **evidence-strength ladder** described in
+The strength ordering — used to rank in single-shot mode and to break
+ties in iterative mode — is the **evidence-strength ladder** in
 [§Evidence](#evidence) below.
 
-Code: [`prompts.py`](prompts.py) (`SYS_ANSWER_PICK`),
+Code: [`prompts.py`](prompts.py) (`SYS_ANSWER_PICK_ITER` for the default
+iterative mode, `SYS_ANSWER_PICK` for single-shot),
 [`pipeline.py`](pipeline.py) Stage 11.
 
 ---
@@ -457,6 +469,20 @@ The offline scorer compares `canonical_curies` against
 `gold.anchors[0].curie`. Without this stage the scorer would call
 right answers wrong because of identifier differences.
 
+**Stage 12b — collapse cross-vocabulary duplicates.** The same protein
+can come back under several namespaces: KIT as `NCBIGene:3815` *and* as
+the ChEMBL target `CHEMBL.TARGET:CHEMBL1936` ("Stem cell growth factor
+receptor"). NodeNorm carries ChEMBL *compound* ids but not ChEMBL
+*target* ids, so those duplicates survive Stage 12. Stage 12b resolves
+each picked answer to its canonical gene identity — NodeNorm for
+genes/proteins, plus a one-hop in-graph `target → biolink:Gene` lookup
+for ChEMBL targets NodeNorm can't see — and merges answers that resolve
+to the same gene, keeping the gene-symbol representative ("KIT", not the
+trimmed ChEMBL label) and recording what was merged in `merged_from`. A
+multi-gene target (a kinase *family* record like ABL → ABL1 + ABL2) gets
+a set-valued identity, so genuinely distinct targets are never collapsed.
+Code: [`pipeline.py`](pipeline.py) `_dedup_answers`.
+
 ---
 
 ## Stage 15 — *write a human-readable explanation*
@@ -482,6 +508,25 @@ we get:
 
 Now the user can check the citation. That's the whole point of
 grounding.
+
+On top of the cite-every-claim rule, Stage 15 enforces four
+faithfulness guards so the prose never drifts past the graph:
+
+- **Claim & predicate fidelity.** State only the relationship the edge's
+  predicate asserts. `biolink:physically_interacts_with` means "physically
+  interacts with", not "inhibits" or "treats", and no importance/primacy
+  editorialising ("the primary therapeutic target") unless an edge says so.
+  The Stage 11 ranking notes (`why` / `rationale`) are stripped before this
+  stage so their background knowledge can't leak into the answer.
+- **Entity-type fidelity.** Render each entity as the kind its Biolink
+  category licenses. Never upgrade a grouping / protein / gene node into a
+  physical "complex"; name a grouped target as the grouped target it is.
+- **Presence fidelity.** Only entities that appear as their own node are
+  "present". A name inside another node's label (COX-1 inside "COX-1/COX-2")
+  is not, unless surfaced via the Stage 13b decomposition.
+- **Provenance tiers.** Phrasing is gated by a STRONG / MODERATE / WEAK tier
+  derived from `knowledge_level` plus whether a named source or PMID exists,
+  so an un-sourced curated edge gets hedged language, not "established".
 
 Code: [`prompts.py`](prompts.py) (`SYS_EXPLAIN`),
 [`pipeline.py`](pipeline.py) Stage 15.
@@ -544,7 +589,26 @@ After Stage 12 canonicalises the answer CURIEs, this stage reshapes
 the (pinned entity + picked answers + relevant edges from the
 PloverDB knowledge graph) into the node-link `answer_graph_view`
 the frontend renders. Pure function over the pipeline's existing
-state; emits `answer_graph_view.json`.
+state; emits `answer_graph_view.json`. Three details make the view
+faithful:
+
+- **Authoritative node typing.** Each answer node carries its canonical
+  Biolink `category` (from the node's `biolink:category` attribute, not
+  just `categories[0]`) plus an `is_grouping` flag, so a grouped target
+  (a ChEMBL selectivity group typed `biolink:GeneFamily`) renders as the
+  grouping it is, never invented into a physical "complex".
+- **Matched-concept endpoints.** KG2c expands the pinned node to
+  descendant / equivalent concepts, so a picked edge's real subject is
+  often a *descendant* of the pinned node, not the pinned node itself
+  (querying "Focal-onset seizure" returns edges from "Focal hemiclonic
+  seizure"). The view emits these `edge_endpoint_nodes` with labels so the
+  UI can draw the honest **query → matched concept → answer** chain instead
+  of pretending the pinned node is the edge's subject.
+- **Stage 13b — grouped-target decomposition.** When a picked answer is a
+  grouped target, a follow-up one-hop `group → biolink:Gene` query resolves
+  its component genes (the COX-1/COX-2 group → PTGS1 + PTGS2). They are
+  surfaced as the group's *components*, never as direct interactors, so the
+  answer stays strictly one-hop.
 
 ### Stage 14 — *PubTator enrichment* (service)
 
@@ -563,8 +627,14 @@ See [`pubtator_client.py`](pubtator_client.py).
 <a id="evidence"></a>
 ## Evidence — how we judge "stronger" answers
 
-Stage 11 has to rank answers by how well-supported they are. This
-section is the rule book.
+Two things rank evidence, and it's worth being precise about which does
+what. **Deterministic code** (the reduction step inside Stage 11,
+[`reduction.py`](reduction.py)) sorts every edge by strength, strongest
+first. **The LLM** then selects the answer entities: the default
+iterative selector ranks them by *relevance* and uses the code-computed
+strength only to break ties, while the single-shot selector (the
+fallback) picks strictly by strength. This section is the rule book for
+the strength ordering both rely on.
 
 ### Two metadata fields KG2c gives us per edge
 
@@ -597,9 +667,10 @@ This ordering is a **heuristic** — Biolink defines the values but
 doesn't formally rank them. The hierarchy reflects measurements on
 real KG2c data: curated drug-treats-disease edges consistently came
 back with `knowledge_assertion`, while text-mined edges came back
-with `prediction` or `statistical_association`. The ranking is used
-by the answer-selector to prefer the strongest evidence tier present
-in any given response.
+with `prediction` or `statistical_association`. This ladder is the
+`knowledge_level` key inside the deterministic edge sort in
+[`reduction.py`](reduction.py), so the selector always reads the
+response strongest-first.
 
 ### `agent_type` as a tiebreaker
 
@@ -612,10 +683,13 @@ When two candidates share the same `knowledge_level`, prefer:
 the graph can show; `prediction` + `text_mining_agent` is much weaker
 even though the predicate may look the same.
 
-### Fallback policy
+### Tier-fallback policy (single-shot selector)
 
 PloverDB will not always return a `knowledge_assertion` edge. Some
-questions only have weaker evidence in KG2c. The rule v15 follows:
+questions only have weaker evidence in KG2c. The **single-shot**
+selector ranks strictly by strength and follows these rules (the
+iterative selector instead ranks by relevance, so it may mix tiers when
+a weaker-tier edge is the more relevant answer):
 
 1. **Pick the strongest tier present in the response.** If
    `knowledge_assertion` exists, every answer comes from there. If
@@ -638,33 +712,33 @@ absence, the user gets the next-best with the strength surfaced.
 
 ### How this gets enforced
 
-In v15 the policy lives **in the system prompt** for Stage 11
-(`SYS_ANSWER_PICK`), not in deterministic code. Reasons:
+Two layers, one deterministic and one model-driven:
 
-- The whole point of v15 is to test whether the LLM can navigate
-  TRAPI provenance correctly. If a Python sorter does it for the
-  LLM, the benchmark is testing the sorter, not the model.
-- The LLM also has to write the explanation in Stage 15, so it needs
-  to *understand* the strength tiering anyway. Asking it to apply
-  the rule once (in Stage 11) and then describe the rule it applied
-  (in Stage 15) keeps the two stages consistent.
-- The offline scorer can later cross-check what the LLM picked
-  against a deterministic Python ranker. That's a v16 metric
-  (`evidence_pick_match_rate`) — does the model pick the same
-  strongest-tier edges a sorter would have? If yes, we know the
-  LLM is competent at this; if no, we know we should pre-sort.
+- **Edge strength: deterministic code.** [`reduction.py`](reduction.py)
+  builds an `edge_sort_key` per edge — source tier (curated above
+  text-mined, the leading key), then `knowledge_level`, then `agent_type`,
+  then publication count — and sorts every predicate group by it.
+  Text-mined edges are demoted below all curated ones, so the LLM never
+  computes strength: it receives the edges already ordered.
+- **Answer selection: the LLM.** The default **iterative** selector
+  (`SYS_ANSWER_PICK_ITER`) reads the sorted response in strongest-first
+  chunks and ranks its picks by *relevance*, using the pre-computed
+  strength only as a tie-breaker. The **single-shot** fallback
+  (`SYS_ANSWER_PICK`) instead picks by the strength ladder directly.
 
-In v16 we may flip to "Python sorts, LLM picks from the top tier" if
-v15's data shows the LLM mishandles the ladder. v15 first.
+The split is deliberate: the deterministic sort keeps the strength
+ordering reproducible and out of the benchmark's variance, while the LLM
+is still tested on the harder judgment — which of the sorted candidates
+are actually relevant answers to the question.
 
 ### What ends up on disk
 
 For every run, `nodenorm.json` carries the canonical IDs the LLM
 selected, and `plover_response.json` carries the full edge metadata
-(`knowledge_level`, `agent_type`, `sources`). So a human reader (or
-the offline scorer) can verify: "did the LLM actually pick from the
-strongest tier present, or did it pick a weaker edge when a stronger
-one was available?" Nothing is hidden.
+(`knowledge_level`, `agent_type`, `sources`). So a human reader (or the
+offline scorer) can replay the ranking: which strength tier each picked
+edge sat in, and whether a stronger or more relevant edge went unpicked.
+Nothing is hidden.
 
 
 
