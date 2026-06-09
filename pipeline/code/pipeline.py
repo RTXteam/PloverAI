@@ -511,6 +511,97 @@ def _decompose_grouping_node(
     return components
 
 
+def _resolve_target_to_genes(curie: str, plover: PloverClient) -> list[str]:
+    # CHEMBL.TARGET nodes are invisible to NodeNorm (it carries ChEMBL
+    # COMPOUND ids but not TARGET ids), so we resolve them to their gene(s)
+    # in-graph with a one-hop query (target -> biolink:Gene). A single-gene
+    # target collapses onto the bare gene node; a multi-gene target (a kinase
+    # family record) keeps a distinct identity and is NOT merged.
+    msg: dict[str, Any] = {
+        "message": {
+            "query_graph": {
+                "nodes": {
+                    "n0": {"ids": [curie]},
+                    "n1": {"categories": ["biolink:Gene"]},
+                },
+                "edges": {"e0": {"subject": "n0", "object": "n1"}},
+            }
+        }
+    }
+    try:
+        reply = plover.query(msg)
+    except PloverError:
+        return []
+    nodes = reply.body.get("message", {}).get("knowledge_graph", {}).get("nodes", {}) or {}
+    return sorted(c for c in nodes if c != curie and c.startswith("NCBIGene:"))
+
+
+def _answer_identity(
+    curie: str, canonical_map: dict[str, str], plover: PloverClient,
+) -> str:
+    # the canonical biological identity used to detect cross-vocabulary
+    # duplicates. NodeNorm resolves gene / protein / chemical cliques; a
+    # CHEMBL.TARGET that NodeNorm cannot resolve is mapped to its gene(s)
+    # in-graph. A multi-gene target gets a set-valued identity so it never
+    # collides with a single bare gene.
+    canon = canonical_map.get(curie)
+    if canon and canon != curie:
+        return canon
+    if curie.startswith("CHEMBL.TARGET:"):
+        genes = _resolve_target_to_genes(curie, plover)
+        if len(genes) == 1:
+            return genes[0]
+        if genes:
+            return "genes:" + ",".join(genes)
+    return canon or curie
+
+
+def _dedup_answers(
+    answers: list[dict[str, Any]], canonical_map: dict[str, str], plover: PloverClient,
+) -> tuple[list[dict[str, Any]], list[tuple[str, str, str]]]:
+    # collapse answers that resolve to the SAME canonical entity (e.g. KIT as
+    # NCBIGene:3815 and as CHEMBL.TARGET:CHEMBL1936). Keeps the gene-symbol
+    # representative when one carries its own evidence, drops the redundant
+    # namespace node (and its edges, to keep the graph view consistent), and
+    # records what was merged. Returns (deduped answers, merge log).
+    groups: dict[str, list[dict[str, Any]]] = {}
+    order: list[str] = []
+    for a in answers:
+        curie = a.get("curie")
+        if not isinstance(curie, str):
+            continue
+        ident = _answer_identity(curie, canonical_map, plover)
+        if ident not in groups:
+            groups[ident] = []
+            order.append(ident)
+        groups[ident].append(a)
+    result: list[dict[str, Any]] = []
+    merged_log: list[tuple[str, str, str]] = []
+    for ident in order:
+        members = groups[ident]
+        if len(members) == 1:
+            result.append(dict(members[0]))
+            continue
+        # representative: the bare-gene member with its own evidence, else the
+        # highest-ranked member with evidence, else the highest-ranked.
+        rep = (
+            next((m for m in members
+                  if m.get("curie") == ident and m.get("supporting_edge_ids")), None)
+            or next((m for m in members if m.get("supporting_edge_ids")), None)
+            or members[0]
+        )
+        rep_out = dict(rep)
+        merged_from = list(rep_out.get("merged_from") or [])
+        for m in members:
+            if m is rep:
+                continue
+            merged_from.append({"curie": m.get("curie"), "label": m.get("label")})
+            merged_log.append((str(m.get("curie")), str(rep.get("curie")), ident))
+        rep_out["merged_from"] = merged_from
+        result.append(rep_out)
+    return result, merged_log
+
+
 # Stage 7 threshold. exposed as a module constant so tests can assert
 # against the same value the pipeline uses, and so a future tuning sweep
 # can change it in one place. 0.50 was chosen empirically:
@@ -2055,6 +2146,32 @@ def run_grounded(
         nodenorm_log["answers"] = {"canonical": {}, "note": "no answer CURIEs to normalise"}
         write_json(qp.nodenorm, nodenorm_log)
         answer_obj["canonical_curies"] = []
+
+    # ---------- Stage 12b: collapse cross-vocabulary duplicate answers ----------
+    # the same protein can return under several namespaces (KIT as
+    # NCBIGene:3815 and as CHEMBL.TARGET:CHEMBL1936). NodeNorm cannot link
+    # ChEMBL targets, so they reach here un-merged. Resolve each answer to its
+    # canonical gene identity (in-graph for ChEMBL targets) and collapse exact
+    # duplicates so the answer set lists distinct biological targets.
+    answers_block = answer_obj.get("answers")
+    if isinstance(answers_block, list) and len(answers_block) > 1:
+        nn_answers = nodenorm_log.get("answers")
+        canonical_map: dict[str, str] = {}
+        if isinstance(nn_answers, dict):
+            raw_canon = nn_answers.get("canonical") or {}
+            canonical_map = {k: v for k, v in raw_canon.items() if isinstance(v, str)}
+        deduped, merged_log = _dedup_answers(answers_block, canonical_map, plover)
+        if merged_log:
+            answer_obj["answers"] = deduped
+            answer_obj["canonical_curies"] = [
+                canonical_map.get(a["curie"]) or a["curie"]
+                for a in deduped if isinstance(a.get("curie"), str)
+            ]
+            for dropped, rep, ident in merged_log:
+                logger.info(
+                    f"{tag}  answer_dedup  {dropped} merged into {rep} "
+                    f"(same entity: {ident})"
+                )
 
     write_json(qp.answer, answer_obj)
 

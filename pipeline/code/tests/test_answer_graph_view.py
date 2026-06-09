@@ -29,7 +29,12 @@
 #   6. an empty answer list → empty answer_nodes + empty edges, but
 #      pinned_node is still emitted.
 
-from code.pipeline import _build_answer_graph_view, _decompose_grouping_node
+from code.pipeline import (
+    _build_answer_graph_view,
+    _decompose_grouping_node,
+    _dedup_answers,
+    _resolve_target_to_genes,
+)
 from code.plover_client import PloverError, PloverReply
 
 
@@ -554,3 +559,70 @@ def test_decompose_grouping_node_empty_on_plover_error():
     assert _decompose_grouping_node(
         group_curie="CHEMBL.TARGET:CHEMBL4523964", plover=_Boom(),
     ) == []
+
+
+# ---- cross-vocabulary answer dedup (Stage 12b) ----
+
+class _GeneResolvingPlover:
+    # maps a CHEMBL.TARGET curie -> its gene curies, returning a KG response
+    # shaped like PloverDB's for _resolve_target_to_genes / _answer_identity.
+    def __init__(self, mapping):
+        self._mapping = mapping
+
+    def query(self, msg):
+        curie = msg["message"]["query_graph"]["nodes"]["n0"]["ids"][0]
+        nodes = {curie: {"name": curie}}
+        for g in self._mapping.get(curie, []):
+            nodes[g] = {"name": g}
+        return PloverReply(
+            body={"message": {"knowledge_graph": {"nodes": nodes, "edges": {}}}},
+            status_code=200, latency_s=0.0, response_bytes=0,
+        )
+
+
+def test_resolve_target_to_genes_returns_only_ncbigene():
+    plover = _GeneResolvingPlover({"CHEMBL.TARGET:CHEMBL1936": ["NCBIGene:3815"]})
+    assert _resolve_target_to_genes("CHEMBL.TARGET:CHEMBL1936", plover) == ["NCBIGene:3815"]
+
+
+def test_dedup_answers_collapses_cross_vocab_kit():
+    # KIT returned as both the gene (NCBIGene:3815) and a ChEMBL target
+    # (CHEMBL1936) must collapse to ONE answer, keeping the clean gene label
+    # and recording the merged namespace.
+    answers = [
+        {"curie": "NCBIGene:3815", "label": "KIT", "supporting_edge_ids": ["e1"]},
+        {"curie": "CHEMBL.TARGET:CHEMBL1913", "label": "PDGFRB", "supporting_edge_ids": ["e2"]},
+        {"curie": "CHEMBL.TARGET:CHEMBL1936",
+         "label": "Stem cell growth factor receptor", "supporting_edge_ids": ["e3"]},
+    ]
+    plover = _GeneResolvingPlover({
+        "CHEMBL.TARGET:CHEMBL1936": ["NCBIGene:3815"],   # KIT
+        "CHEMBL.TARGET:CHEMBL1913": ["NCBIGene:5159"],   # PDGFRB
+    })
+    deduped, merged = _dedup_answers(
+        answers, {"NCBIGene:3815": "NCBIGene:3815"}, plover,
+    )
+    assert [a["curie"] for a in deduped] == ["NCBIGene:3815", "CHEMBL.TARGET:CHEMBL1913"]
+    assert len(merged) == 1
+    kit = deduped[0]
+    assert kit["curie"] == "NCBIGene:3815" and kit["label"] == "KIT"
+    assert {"curie": "CHEMBL.TARGET:CHEMBL1936",
+            "label": "Stem cell growth factor receptor"} in kit["merged_from"]
+
+
+def test_dedup_answers_keeps_genuinely_distinct_targets():
+    # a multi-gene ChEMBL target (ABL kinase = ABL1 + ABL2) and a fusion
+    # protein (no gene clique) have different identities and must NOT merge.
+    answers = [
+        {"curie": "CHEMBL.TARGET:CHEMBL1862", "label": "ABL", "supporting_edge_ids": ["e1"]},
+        {"curie": "UMLS:C0004891",
+         "label": "Fusion Proteins, bcr-abl", "supporting_edge_ids": ["e2"]},
+    ]
+    plover = _GeneResolvingPlover({
+        "CHEMBL.TARGET:CHEMBL1862": ["NCBIGene:25", "NCBIGene:27"],
+    })
+    deduped, merged = _dedup_answers(
+        answers, {"UMLS:C0004891": "UMLS:C0004891"}, plover,
+    )
+    assert merged == []
+    assert {a["curie"] for a in deduped} == {"CHEMBL.TARGET:CHEMBL1862", "UMLS:C0004891"}
