@@ -54,6 +54,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 # pydantic: request / response model validation. shipped with FastAPI.
+# httpx: third-party. used to probe external-service liveness for the
+# sidebar status dots.
+import httpx
+
 from pydantic import BaseModel, Field
 
 # python-dotenv: same env loading the runner uses. in production we
@@ -274,6 +278,18 @@ class InfoResponse(BaseModel):
     maintenance_reason: str | None = None
 
 
+class ServiceHealth(BaseModel):
+    # one external service's liveness, for the sidebar status dots.
+    name: str
+    url: str
+    status: str  # "ok" | "degraded" | "down"
+    latency_ms: int | None
+
+
+class ServicesHealthResponse(BaseModel):
+    services: list[ServiceHealth]
+
+
 class RunSummary(BaseModel):
     # one row in the history list. cheap to build (we only read the
     # tiny meta.json + question.json files, not the full plover
@@ -418,6 +434,56 @@ def info() -> InfoResponse:
         query_enabled=enabled,
         maintenance_reason=reason,
     )
+
+
+_SERVICES_HEALTH_TTL_S = 60.0
+
+
+async def _probe_service(name: str, url: str, timeout_s: float) -> ServiceHealth:
+    # liveness probe: a short GET to the service's base URL. any HTTP response
+    # means the server is reachable (even a 404), so <500 is "ok", 5xx is
+    # "degraded", and a timeout / connection error is "down".
+    t0 = time.monotonic()
+    try:
+        async with httpx.AsyncClient(timeout=timeout_s, follow_redirects=True) as client:
+            resp = await client.get(url)
+        latency_ms = int((time.monotonic() - t0) * 1000)
+        status = "ok" if resp.status_code < 500 else "degraded"
+        return ServiceHealth(name=name, url=url, status=status, latency_ms=latency_ms)
+    except httpx.HTTPError:
+        return ServiceHealth(name=name, url=url, status="down", latency_ms=None)
+
+
+@app.get(
+    "/api/v1/services/health",
+    response_model=ServicesHealthResponse,
+    dependencies=[Depends(require_api_key)],
+)
+async def services_health() -> ServicesHealthResponse:
+    # cached (~60s) liveness of the four external services, for the sidebar
+    # status dots. probes run in parallel so one down service doesn't slow the
+    # whole check, and the cache keeps frequent polls / many users from
+    # hammering the upstreams.
+    cfg = app.state.cfg
+    now = time.monotonic()
+    cache: tuple[float, ServicesHealthResponse] | None = getattr(
+        app.state, "services_health_cache", None,
+    )
+    if cache is not None and (now - cache[0]) <= _SERVICES_HEALTH_TTL_S:
+        return cache[1]
+    timeout_s = float(cfg.services.timeout_s)
+    targets = [
+        ("ploverdb", cfg.endpoints.ploverdb),
+        ("openrouter", cfg.endpoints.openrouter),
+        ("nameres", cfg.endpoints.nameres),
+        ("nodenorm", cfg.endpoints.nodenorm),
+    ]
+    results = await asyncio.gather(
+        *(_probe_service(n, u, timeout_s) for n, u in targets)
+    )
+    resp = ServicesHealthResponse(services=list(results))
+    app.state.services_health_cache = (now, resp)
+    return resp
 
 
 @app.get(

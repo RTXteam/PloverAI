@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { RunSummary, ServiceInfo } from "@/lib/api";
+import type { RunSummary, ServiceHealth, ServiceInfo } from "@/lib/api";
 import { useTheme } from "@/lib/theme";
 import { ThemeSwitch } from "./ThemeSwitch";
 
@@ -27,6 +27,9 @@ type Props = {
   onSelectRun: (runId: string) => void;
   onRefresh: () => void;
   onNewChat: () => void;
+  // per-service liveness for the System panel status dots (empty until the
+  // first /services/health poll returns).
+  serviceHealth: ServiceHealth[];
 };
 
 export function Sidebar({
@@ -39,6 +42,7 @@ export function Sidebar({
   onSelectRun,
   onRefresh,
   onNewChat,
+  serviceHealth,
 }: Props) {
   const { theme, setTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
@@ -94,6 +98,7 @@ export function Sidebar({
             onSelectRun={onSelectRun}
             onRefresh={onRefresh}
             onNewChat={onNewChat}
+            serviceHealth={serviceHealth}
             theme={theme}
             onThemeChange={setTheme}
           />
@@ -118,6 +123,7 @@ function ExpandedSidebar({
   onSelectRun,
   onRefresh,
   onNewChat,
+  serviceHealth,
   theme,
   onThemeChange,
 }: ExpandedProps) {
@@ -215,7 +221,7 @@ function ExpandedSidebar({
         )}
       </ul>
 
-      {info && <SystemInfoPanel info={info} />}
+      {info && <SystemInfoPanel info={info} serviceHealth={serviceHealth} />}
 
       {/* theme switch sits at the very bottom — secondary control. */}
       <div className="border-t border-zinc-200 dark:border-zinc-800 px-3 py-3">
@@ -310,7 +316,14 @@ function RunRow({
   );
 }
 
-function SystemInfoPanel({ info }: { info: ServiceInfo }) {
+function SystemInfoPanel({
+  info,
+  serviceHealth,
+}: {
+  info: ServiceInfo;
+  serviceHealth: ServiceHealth[];
+}) {
+  const statusByName = new Map(serviceHealth.map((s) => [s.name, s]));
   return (
     <div className="border-t border-zinc-200 dark:border-zinc-800 px-3 py-3 text-[11px] font-mono space-y-1.5 text-zinc-600 dark:text-zinc-400">
       <h2 className="text-xs uppercase tracking-wide text-zinc-500 font-medium font-sans mb-2">
@@ -322,20 +335,50 @@ function SystemInfoPanel({ info }: { info: ServiceInfo }) {
       <Row label="Biolink" value={info.biolink_version} />
       <Row label="TRAPI" value={info.trapi_version} />
       <div className="pt-1.5 border-t border-zinc-200 dark:border-zinc-800 mt-2 space-y-1">
-        {Object.entries(info.endpoints).map(([name, url]) => (
-          <a
-            key={name}
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="flex justify-between gap-2 hover:text-blue-600 dark:hover:text-blue-400"
-          >
-            <span className="text-zinc-500">{name}</span>
-            <span className="truncate">{url.replace(/^https?:\/\//, "")}</span>
-          </a>
-        ))}
+        {Object.entries(info.endpoints).map(([name, url]) => {
+          const h = statusByName.get(name);
+          return (
+            <a
+              key={name}
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-between gap-2 hover:text-blue-600 dark:hover:text-blue-400"
+            >
+              <span className="flex items-center gap-1.5 shrink-0">
+                <StatusDot status={h?.status} />
+                <span className="text-zinc-500">{name}</span>
+              </span>
+              <span className="truncate">{url.replace(/^https?:\/\//, "")}</span>
+            </a>
+          );
+        })}
       </div>
     </div>
+  );
+}
+
+function StatusDot({ status }: { status?: string }) {
+  // green = reachable, amber = degraded (5xx), red = down, grey = not yet
+  // checked. the title gives the plain-language status on hover.
+  const { color, label, pulse } =
+    status === "ok"
+      ? { color: "bg-emerald-500", label: "active", pulse: false }
+      : status === "degraded"
+        ? { color: "bg-amber-500", label: "degraded", pulse: true }
+        : status === "down"
+          ? { color: "bg-red-500", label: "unreachable", pulse: true }
+          : { color: "bg-zinc-300 dark:bg-zinc-600", label: "checking…", pulse: false };
+  return (
+    <span
+      className="relative inline-flex h-2 w-2 shrink-0"
+      title={`${status ? status : "checking"} — ${label}`}
+    >
+      {pulse && (
+        <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${color}`} />
+      )}
+      <span className={`relative inline-flex h-2 w-2 rounded-full ${color}`} />
+    </span>
   );
 }
 

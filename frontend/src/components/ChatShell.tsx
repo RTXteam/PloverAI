@@ -8,11 +8,13 @@ import {
   getQuestions,
   getRun,
   getRuns,
+  getServicesHealth,
   streamQuery,
   type GoldQuestion,
   type ModelInfo,
   type QueryResponse,
   type RunSummary,
+  type ServiceHealth,
   type ServiceInfo,
   type StreamEvent,
 } from "@/lib/api";
@@ -132,6 +134,7 @@ export default function ChatShell() {
   const RUNS_PAGE_SIZE = 50;
   const [runsHasMore, setRunsHasMore] = useState(true);
   const [runsLoadingMore, setRunsLoadingMore] = useState(false);
+  const [serviceHealth, setServiceHealth] = useState<ServiceHealth[]>([]);
 
   const refreshRuns = useCallback(async () => {
     try {
@@ -269,6 +272,29 @@ export default function ChatShell() {
     return () => abort.abort();
   }, []);
 
+  // poll external-service liveness for the sidebar status dots. the backend
+  // caches ~60s so these calls are cheap; refresh on mount, when the tab
+  // regains focus, and on a slow interval. runQuery also refreshes after a
+  // query so a service failure is reflected promptly.
+  const refreshServiceHealth = useCallback(() => {
+    getServicesHealth()
+      .then(setServiceHealth)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshServiceHealth();
+    const interval = setInterval(refreshServiceHealth, 3 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshServiceHealth();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshServiceHealth]);
+
   // auto-scroll log panel as new lines arrive.
   useEffect(() => {
     if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
@@ -295,6 +321,8 @@ export default function ChatShell() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+      // a just-finished query is a fresh signal about the services' health.
+      refreshServiceHealth();
     }
   }
 
@@ -347,6 +375,7 @@ export default function ChatShell() {
         onLoadMoreRuns={() => void loadMoreRuns()}
         selectedRunId={selectedRunId}
         onSelectRun={onSelectRun}
+        serviceHealth={serviceHealth}
         onRefresh={() => void refreshRuns()}
         onNewChat={() => {
           // start fresh: clear question, result, error, logs, and the

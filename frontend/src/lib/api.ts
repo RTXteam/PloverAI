@@ -165,6 +165,13 @@ export type ServiceInfo = {
   maintenance_reason?: string | null;
 };
 
+export type ServiceHealth = {
+  name: string;
+  url: string;
+  status: "ok" | "degraded" | "down" | string;
+  latency_ms: number | null;
+};
+
 export type GoldQuestion = {
   id: string;
   nl_question: string;
@@ -227,6 +234,14 @@ export async function getModels(signal?: AbortSignal): Promise<ModelInfo[]> {
 
 export async function getInfo(signal?: AbortSignal): Promise<ServiceInfo> {
   return getJson<ServiceInfo>("/api/v1/info", signal);
+}
+
+export async function getServicesHealth(signal?: AbortSignal): Promise<ServiceHealth[]> {
+  const body = await getJson<{ services: ServiceHealth[] }>(
+    "/api/v1/services/health",
+    signal,
+  );
+  return body.services;
 }
 
 export async function getQuestions(signal?: AbortSignal): Promise<GoldQuestion[]> {
