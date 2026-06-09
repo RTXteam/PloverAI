@@ -135,6 +135,7 @@ export default function ChatShell() {
   const [runsHasMore, setRunsHasMore] = useState(true);
   const [runsLoadingMore, setRunsLoadingMore] = useState(false);
   const [serviceHealth, setServiceHealth] = useState<ServiceHealth[]>([]);
+  const [progress, setProgress] = useState(0);
 
   const refreshRuns = useCallback(async () => {
     try {
@@ -307,6 +308,7 @@ export default function ChatShell() {
     setSelectedRunId(null);
     syncRunUrl(null);
     setLogs([]);
+    setProgress(0);
     setLoading(true);
     try {
       const final = await streamQuery({ question, model: modelId }, (ev) => onStreamEvent(ev));
@@ -329,7 +331,14 @@ export default function ChatShell() {
   function onStreamEvent(event: StreamEvent) {
     if (event.type === "log") {
       setLogs((prev) => [...prev, { level: event.level, msg: event.msg, t: event.t }]);
+      // activity-based bar: every stage log line eases progress toward 92% so
+      // it always advances but decelerates near the end. driven by real stream
+      // events (more stages run = more lines = more progress); snaps to 100 on
+      // the result event. avoids brittle per-stage % mapping (probes hit
+      // PloverDB/NodeNorm at several stages, so substring markers misfire).
+      setProgress((p) => Math.min(92, p + (92 - p) * 0.09 + 0.8));
     } else if (event.type === "result") {
+      setProgress(100);
       setResult(event.data);
     } else if (event.type === "error") {
       setError(event.message);
@@ -491,6 +500,10 @@ export default function ChatShell() {
           </form>
 
           <AnimatePresence>
+            {loading && <QueryProgress percent={progress} />}
+          </AnimatePresence>
+
+          <AnimatePresence>
             {(loading || logs.length > 0) && (
               <LogPanel logs={logs} logRef={logRef} loading={loading} />
             )}
@@ -524,6 +537,10 @@ export default function ChatShell() {
             )}
           </AnimatePresence>
 
+          <AnimatePresence>
+            {loading && !result && <ResultSkeleton />}
+          </AnimatePresence>
+
           <AnimatePresence mode="wait">
             {result && (
               <ResultPanel
@@ -537,6 +554,77 @@ export default function ChatShell() {
         </div>
       </main>
     </div>
+  );
+}
+
+// thin progress bar shown while a query streams. width animates smoothly to
+// the (activity-driven) percent; the number reassures the user it's moving.
+function QueryProgress({ percent }: { percent: number }) {
+  const pct = Math.max(0, Math.min(100, percent));
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col gap-1.5"
+    >
+      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="font-medium">Running query…</span>
+        <span className="font-mono tabular-nums">{Math.round(pct)}%</span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-blue-600 dark:bg-blue-500 transition-[width] duration-500 ease-out"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+// placeholder boxes that mirror the result layout (answer card + evidence
+// cards with the query -> matched -> answer mini-graph silhouette). shown while
+// a query runs so the page reads as "about to populate" instead of empty.
+function ResultSkeleton() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="flex flex-col gap-5"
+      aria-hidden
+    >
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 animate-pulse">
+        <div className="h-5 w-24 rounded bg-zinc-200 dark:bg-zinc-800 mb-4" />
+        <div className="space-y-2.5">
+          <div className="h-3.5 w-full rounded bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-3.5 w-11/12 rounded bg-zinc-200 dark:bg-zinc-800" />
+          <div className="h-3.5 w-4/5 rounded bg-zinc-200 dark:bg-zinc-800" />
+        </div>
+      </div>
+      <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-950/40 p-6 flex flex-col gap-3">
+        <div className="h-4 w-20 rounded bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+        {[0, 1].map((i) => (
+          <div
+            key={i}
+            className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 animate-pulse"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 w-32 rounded bg-zinc-200 dark:bg-zinc-800" />
+              <div className="h-4 w-16 rounded-full bg-zinc-200 dark:bg-zinc-800" />
+            </div>
+            <div className="flex items-center gap-3 justify-center py-2">
+              <div className="h-12 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+              <div className="h-0.5 flex-1 max-w-[100px] bg-zinc-200 dark:bg-zinc-800" />
+              <div className="h-12 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+              <div className="h-0.5 flex-1 max-w-[100px] bg-zinc-200 dark:bg-zinc-800" />
+              <div className="h-12 w-12 rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
