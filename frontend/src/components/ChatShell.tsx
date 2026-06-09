@@ -20,6 +20,63 @@ import { ModelDropdown } from "@/components/ModelDropdown";
 import { QuestionsDropdown } from "@/components/QuestionsDropdown";
 import { Sidebar } from "@/components/Sidebar";
 import { ResultPanel } from "@/components/ResultPanel";
+import { MaintenancePage } from "@/components/MaintenancePage";
+
+// infra failures the user can simply retry (transient services / timeouts),
+// as opposed to deliberate refusals (out_of_scope) or clean empty results.
+const RETRYABLE_STATUSES = new Set([
+  "nodenorm_failed",
+  "nameres_failed",
+  "plover_error",
+  "llm_error",
+  "llm_bad_json",
+]);
+
+function failureMessage(
+  error: string | null,
+  result: QueryResponse | null,
+): { headline: string; detail: string } {
+  if (result && !result.success && RETRYABLE_STATUSES.has(result.status)) {
+    const byStatus: Record<string, string> = {
+      nodenorm_failed: "A name-normalization service (NodeNorm) was temporarily unavailable.",
+      nameres_failed: "A name-resolution service (NameRes) was temporarily unavailable.",
+      plover_error: "The knowledge graph (PloverDB) did not respond in time.",
+      llm_error: "The language-model service had a temporary error.",
+      llm_bad_json: "The language-model service returned an unexpected response.",
+    };
+    return {
+      headline: "This query couldn't finish",
+      detail:
+        (byStatus[result.status] ?? "A service was temporarily unavailable.") +
+        " This is usually temporary, so please try again.",
+    };
+  }
+  return {
+    headline: "Something interrupted this query",
+    detail:
+      (error ?? "A network error occurred.") +
+      " This is usually temporary, so please try again.",
+  };
+}
+
+function RetryIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M21 12a9 9 0 11-3-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+    </svg>
+  );
+}
 
 type LogLine = { level: string; msg: string; t: number };
 
@@ -267,6 +324,19 @@ export default function ChatShell() {
     }
   }
 
+  // hard maintenance gate: when the backend reports query_enabled=false
+  // (e.g. the OpenRouter balance fell below the threshold), block the whole
+  // chat and show the maintenance page. info loads async, so until it arrives
+  // we assume enabled; the backend also refuses queries as a safety net.
+  if (info && info.query_enabled === false) {
+    return <MaintenancePage reason={info.maintenance_reason} />;
+  }
+
+  const retryableResult =
+    result != null && !result.success && RETRYABLE_STATUSES.has(result.status);
+  const showFailure = Boolean(error) || retryableResult;
+  const fm = failureMessage(error, result);
+
   return (
     <div className="flex min-h-screen">
       <Sidebar
@@ -398,15 +468,29 @@ export default function ChatShell() {
           </AnimatePresence>
 
           <AnimatePresence>
-            {error && (
+            {showFailure && (
               <motion.div
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="rounded-md border border-red-300 bg-red-50 dark:border-red-900 dark:bg-red-950 p-4 text-red-900 dark:text-red-100"
+                className="rounded-md border border-amber-300 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
               >
-                <p className="font-semibold mb-1">Error</p>
-                <p className="text-sm font-mono break-words">{error}</p>
+                <div className="min-w-0">
+                  <p className="font-semibold mb-0.5 text-amber-900 dark:text-amber-100">
+                    {fm.headline}
+                  </p>
+                  <p className="text-sm text-amber-800 dark:text-amber-200 break-words">
+                    {fm.detail}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void runQuery()}
+                  disabled={loading || !question.trim() || !modelId}
+                  className="shrink-0 inline-flex items-center justify-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-700 text-white px-3.5 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RetryIcon /> Retry
+                </button>
               </motion.div>
             )}
           </AnimatePresence>

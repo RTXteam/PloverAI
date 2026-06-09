@@ -85,6 +85,25 @@ class Generation:
 
 
 @dataclass(frozen=True)
+class Services:
+    # resilience knobs for the fast RENCI lookups (NodeNorm, NameRes). they
+    # normally answer in <1s, so a short per-attempt timeout plus a couple of
+    # retries turns a transient hang into a quick automatic recovery instead
+    # of a 120s freeze tied to the LLM timeout. PloverDB keeps the longer
+    # generation timeout (broad queries are legitimately slow).
+    timeout_s: int
+    max_retries: int
+
+
+@dataclass(frozen=True)
+class Maintenance:
+    # below this OpenRouter balance (USD) the UI shows a maintenance page and
+    # the query endpoints refuse, so a near-empty account fails clean instead
+    # of erroring mid-query and draining the last of the credits.
+    min_credits_usd: float
+
+
+@dataclass(frozen=True)
 class ReductionConfig:
     # Strategy B (predicate-grouped knowledge_level ranking) is the
     # only reduction strategy in v1. see docs/specs/response-reduction-
@@ -124,6 +143,8 @@ class Config:
     endpoints: Endpoints
     models: list[ModelSpec]
     generation: Generation
+    services: Services
+    maintenance: Maintenance
     paths: Paths
     reduction: ReductionConfig
     stage11_iterative: Stage11IterativeConfig
@@ -148,6 +169,18 @@ def load_config() -> Config:
     raw: dict[str, Any] = yaml.safe_load(CONFIG_PATH.read_text())
     eps = Endpoints(**raw["endpoints"])
     gen = Generation(**raw["generation"])
+    # services section is optional and defaults to a short timeout + a couple
+    # of retries, so existing configs load unchanged but still get the fast
+    # RENCI lookups protected from a 120s hang.
+    services_raw = raw.get("services") or {}
+    services = Services(
+        timeout_s=int(services_raw.get("timeout_s", 10)),
+        max_retries=int(services_raw.get("max_retries", 2)),
+    )
+    maintenance_raw = raw.get("maintenance") or {}
+    maintenance = Maintenance(
+        min_credits_usd=float(maintenance_raw.get("min_credits_usd", 1.0)),
+    )
 
     # paths in the YAML are pipeline-relative (resolved against
     # PIPELINE_ROOT below) so the YAML file itself stays portable
@@ -181,6 +214,8 @@ def load_config() -> Config:
         endpoints=eps,
         models=models,
         generation=gen,
+        services=services,
+        maintenance=maintenance,
         paths=paths,
         reduction=reduction,
         stage11_iterative=stage11_iterative,

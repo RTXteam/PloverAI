@@ -128,6 +128,10 @@ export type AnswerGraphView = {
 export type QueryResponse = {
   run_id: string;
   success: boolean;
+  // technical pipeline status: distinguishes a retryable infra failure
+  // (nodenorm_failed, plover_error, llm_error, …) from a deliberate refusal
+  // (out_of_scope) or a clean empty result.
+  status: string;
   outcome: string | null;
   cost_usd: number;
   elapsed_s: number;
@@ -156,6 +160,9 @@ export type ServiceInfo = {
   kg_version: string;
   biolink_version: string;
   trapi_version: string;
+  // when false, the UI shows a maintenance page and blocks query input.
+  query_enabled?: boolean;
+  maintenance_reason?: string | null;
 };
 
 export type GoldQuestion = {

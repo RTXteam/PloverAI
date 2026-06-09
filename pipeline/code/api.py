@@ -105,6 +105,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.cfg = cfg
     app.state.logger = logger
     app.state.started_utc = server_run_id
+    # PLOVERAI_BUDGET_ONLY (set in the AWS deploy, unset in dev) hides the
+    # expensive frontier models from the picker and refuses them at the API,
+    # so public visitors can't run up the bill on a frontier model.
+    app.state.budget_only = (
+        os.environ.get("PLOVERAI_BUDGET_ONLY", "").strip().lower()
+        in ("1", "true", "yes", "on")
+    )
     app.state.llm = OpenRouterClient(cfg, logger)
     app.state.plover = PloverClient(cfg, logger)
     app.state.nameres = NameResClient(cfg, logger)
@@ -217,6 +224,10 @@ class QueryResponse(BaseModel):
     # don't want to freeze a schema before the pipeline itself does.
     run_id: str
     success: bool
+    # the technical pipeline status (ok, nodenorm_failed, nameres_failed,
+    # plover_error, llm_error, out_of_scope, ...). lets the UI tell a
+    # retryable infra failure from a deliberate refusal.
+    status: str
     outcome: str | None
     cost_usd: float
     elapsed_s: float
@@ -256,6 +267,11 @@ class InfoResponse(BaseModel):
     kg_version: str
     biolink_version: str
     trapi_version: str
+    # when false, the UI shows a maintenance page and blocks query input
+    # (currently driven by the OpenRouter balance falling below the
+    # maintenance threshold). reason is a user-facing one-liner.
+    query_enabled: bool = True
+    maintenance_reason: str | None = None
 
 
 class RunSummary(BaseModel):
@@ -333,6 +349,41 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+_CREDITS_TTL_S = 60.0
+
+
+def _query_gate() -> tuple[bool, str | None]:
+    # cached OpenRouter-balance gate. below cfg.maintenance.min_credits_usd we
+    # block queries (the UI shows a maintenance page). cached ~60s so the
+    # /credits endpoint isn't hit on every info call. fail-open if the check
+    # itself can't complete, so a transient OpenRouter hiccup doesn't take the
+    # whole app down.
+    cfg = app.state.cfg
+    now = time.monotonic()
+    cache: tuple[float, float | None] | None = getattr(app.state, "credits_cache", None)
+    if cache is None or (now - cache[0]) > _CREDITS_TTL_S:
+        remaining = app.state.llm.get_credits_remaining()
+        app.state.credits_cache = (now, remaining)
+    else:
+        remaining = cache[1]
+    if remaining is not None and remaining < cfg.maintenance.min_credits_usd:
+        return False, "PloverAI is temporarily unavailable for maintenance."
+    return True, None
+
+
+def _assert_query_allowed(model_spec: ModelSpec) -> None:
+    # gate both query endpoints before anything is spent: refuse when the
+    # balance is below the maintenance threshold, and (in budget-only
+    # deployments) when a frontier model is requested directly.
+    enabled, reason = _query_gate()
+    if not enabled:
+        raise HTTPException(503, reason or "service temporarily unavailable")
+    if app.state.budget_only and model_spec.tier != "budget":
+        raise HTTPException(
+            403, f"model {model_spec.id!r} is not available in this deployment"
+        )
+
+
 @app.get(
     "/api/v1/info",
     response_model=InfoResponse,
@@ -350,6 +401,7 @@ def info() -> InfoResponse:
     from code.config import load_questions
     qs = load_questions(cfg)
     first_validation = (qs[0].get("validation") if qs else {}) or {}
+    enabled, reason = _query_gate()
     return InfoResponse(
         service="PloverAI",
         version=app.version,
@@ -363,6 +415,8 @@ def info() -> InfoResponse:
         kg_version=first_validation.get("kg_version", "unknown"),
         biolink_version=first_validation.get("biolink_version", "unknown"),
         trapi_version=first_validation.get("trapi_version", "unknown"),
+        query_enabled=enabled,
+        maintenance_reason=reason,
     )
 
 
@@ -435,6 +489,7 @@ def get_run(run_id: str) -> QueryResponse:
     return QueryResponse(
         run_id=run_id,
         success=meta.get("status") == "ok",
+        status=str(meta.get("status", "")),
         outcome=meta.get("outcome"),
         cost_usd=_cost_total_usd(cost),
         elapsed_s=float(meta.get("elapsed_s", 0.0)),
@@ -466,6 +521,9 @@ def list_models() -> ModelsResponse:
     # with real names + prices instead of the m1..m8 stub. config.yaml
     # stays the single source of truth; the dropdown tracks it.
     cfg = app.state.cfg
+    # budget-only deployments (PLOVERAI_BUDGET_ONLY) hide frontier models from
+    # the picker so public visitors only see the cheap ones.
+    budget_only: bool = app.state.budget_only
     return ModelsResponse(
         models=[
             ModelInfo(
@@ -478,6 +536,7 @@ def list_models() -> ModelsResponse:
                 recommended=m.recommended,
             )
             for m in cfg.models
+            if not budget_only or m.tier == "budget"
         ]
     )
 
@@ -494,6 +553,7 @@ def query(
     cfg = app.state.cfg
     logger = app.state.logger
     model_spec = _resolve_model(cfg, req.model)
+    _assert_query_allowed(model_spec)
     request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
 
     logger.info(
@@ -551,6 +611,7 @@ async def query_stream(
     cfg = app.state.cfg
     logger: logging.Logger = app.state.logger
     model_spec = _resolve_model(cfg, req.model)
+    _assert_query_allowed(model_spec)
     request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
 
     loop = asyncio.get_running_loop()
@@ -684,6 +745,7 @@ def _build_query_response(request_run_id: str, result: Any, qp: QuestionPaths) -
     return QueryResponse(
         run_id=request_run_id,
         success=result.status == "ok",
+        status=result.status,
         outcome=result.outcome,
         cost_usd=result.cost_total_usd,
         elapsed_s=result.elapsed_s,

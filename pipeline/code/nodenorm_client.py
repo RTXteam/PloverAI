@@ -31,6 +31,7 @@ import httpx
 # Config: provides the request timeout. NodeNorm is fast (usually
 # <200ms) but we still cap to be defensive.
 from .config import Config
+from .http_retry import request_with_retries
 
 
 @dataclass(frozen=True)
@@ -59,7 +60,10 @@ class NodeNormClient:
         # base URL comes from config.yaml so swapping to a staging
         # mirror is a one-line edit there, not a code change.
         self._base = cfg.endpoints.nodenorm
-        self._http = httpx.Client(timeout=cfg.generation.request_timeout_s)
+        # short per-attempt timeout (NodeNorm normally answers in <1s) so a
+        # hang fails fast and gets retried, instead of blocking on the 120s
+        # LLM timeout.
+        self._http = httpx.Client(timeout=cfg.services.timeout_s)
 
     def close(self) -> None:
         self._http.close()
@@ -105,7 +109,14 @@ class NodeNormClient:
 
         t0 = time.perf_counter()
         try:
-            resp = self._http.post(url, json=payload)
+            # NodeNorm's POST is an idempotent read, so retrying a transient
+            # timeout/network hiccup is safe and recovers the run automatically.
+            resp = request_with_retries(
+                lambda: self._http.post(url, json=payload),
+                max_retries=self._cfg.services.max_retries,
+                service="NodeNorm",
+                logger=self._log,
+            )
         except httpx.HTTPError as e:
             raise NodeNormError(f"network error calling NodeNorm: {e}") from e
         dt = time.perf_counter() - t0

@@ -85,6 +85,20 @@ class OpenRouterClient:
     def close(self) -> None:
         self._http.close()
 
+    def get_credits_remaining(self) -> float | None:
+        # OpenRouter /credits -> {"data": {"total_credits": x, "total_usage": y}}.
+        # remaining balance = total_credits - total_usage. returns None if the
+        # check itself fails, so callers can fail-open rather than block the
+        # whole app on a transient OpenRouter hiccup.
+        try:
+            resp = self._http.get("/credits", timeout=self._cfg.services.timeout_s)
+            resp.raise_for_status()
+            data = resp.json().get("data") or {}
+            return float(data["total_credits"]) - float(data["total_usage"])
+        except (httpx.HTTPError, KeyError, ValueError, TypeError) as e:
+            self._log.warning(f"OpenRouter credits check failed: {e}")
+            return None
+
     def chat(
         self,
         *,

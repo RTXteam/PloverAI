@@ -38,12 +38,27 @@ models:
 
 # LLM sampling parameters. shared across every stage of every model.
 # temperature=0 where the provider supports it; max_tokens caps any
-# single completion; request_timeout_s applies uniformly to OpenRouter
-# AND to RENCI/PloverDB calls so a hung backend can't deadlock the run.
+# single completion; request_timeout_s applies to OpenRouter and to the
+# (legitimately slow) PloverDB query. The fast RENCI lookups use the
+# shorter `services` timeout below instead.
 generation:
   temperature: 0.0
   max_tokens: 4096
   request_timeout_s: 120
+
+# Resilience for the fast RENCI lookups (NodeNorm, NameRes), which normally
+# answer in <1s. A short per-attempt timeout plus a couple of retries turns a
+# transient hang into a quick automatic recovery, instead of the user staring
+# at a frozen progress bar for the full 120s LLM timeout.
+services:
+  timeout_s: 10      # per-attempt timeout for NodeNorm / NameRes
+  max_retries: 2     # extra attempts on a transient network/timeout error
+
+# Below this OpenRouter balance (USD), the UI shows a maintenance page and the
+# query endpoints refuse, so a near-empty account fails clean instead of
+# erroring mid-query. Checked (cached ~60s) via OpenRouter's /credits endpoint.
+maintenance:
+  min_credits_usd: 1.0
 
 # where artifacts go on disk. paths below are pipeline-relative
 # (resolved against pipeline/ at load time, see code/config.py).

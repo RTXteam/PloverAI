@@ -35,6 +35,7 @@ import httpx
 # Config: gives us the request timeout. NameRes itself is fast (usually
 # <100ms) but we still cap to be defensive.
 from .config import Config
+from .http_retry import request_with_retries
 
 
 @dataclass(frozen=True)
@@ -58,8 +59,10 @@ class NameResClient:
         # mirror is a one-line edit there, not a code change.
         self._base = cfg.endpoints.nameres
         # one httpx.Client per pipeline run — TCP pool reuse across the
-        # 80 grounded calls (one per question per model).
-        self._http = httpx.Client(timeout=cfg.generation.request_timeout_s)
+        # 80 grounded calls (one per question per model). short per-attempt
+        # timeout (NameRes is normally <1s) so a hang fails fast and retries
+        # rather than blocking on the 120s LLM timeout.
+        self._http = httpx.Client(timeout=cfg.services.timeout_s)
 
     def close(self) -> None:
         self._http.close()
@@ -107,7 +110,14 @@ class NameResClient:
 
         t0 = time.perf_counter()
         try:
-            resp = self._http.get(url)
+            # the lookup GET is idempotent, so retrying a transient
+            # timeout/network hiccup is safe and recovers the run automatically.
+            resp = request_with_retries(
+                lambda: self._http.get(url),
+                max_retries=self._cfg.services.max_retries,
+                service="NameRes",
+                logger=self._log,
+            )
         except httpx.HTTPError as e:
             raise NameResError(f"network error calling NameRes: {e}") from e
         dt = time.perf_counter() - t0
