@@ -1,5 +1,6 @@
 {
   "question_id": "q9",
+  "split": "dev",
   "nl_question": "What phenotypic features does cystic fibrosis cause?",
   "pinned_entity": {
     "curie": "MONDO:0009061",

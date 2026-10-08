@@ -1,0 +1,216 @@
+{
+  "question_id": "q13",
+  "split": "test",
+  "nl_question": "Which genes are associated with microcephaly?",
+  "pinned_entity": {
+    "curie": "MONDO:0001149",
+    "label": "microcephaly",
+    "category": "biolink:Disease",
+    "resolution_check": "NameRes /lookup?string=microcephaly rank 1 = MONDO:0001149 'microcephaly' (biolink:Disease); NodeNorm canonical = MONDO:0001149. The HPO phenotype HP:0000252 'Microcephaly' also normalizes to MONDO:0001149. Checked 2026-09-28."
+  },
+  "answer_category": "biolink:Gene",
+  "predicate": "biolink:gene_associated_with_condition",
+  "predicate_note": "SAME predicate as q2 (CFTR -> diseases) but with the disease pinned instead of the gene, so the query runs in the opposite pinning direction. Edge direction: Gene (subject, n1) -> gene_associated_with_condition -> Disease (object, n0 pinned). The disease-subject direction returns 0. PloverDB expands the pinned MONDO:0001149 to 12 descendant concepts (e.g. autosomal recessive primary microcephaly, isolated congenital microcephaly, HP:0000253 progressive microcephaly); 1044 of the 2301 results bind MONDO:0001149 itself. The alternative biolink:causes (Gene -> microcephaly, 47 results; ORDO 31, UniProt 7, SemMedDB 9) is more curated, but most ORDO gene nodes in it are unnormalized orphanet:/PR: ids rather than NCBIGene, which is why gold follows q2's predicate.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "MONDO:0001149"
+          ],
+          "categories": [
+            "biolink:Disease"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Gene"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:gene_associated_with_condition"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 2301,
+    "results_count_revalidated": 2301,
+    "distinct_answer_nodes": 1568,
+    "edges_in_knowledge_graph": 2504,
+    "baseline_date": "2026-09-28",
+    "revalidated_date": "2026-09-28",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "results_count_note": "2301 results bind 1568 distinct genes (a gene appears once per microcephaly subclass it is linked to).",
+    "n0_descendant_expansion": {
+      "MONDO:0016056": 957,
+      "MONDO:0001149": 1044,
+      "MONDO:0016660": 93,
+      "HP:0000253": 67,
+      "MONDO:0054593": 7,
+      "HP:0011451": 34,
+      "MONDO:0008871": 34,
+      "MONDO:0007988": 20,
+      "MONDO:0054716": 26,
+      "HP:0004485": 6,
+      "HP:0005484": 11,
+      "MONDO:0054806": 1,
+      "MONDO:0032583": 1
+    },
+    "result_set_primary_sources": {
+      "infores:diseases": 1316,
+      "infores:disgenet": 1188
+    },
+    "result_set_knowledge_levels": {
+      "prediction": 2504
+    },
+    "alternative_queries_probed": {
+      "Gene -causes-> MONDO:0001149": {
+        "results_count": 47,
+        "note": "ORDO (31) edges use orphanet:/PR: gene nodes, e.g. orphanet:121461 'assembly factor for spindle microtubules' (= ASPM)"
+      },
+      "Gene -related_to-> MONDO:0001149": {
+        "results_count": 2341
+      },
+      "MONDO:0001149 -gene_associated_with_condition-> Gene": {
+        "results_count": 0
+      }
+    },
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0",
+    "plover_build": "Plover build 2026-07-24 from kg2c-2.10.2-v1.0 nodes/edges; code commit c3ec8ba (GET /code_version, 2026-09-28)"
+  },
+  "verification_guide": {
+    "summary": "5 genes with distinct cellular mechanisms: ASPM (spindle-pole protein; most common MCPH gene), WDR62 (spindle/centrosome scaffold; second most common MCPH gene), MCPH1 (microcephalin; DNA-damage response and chromosome condensation), CPAP/CENPJ (centriole biogenesis), and NBN (nibrin; double-strand-break repair, syndromic microcephaly in Nijmegen breakage syndrome). Each quote names the gene and microcephaly. Each gene has a direct edge to MONDO:0001149 itself in the gold result set.",
+    "sources_used": [
+      "MedlinePlus Genetics gene pages: ASPM, WDR62",
+      "NCBI Gene RefSeq summaries: MCPH1 (79648), CPAP/CENPJ (55835), NBN (4683)"
+    ],
+    "how_to_verify_a_medlineplus_genetics_entry": "Open the gene page and scroll to 'Health Conditions Related to Genetic Changes' -> 'Autosomal recessive primary microcephaly'. The quote opens the paragraph after the standard definition sentence ('Genetic changes that cause disease are called pathogenic variants.').",
+    "how_to_verify_an_ncbi_gene_entry": "Open the NCBI Gene record. In the top 'Summary' section, the 'Summary' row holds the RefSeq summary paragraph; the quoted sentence is inside that paragraph. (Scripted fetches of www.ncbi.nlm.nih.gov hit a bot check, so the curator verified the identical RefSeq summary text through NCBI E-utilities esummary, db=gene.)",
+    "cross_check_with_ploverdb": "Each verified_answer CURIE was confirmed present in the PloverDB result set for the gold query (n0=MONDO:0001149, n1=biolink:Gene, e0: n1 -biolink:gene_associated_with_condition-> n0) on 2026-09-28, and each has at least one edge whose object is MONDO:0001149 itself (not only a subclass). supporting_edge_ids lists only those direct edges.",
+    "intentionally_omitted": "The pilot's picks (CEP135, KIF11, TUBGCP4, TUBGCP6, NCAPH) are also in the result set and are real microcephaly genes; gold is open-world, so they are not wrong, just not in this verified subset. MedlinePlus Genetics has no gene pages for MCPH1, CDK5RAP2 or CENPJ, hence NCBI Gene for those."
+  },
+  "verified_answers": [
+    {
+      "curie": "NCBIGene:259266",
+      "label": "ASPM",
+      "mechanism": "mitotic spindle-pole protein",
+      "supporting_edge_ids": [
+        "45034765",
+        "46448142"
+      ],
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/genetics/gene/aspm/",
+          "url_with_text_fragment": "https://medlineplus.gov/genetics/gene/aspm/#:~:text=Pathogenic%20variants%20in%20the%20ASPM%20gene%20are%20the%20most%20common%20cause%20of%20autosomal%20recessive%20primary%20microcephaly",
+          "page_title": "ASPM gene: MedlinePlus Genetics",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus Genetics",
+          "source_type": "gene_reference_consumer",
+          "section_heading": "Health Conditions Related to Genetic Changes — Autosomal recessive primary microcephaly",
+          "where_on_page": "Under 'Health Conditions Related to Genetic Changes', subsection 'Autosomal recessive primary microcephaly': the quote is the second sentence of the paragraph.",
+          "exact_quote": "Pathogenic variants in the ASPM gene are the most common cause of autosomal recessive primary microcephaly."
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:284403",
+      "label": "WDR62",
+      "mechanism": "spindle/centrosome scaffold protein",
+      "supporting_edge_ids": [
+        "45276340"
+      ],
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/genetics/gene/wdr62/",
+          "url_with_text_fragment": "https://medlineplus.gov/genetics/gene/wdr62/#:~:text=Pathogenic%20variants%20in%20the%20WDR62%20gene%20are%20the%20second%20most%20common%20cause%20of%20autosomal%20recessive%20primary%20microcephaly",
+          "page_title": "WDR62 gene: MedlinePlus Genetics",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus Genetics",
+          "source_type": "gene_reference_consumer",
+          "section_heading": "Health Conditions Related to Genetic Changes — Autosomal recessive primary microcephaly",
+          "where_on_page": "Under 'Health Conditions Related to Genetic Changes', subsection 'Autosomal recessive primary microcephaly': the quote is the second sentence of the paragraph.",
+          "exact_quote": "Pathogenic variants in the WDR62 gene are the second most common cause of autosomal recessive primary microcephaly."
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:79648",
+      "label": "MCPH1",
+      "mechanism": "DNA-damage response / chromosome condensation (microcephalin)",
+      "supporting_edge_ids": [
+        "44938838"
+      ],
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/79648",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/79648#:~:text=Mutations%20in%20this%20gene%20have%20been%20associated%20with%20primary%20autosomal%20recessive%20microcephaly%201",
+          "page_title": "MCPH1 microcephalin 1 [Homo sapiens (human)] - Gene - NCBI",
+          "publisher": "National Center for Biotechnology Information — NCBI Gene (RefSeq summary)",
+          "source_type": "gene_reference_curated",
+          "section_heading": "Summary",
+          "where_on_page": "Open the NCBI Gene record. In the top 'Summary' section, the 'Summary' row holds the RefSeq summary paragraph; the quoted sentence is inside that paragraph. (Scripted fetches of www.ncbi.nlm.nih.gov hit a bot check, so the curator verified the identical RefSeq summary text through NCBI E-utilities esummary, db=gene.) The quote is the third sentence ('[provided by RefSeq, Feb 2010]').",
+          "exact_quote": "Mutations in this gene have been associated with primary autosomal recessive microcephaly 1 and premature chromosome condensation syndrome."
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:55835",
+      "label": "CPAP (formerly CENPJ)",
+      "mechanism": "centriole biogenesis / centrosome integrity",
+      "label_note": "NCBI's current official symbol is CPAP ('centrosome assembly and centriole elongation protein'); the older symbol CENPJ is still widely used in the MCPH literature (MCPH6). KG2c names the node 'CPAP'.",
+      "supporting_edge_ids": [
+        "45193684"
+      ],
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/55835",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/55835#:~:text=Mutations%20in%20this%20gene%20are%20associated%20with%20primary%20autosomal%20recessive%20microcephaly",
+          "page_title": "CPAP centrosome assembly and centriole elongation protein [Homo sapiens (human)] - Gene - NCBI",
+          "publisher": "National Center for Biotechnology Information — NCBI Gene (RefSeq summary)",
+          "source_type": "gene_reference_curated",
+          "section_heading": "Summary",
+          "where_on_page": "Open the NCBI Gene record. In the top 'Summary' section, the 'Summary' row holds the RefSeq summary paragraph; the quoted sentence is inside that paragraph. (Scripted fetches of www.ncbi.nlm.nih.gov hit a bot check, so the curator verified the identical RefSeq summary text through NCBI E-utilities esummary, db=gene.) The quote is the second-to-last sentence ('[provided by RefSeq, Apr 2012]').",
+          "exact_quote": "Mutations in this gene are associated with primary autosomal recessive microcephaly, a disorder characterized by severely reduced brain size and cognitive disability."
+        }
+      ]
+    },
+    {
+      "curie": "NCBIGene:4683",
+      "label": "NBN",
+      "mechanism": "DNA double-strand-break repair (MRE11/RAD50/NBN complex); syndromic microcephaly",
+      "supporting_edge_ids": [
+        "44633863",
+        "46248507"
+      ],
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://www.ncbi.nlm.nih.gov/gene/4683",
+          "url_with_text_fragment": "https://www.ncbi.nlm.nih.gov/gene/4683#:~:text=Mutations%20in%20this%20gene%20are%20associated%20with%20Nijmegen%20breakage%20syndrome",
+          "page_title": "NBN nibrin [Homo sapiens (human)] - Gene - NCBI",
+          "publisher": "National Center for Biotechnology Information — NCBI Gene (RefSeq summary)",
+          "source_type": "gene_reference_curated",
+          "section_heading": "Summary",
+          "where_on_page": "Open the NCBI Gene record. In the top 'Summary' section, the 'Summary' row holds the RefSeq summary paragraph; the quoted sentence is inside that paragraph. (Scripted fetches of www.ncbi.nlm.nih.gov hit a bot check, so the curator verified the identical RefSeq summary text through NCBI E-utilities esummary, db=gene.) The quote is the first sentence ('[provided by RefSeq, Jul 2008]').",
+          "exact_quote": "Mutations in this gene are associated with Nijmegen breakage syndrome, an autosomal recessive chromosomal instability syndrome characterized by microcephaly, growth retardation, immunodeficiency, and cancer predisposition."
+        }
+      ]
+    }
+  ],
+  "curation_notes": [
+    "All 2504 edges in the result set are text-mining/automated (DISEASES and DisGeNET, knowledge_level=prediction). The gold genes are correct per curated sources, but the KG support for every gene is prediction-level.",
+    "The answer set is very large (1568 distinct genes), so this question also exercises response reduction (review.md finding 2): a system that sees an arbitrary slice may pick valid but non-gold genes. verified_hit_rate is descriptive only.",
+    "NBN is linked to microcephaly through a syndrome (Nijmegen breakage syndrome) rather than isolated MCPH. It was chosen for mechanism diversity; its RefSeq summary names microcephaly explicitly."
+  ]
+}

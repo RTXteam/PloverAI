@@ -2,7 +2,7 @@
 # used twice in the grounded pipeline:
 #   - Stage 6: canonicalise the pinned CURIE NameRes returned, so
 #                the LLM gets a stable id (and Biolink categories)
-#                consistent with how KG2c was built.
+#                consistent with how the Translator graphs are built.
 #   - Stage 12: canonicalise every CURIE the LLM picked as an answer,
 #                so scoring against gold anchors is canonical-vs-canonical
 #                rather than a string-equality lottery (DRUGBANK:DB00331
@@ -31,12 +31,10 @@ import httpx
 # Config: provides the request timeout. NodeNorm is fast (usually
 # <200ms) but we still cap to be defensive.
 from .config import Config
-from .http_retry import request_with_retries
 
 
 @dataclass(frozen=True)
 class NodeNormReply:
-    requested: list[str]                          # CURIEs we asked about
     raw: dict[str, Any]                           # full NodeNorm body, preserved
     canonical: dict[str, str | None]              # raw_curie -> canonical id, or None if unmapped
     categories: dict[str, list[str]]              # raw_curie -> Biolink categories of canonical
@@ -60,10 +58,7 @@ class NodeNormClient:
         # base URL comes from config.yaml so swapping to a staging
         # mirror is a one-line edit there, not a code change.
         self._base = cfg.endpoints.nodenorm
-        # short per-attempt timeout (NodeNorm normally answers in <1s) so a
-        # hang fails fast and gets retried, instead of blocking on the 120s
-        # LLM timeout.
-        self._http = httpx.Client(timeout=cfg.services.timeout_s)
+        self._http = httpx.Client(timeout=cfg.generation.request_timeout_s)
 
     def close(self) -> None:
         self._http.close()
@@ -78,13 +73,12 @@ class NodeNormClient:
         # one POST handles a batch. we always pass conflate=True and
         # drug_chemical_conflate=True so equivalent gene/protein and
         # drug/chemical identifiers fold to one canonical id, which
-        # matches how KG2c is built. callers can flip them off for
+        # matches how the Translator graphs are built. callers can flip them off for
         # diagnostic runs but defaults are the right thing 99% of the
         # time.
         if not curies:
             # cheap early-out: no point round-tripping over an empty list.
             return NodeNormReply(
-                requested=[],
                 raw={},
                 canonical={},
                 categories={},
@@ -109,14 +103,7 @@ class NodeNormClient:
 
         t0 = time.perf_counter()
         try:
-            # NodeNorm's POST is an idempotent read, so retrying a transient
-            # timeout/network hiccup is safe and recovers the run automatically.
-            resp = request_with_retries(
-                lambda: self._http.post(url, json=payload),
-                max_retries=self._cfg.services.max_retries,
-                service="NodeNorm",
-                logger=self._log,
-            )
+            resp = self._http.post(url, json=payload)
         except httpx.HTTPError as e:
             raise NodeNormError(f"network error calling NodeNorm: {e}") from e
         dt = time.perf_counter() - t0
@@ -184,7 +171,6 @@ class NodeNormClient:
         )
 
         return NodeNormReply(
-            requested=list(curies),
             raw=body,
             canonical=canonical,
             categories=categories,

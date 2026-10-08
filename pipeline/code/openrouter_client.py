@@ -58,6 +58,13 @@ class LLMReply:
     latency_s: float
 
 
+# pause before the single retry on a transient OpenRouter failure, and
+# the HTTP statuses that count as transient.
+OPENROUTER_RETRY_PAUSE_S = 5.0
+OPENROUTER_RATE_LIMIT_PAUSE_S = 20.0
+RETRYABLE_STATUS = frozenset({408, 425, 429, 500, 502, 503, 504})
+
+
 class OpenRouterClient:
     def __init__(self, cfg: Config, logger: logging.Logger) -> None:
         api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -76,7 +83,7 @@ class OpenRouterClient:
             base_url=cfg.endpoints.openrouter,
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "HTTP-Referer": "https://github.com/RTXteam/PloverAI",
+                "HTTP-Referer": "https://github.com/bazarkua/ploverai",
                 "X-Title": "PloverAI Benchmark",
             },
             timeout=cfg.generation.request_timeout_s,
@@ -84,20 +91,6 @@ class OpenRouterClient:
 
     def close(self) -> None:
         self._http.close()
-
-    def get_credits_remaining(self) -> float | None:
-        # OpenRouter /credits -> {"data": {"total_credits": x, "total_usage": y}}.
-        # remaining balance = total_credits - total_usage. returns None if the
-        # check itself fails, so callers can fail-open rather than block the
-        # whole app on a transient OpenRouter hiccup.
-        try:
-            resp = self._http.get("/credits", timeout=self._cfg.services.timeout_s)
-            resp.raise_for_status()
-            data = resp.json().get("data") or {}
-            return float(data["total_credits"]) - float(data["total_usage"])
-        except (httpx.HTTPError, KeyError, ValueError, TypeError) as e:
-            self._log.warning(f"OpenRouter credits check failed: {e}")
-            return None
 
     def chat(
         self,
@@ -110,7 +103,7 @@ class OpenRouterClient:
         # one chat-completion call. temperature/max_tokens come from the
         # YAML config so a tweak there changes every model uniformly.
         # tools are never enabled — every external lookup the pipeline
-        # does (NameRes, NodeNorm, validator, PloverDB) is wired in
+        # does (NameRes, NodeNorm, validator, ARAX, Retriever) is wired in
         # Python, not via the model's function-calling. that keeps the
         # benchmark testing the model's reasoning, not its tool-use.
         body: dict[str, Any] = {
@@ -130,12 +123,40 @@ class OpenRouterClient:
             f"model=[magenta]{model.slug}[/]  in_chars={len(system) + len(user)}"
         )
 
+        # one retry on transient failures: network errors (the 13-slug
+        # smoke saw two providers close the connection mid-body after
+        # ~100 s of generation) and 408/425/429/5xx. same policy as the
+        # Retriever client; persistent failures still surface as
+        # llm_error on the second attempt.
         t0 = time.perf_counter()
-        try:
-            resp = self._http.post("/chat/completions", json=body)
-        except httpx.HTTPError as e:
-            raise OpenRouterError(f"network error calling OpenRouter: {e}") from e
+        resp: httpx.Response | None = None
+        last_err = ""
+        for attempt in (1, 2):
+            try:
+                resp = self._http.post("/chat/completions", json=body)
+            except httpx.HTTPError as e:
+                last_err = f"network error calling OpenRouter: {e}"
+                resp = None
+            else:
+                if resp.status_code not in RETRYABLE_STATUS:
+                    break
+                last_err = f"OpenRouter HTTP {resp.status_code}: {resp.text[:200]}"
+            if attempt == 1:
+                # a rate limit needs a real pause, a dropped connection only
+                # a moment; 429 gets the longer one.
+                pause = (
+                    OPENROUTER_RATE_LIMIT_PAUSE_S
+                    if resp is not None and resp.status_code == 429
+                    else OPENROUTER_RETRY_PAUSE_S
+                )
+                self._log.warning(
+                    f"openrouter  stage={stage} model={model.slug}  attempt 1 failed "
+                    f"({last_err[:120]}); retrying in {pause:.0f}s"
+                )
+                time.sleep(pause)
         dt = time.perf_counter() - t0
+        if resp is None:
+            raise OpenRouterError(last_err)
 
         if resp.status_code != 200:
             # log the body so 401 / 429 / 5xx is debuggable from the log alone.

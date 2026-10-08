@@ -9,9 +9,6 @@ from __future__ import annotations
 # stdlib only.
 # os: read PLOVERAI_API_KEY and PLOVERAI_CORS_ORIGINS from the env.
 import os
-# re: validate the shape of the X-Guest-Id header (UUID v4) so a
-# malformed value can't escape into a filesystem path.
-import re
 # uuid: short token appended to the run id so concurrent requests
 # never collide on the same artifact folder.
 import uuid
@@ -42,22 +39,22 @@ from pathlib import Path
 from collections.abc import AsyncIterator
 # typing: Annotated for FastAPI header dependencies; Any for free-form
 # JSON payloads loaded back from disk into the response body.
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
+
+# httpx: the HTTP client every pipeline client uses; here only for the
+# two version GETs (ARAX, Retriever) at start-up.
+import httpx
 
 # FastAPI: lightweight, OpenAPI-native web framework. lines up with
-# the Translator SmartAPI convention (PloverDB itself is documented
-# the same way) so ARAX can introspect our schema.
-from fastapi import Depends, FastAPI, Header, HTTPException
+# the Translator SmartAPI convention (ARAX and Retriever are documented
+# the same way).
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 # StreamingResponse: emits the SSE byte stream to the client. we
 # wrap an async generator that pulls events off the per-request queue.
 from fastapi.responses import StreamingResponse
 
 # pydantic: request / response model validation. shipped with FastAPI.
-# httpx: third-party. used to probe external-service liveness for the
-# sidebar status dots.
-import httpx
-
 from pydantic import BaseModel, Field
 
 # python-dotenv: same env loading the runner uses. in production we
@@ -69,21 +66,32 @@ from dotenv import load_dotenv
 # difference is lifetime — for an always-on service we want one set of
 # clients per process, not per request, so the httpx connection pools
 # and OpenRouter rate-limit buckets survive across calls.
-from code.config import ModelSpec, load_config
-from code.logging_setup import setup_logger, utc_stamp
-from code.nameres_client import NameResClient
+from pipeline.code.config import ModelSpec, load_config
+from pipeline.code.logging_setup import RequestFilter, current_request, setup_logger, utc_stamp
+from pipeline.code.nameres_client import NameResClient
 # BMT (Biolink Model Toolkit) wrappers used at boot to derive the
 # loose-neighborhood map for the Stage 3 biolink_type filter.
-from code.biolink_helper import (
+from pipeline.code.biolink_helper import (
     build_neighborhood_map as build_biolink_neighborhood_map,
     make_toolkit as make_biolink_toolkit,
 )
-from code.nodenorm_client import NodeNormClient
-from code.pubtator_client import PubTatorClient
-from code.openrouter_client import OpenRouterClient
-from code.pipeline import run_grounded
-from code.plover_client import PloverClient
-from code.trace import QuestionPaths, make_run_dir, make_run_root
+from pipeline.code.nodenorm_client import NodeNormClient
+from pipeline.code.pubtator_client import PubTatorClient
+
+# AraxClient: the reasoner behind reasoner="arax" requests.
+from pipeline.code.arax_client import AraxClient
+from pipeline.code.openrouter_client import OpenRouterClient
+from pipeline.code.pipeline import run_grounded
+# PublicGuard: per-address and site-wide question limits, used only when
+# the service runs as the public site (PLOVERAI_PUBLIC=1).
+from pipeline.code.public_guard import PublicGuard
+from pipeline.code.retriever_client import (
+    RetrieverClient,
+    build_category_set,
+    build_predicate_index,
+    openapi_summary,
+)
+from pipeline.code.trace import QuestionPaths, make_run_dir, make_run_root
 
 
 # pipeline/.env lives next to config.yaml, two parents up from this
@@ -109,41 +117,62 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.cfg = cfg
     app.state.logger = logger
     app.state.started_utc = server_run_id
-    # PLOVERAI_BUDGET_ONLY (set in the AWS deploy, unset in dev) hides the
-    # expensive frontier models from the picker and refuses them at the API,
-    # so public visitors can't run up the bill on a frontier model.
-    app.state.budget_only = (
-        os.environ.get("PLOVERAI_BUDGET_ONLY", "").strip().lower()
-        in ("1", "true", "yes", "on")
-    )
+    # public site mode: no login, so every question passes the guard and
+    # only cfg.public.models are served. the run history stays shared:
+    # every visitor sees every run, their own and everyone else's. off
+    # unless pipeline/.env says PLOVERAI_PUBLIC=1.
+    app.state.guard = PublicGuard(cfg.public) if os.environ.get("PLOVERAI_PUBLIC") == "1" else None
+    if app.state.guard is not None:
+        logger.info(
+            f"public site mode ON  models={list(cfg.public.models)}  "
+            f"per_ip_per_hour={cfg.public.questions_per_ip_per_hour}  "
+            f"per_day={cfg.public.questions_per_day}  "
+            f"concurrent={cfg.public.concurrent_runs}  "
+            f"concurrent_per_ip={cfg.public.concurrent_runs_per_ip}"
+        )
     app.state.llm = OpenRouterClient(cfg, logger)
-    app.state.plover = PloverClient(cfg, logger)
+    app.state.retriever = RetrieverClient(cfg, logger)
     app.state.nameres = NameResClient(cfg, logger)
     app.state.nodenorm = NodeNormClient(cfg, logger)
-    # Stage 13 PubTator enrichment is optional; if endpoints.pubtator
-    # is unreachable, the per-edge verification block degrades to None
-    # and the pipeline carries on without it.
+    # Stage 14 PubTator enrichment (lookup condition only) is optional;
+    # if endpoints.pubtator is unreachable, the per-edge verification
+    # block degrades to None and the pipeline carries on without it.
     app.state.pubtator = PubTatorClient(cfg, logger)
+    # the reasoner: Stage 10 asks ARAX, which reasons over Tier 0.
+    app.state.arax = AraxClient(cfg, logger)
 
-    # cache PloverDB's meta_knowledge_graph at start-up. ~6 MB JSON;
-    # we keep both the raw response (for diagnostics) and a tiny index
-    # keyed by (subject_cat, object_cat) -> [predicates] that Stage 8
-    # uses to constrain its predicate choice (fix B: predicate
-    # grounding — kills the "biolink:presents_with"-style hallucination).
-    # if PloverDB is down at boot we still come up — the index is empty
+    # what ARAX and Retriever say about themselves (version, TRAPI,
+    # Biolink), for the sidebar's system panel. one GET each at boot;
+    # a service that does not answer shows as "unknown".
+    app.state.service_info = {}
+    for service, base in (("arax", cfg.endpoints.arax), ("retriever", cfg.endpoints.retriever)):
+        try:
+            reply = httpx.get(f"{base}/openapi.json", timeout=30)
+            reply.raise_for_status()
+            app.state.service_info[service] = openapi_summary(reply.json())
+        except Exception as e:
+            logger.warning(f"could not read {service} version at start-up: {e}")
+            app.state.service_info[service] = {}
+
+    # read Retriever's (Tier 0) meta_knowledge_graph at start-up (~4 MB
+    # JSON) and keep only what the pipeline uses: a tiny index keyed by
+    # (subject_cat, object_cat) -> [predicates] that Stage 8 uses to
+    # constrain its predicate choice to predicates the graph actually has
+    # (kills the "biolink:presents_with"-style hallucination), and the
+    # category list below.
+    # if Retriever is down at boot we still come up — the index is empty
     # and Stage 8 falls back to its prior (unconstrained) behaviour with
     # a logged warning per query.
     try:
-        meta_kg = app.state.plover.fetch_meta_kg()
-        app.state.meta_kg = meta_kg
-        app.state.predicate_index = _build_predicate_index(meta_kg)
-        # the full list of Biolink categories PloverDB actually has
+        meta_kg = app.state.retriever.fetch_meta_kg()
+        app.state.predicate_index = build_predicate_index(meta_kg)
+        # the full list of Biolink categories the Tier 0 graph actually has
         # nodes / edges for. injected into Stage 2's user message so
         # the LLM picks expected_category and answer_category from
         # categories that REALLY exist in this KG build — not from a
         # hardcoded rubric that may miss whole entity types like
         # biolink:Cell or biolink:AnatomicalEntity.
-        app.state.available_categories = _build_category_set(meta_kg)
+        app.state.available_categories = build_category_set(meta_kg)
         logger.info(
             f"meta_KG cached: {sum(len(v) for v in app.state.predicate_index.values())} "
             f"(cat-pair, predicate) entries indexed · "
@@ -153,14 +182,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # any failure here is non-fatal — the pipeline degrades to its
         # prior unconstrained behaviour. better to come up than to crash.
         logger.warning(f"could not fetch meta_KG at start-up: {e}")
-        app.state.meta_kg = {}
         app.state.predicate_index = {}
         app.state.available_categories = []
 
     # BMT-derived loose-neighborhood map for the Stage 3 NameRes filter.
     # one Toolkit per process, ~10 MB YAML loaded at construction; we
     # use it once here to precompute neighborhoods for every category
-    # PloverDB actually carries, then we never touch BMT again per
+    # the Tier 0 graph actually carries, then we never touch BMT again per
     # request. failures are non-fatal: pipeline falls back to the
     # strict single-category filter, same as the old behaviour.
     try:
@@ -180,6 +208,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     yield
 
+    app.state.arax.close()
     logger.info("[bold]api server stopping[/]")
 
 
@@ -187,9 +216,11 @@ app = FastAPI(
     title="PloverAI",
     version="0.1.0",
     description=(
-        "AI chat interface for PloverDB. POST a natural-language "
-        "biomedical question; receive a graph-grounded answer plus "
-        "the full TRAPI pipeline trace."
+        "LLM interface to ARAX, the NCATS Biomedical Data Translator "
+        "reasoner. POST a natural-language biomedical question; an LLM "
+        "builds the TRAPI query, ARAX reasons over the Translator Tier 0 "
+        "knowledge graph, and the LLM explains ARAX's reasoning paths "
+        "with cited facts. The response carries the full pipeline trace."
     ),
     lifespan=lifespan,
 )
@@ -207,7 +238,7 @@ app.add_middleware(
     allow_origins=[o.strip() for o in _origins if o.strip()],
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["X-API-Key", "X-Guest-Id", "Content-Type"],
+    allow_headers=["X-API-Key", "Content-Type"],
 )
 
 
@@ -216,9 +247,14 @@ app.add_middleware(
 # ARAX sees at /docs and /openapi.json).
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=2000)
-    # model id from config.yaml. m5 by convention is the cheap default;
-    # the runner uses the same fallback for its adhoc path.
-    model: str = Field("m5")
+    # model id from config.yaml. m8 (openai/gpt-6-luna, $0.10 / $0.50
+    # per 1M tokens) is the cheapest model on the roster and the one the
+    # ARAX-mode cost figures were measured on (~$0.002 per question).
+    model: str = Field("m8")
+    # "arax" (the default, and all the UI sends) asks ARAX, which
+    # reasons over Tier 0 and returns the reasoning paths the UI draws;
+    # "lookup" is the benchmark's one-hop Tier 0 lookup on Retriever.
+    reasoner: Literal["arax", "lookup"] = Field("arax")
 
 
 class QueryResponse(BaseModel):
@@ -227,18 +263,21 @@ class QueryResponse(BaseModel):
     # untyped here: each stage writes a different JSON shape and we
     # don't want to freeze a schema before the pipeline itself does.
     run_id: str
+    # the question and model this run was made with, read from the run's
+    # own folder: the UI labels a result with these, never with whatever
+    # is in the input box now.
+    question: str | None = None
+    model_id: str | None = None
     success: bool
-    # the technical pipeline status (ok, nodenorm_failed, nameres_failed,
-    # plover_error, llm_error, out_of_scope, ...). lets the UI tell a
-    # retryable infra failure from a deliberate refusal.
-    status: str
     outcome: str | None
     cost_usd: float
     elapsed_s: float
     answer: dict[str, Any] | None
-    answer_graph_view: dict[str, Any] | None    # Stage 13: structured node-link
-                                                # view with per-edge provenance,
-                                                # for frontend graph rendering
+    answer_graph_view: dict[str, Any] | None    # Stage 13, lookup condition:
+                                                # node-link view with per-edge
+                                                # provenance, for graph rendering
+    reasoning_graph: dict[str, Any] | None      # ARAX mode: reasoning paths behind
+                                                # the picked answers, facts F1..Fn
     explanation: str | None
     intermediates: dict[str, Any]
 
@@ -253,7 +292,6 @@ class ModelInfo(BaseModel):
     tier: str
     price_in: float
     price_out: float
-    recommended: bool = False
 
 
 class ModelsResponse(BaseModel):
@@ -263,36 +301,22 @@ class ModelsResponse(BaseModel):
 class InfoResponse(BaseModel):
     # service-level metadata for the sidebar "what is this hitting?"
     # panel. nothing here is secret; the URLs are public Translator
-    # services and the versions are properties of the deployed KG.
+    # services and the versions are what those services report.
     service: str
     version: str
     started_utc: str
     endpoints: dict[str, str]
+    reasoner_version: str
     kg_version: str
     biolink_version: str
     trapi_version: str
-    # when false, the UI shows a maintenance page and blocks query input
-    # (currently driven by the OpenRouter balance falling below the
-    # maintenance threshold). reason is a user-facing one-liner.
-    query_enabled: bool = True
-    maintenance_reason: str | None = None
-
-
-class ServiceHealth(BaseModel):
-    # one external service's liveness, for the sidebar status dots.
-    name: str
-    url: str
-    status: str  # "ok" | "degraded" | "down"
-    latency_ms: int | None
-
-
-class ServicesHealthResponse(BaseModel):
-    services: list[ServiceHealth]
+    # true on the public site (one model, question limits).
+    public: bool
 
 
 class RunSummary(BaseModel):
     # one row in the history list. cheap to build (we only read the
-    # tiny meta.json + question.json files, not the full plover
+    # tiny meta.json + question.json files, not the full reasoner
     # response) so listing 100 runs stays fast.
     run_id: str
     started_utc: str
@@ -309,19 +333,17 @@ class RunsResponse(BaseModel):
     runs: list[RunSummary]
 
 
-class GoldQuestion(BaseModel):
-    # one entry from benchmark/golden_questions/questions.json. only the
-    # fields the chat UI's dropdown actually needs are exposed; the rest
-    # of the gold record (TRAPI graph, anchors, validation) is for the
-    # offline scorer, not the user-facing menu.
+class ExampleQuestion(BaseModel):
+    # one example question of the web UI (pipeline/examples.yaml): its
+    # place in the list and its natural-language text, nothing more. the
+    # menu shows the question as a user would type it, no relation or
+    # Biolink types.
     id: str
     nl_question: str
-    answer_category: str
-    pinned_entity_label: str
 
 
 class QuestionsResponse(BaseModel):
-    questions: list[GoldQuestion]
+    questions: list[ExampleQuestion]
 
 
 # api-key dependency. one shared key kept in env. fail closed if the
@@ -336,68 +358,11 @@ def require_api_key(
         raise HTTPException(401, "invalid api key")
 
 
-# per-browser identifier. minted by the UI as a localStorage UUID and
-# sent on every write request so runs can be namespaced on disk and
-# the sidebar shows only this browser's history. NOT an auth boundary
-# — the header is client-controlled. when real sign-in lands, the
-# server stops trusting this header for ownership.
-_GUEST_ID_RE = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
-    re.IGNORECASE,
-)
-
-
-def require_guest_id(
-    x_guest_id: Annotated[str | None, Header(alias="X-Guest-Id")] = None,
-) -> str:
-    # strict shape check is also the path-traversal defense: a value
-    # like "../foo" would never match the UUID regex, so it can never
-    # land in `cfg.paths.results / guest_id` as a malicious path.
-    if not x_guest_id or not _GUEST_ID_RE.match(x_guest_id):
-        raise HTTPException(400, "missing or malformed X-Guest-Id header")
-    return x_guest_id.lower()
-
-
 @app.get("/health")
 def health() -> dict[str, str]:
     # liveness probe for nginx / monit / uptime checks. cheap and
     # uncached so the caller sees the actual process status.
     return {"status": "ok"}
-
-
-_CREDITS_TTL_S = 60.0
-
-
-def _query_gate() -> tuple[bool, str | None]:
-    # cached OpenRouter-balance gate. below cfg.maintenance.min_credits_usd we
-    # block queries (the UI shows a maintenance page). cached ~60s so the
-    # /credits endpoint isn't hit on every info call. fail-open if the check
-    # itself can't complete, so a transient OpenRouter hiccup doesn't take the
-    # whole app down.
-    cfg = app.state.cfg
-    now = time.monotonic()
-    cache: tuple[float, float | None] | None = getattr(app.state, "credits_cache", None)
-    if cache is None or (now - cache[0]) > _CREDITS_TTL_S:
-        remaining = app.state.llm.get_credits_remaining()
-        app.state.credits_cache = (now, remaining)
-    else:
-        remaining = cache[1]
-    if remaining is not None and remaining < cfg.maintenance.min_credits_usd:
-        return False, "PloverAI is temporarily unavailable for maintenance."
-    return True, None
-
-
-def _assert_query_allowed(model_spec: ModelSpec) -> None:
-    # gate both query endpoints before anything is spent: refuse when the
-    # balance is below the maintenance threshold, and (in budget-only
-    # deployments) when a frontier model is requested directly.
-    enabled, reason = _query_gate()
-    if not enabled:
-        raise HTTPException(503, reason or "service temporarily unavailable")
-    if app.state.budget_only and model_spec.tier != "budget":
-        raise HTTPException(
-            403, f"model {model_spec.id!r} is not available in this deployment"
-        )
 
 
 @app.get(
@@ -407,83 +372,30 @@ def _assert_query_allowed(model_spec: ModelSpec) -> None:
 )
 def info() -> InfoResponse:
     # what the UI puts in the "system info" sidebar panel. endpoints
-    # come from config.yaml; the three version strings come from the
-    # per-question gold files' `validation` block (every q*.json carries
-    # the same kg_version / biolink_version / trapi_version — they are
-    # the deployed PloverDB build's metadata, captured at the time the
-    # gold question was validated). reading the first file gets us that
-    # metadata without needing a separate metadata.json.
+    # come from config.yaml; the versions are what ARAX and Retriever
+    # published in their OpenAPI info blocks at server start-up.
     cfg = app.state.cfg
-    from code.config import load_questions
-    qs = load_questions(cfg)
-    first_validation = (qs[0].get("validation") if qs else {}) or {}
-    enabled, reason = _query_gate()
+    arax_info = app.state.service_info.get("arax") or {}
+    retriever_info = app.state.service_info.get("retriever") or {}
+    retriever_version = retriever_info.get("version")
     return InfoResponse(
         service="PloverAI",
         version=app.version,
         started_utc=app.state.started_utc,
         endpoints={
-            "ploverdb": cfg.endpoints.ploverdb,
+            "arax": cfg.endpoints.arax,
+            "retriever": cfg.endpoints.retriever,
             "openrouter": cfg.endpoints.openrouter,
             "nameres": cfg.endpoints.nameres,
             "nodenorm": cfg.endpoints.nodenorm,
         },
-        kg_version=first_validation.get("kg_version", "unknown"),
-        biolink_version=first_validation.get("biolink_version", "unknown"),
-        trapi_version=first_validation.get("trapi_version", "unknown"),
-        query_enabled=enabled,
-        maintenance_reason=reason,
+        reasoner_version=f"ARAX {arax_info['version']}" if arax_info.get("version") else "ARAX",
+        kg_version="Translator Tier 0"
+        + (f" (Retriever {retriever_version})" if retriever_version else ""),
+        biolink_version=arax_info.get("biolink_version") or "unknown",
+        trapi_version=arax_info.get("trapi_version") or "unknown",
+        public=app.state.guard is not None,
     )
-
-
-_SERVICES_HEALTH_TTL_S = 60.0
-
-
-async def _probe_service(name: str, url: str, timeout_s: float) -> ServiceHealth:
-    # liveness probe: a short GET to the service's base URL. any HTTP response
-    # means the server is reachable (even a 404), so <500 is "ok", 5xx is
-    # "degraded", and a timeout / connection error is "down".
-    t0 = time.monotonic()
-    try:
-        async with httpx.AsyncClient(timeout=timeout_s, follow_redirects=True) as client:
-            resp = await client.get(url)
-        latency_ms = int((time.monotonic() - t0) * 1000)
-        status = "ok" if resp.status_code < 500 else "degraded"
-        return ServiceHealth(name=name, url=url, status=status, latency_ms=latency_ms)
-    except httpx.HTTPError:
-        return ServiceHealth(name=name, url=url, status="down", latency_ms=None)
-
-
-@app.get(
-    "/api/v1/services/health",
-    response_model=ServicesHealthResponse,
-    dependencies=[Depends(require_api_key)],
-)
-async def services_health() -> ServicesHealthResponse:
-    # cached (~60s) liveness of the four external services, for the sidebar
-    # status dots. probes run in parallel so one down service doesn't slow the
-    # whole check, and the cache keeps frequent polls / many users from
-    # hammering the upstreams.
-    cfg = app.state.cfg
-    now = time.monotonic()
-    cache: tuple[float, ServicesHealthResponse] | None = getattr(
-        app.state, "services_health_cache", None,
-    )
-    if cache is not None and (now - cache[0]) <= _SERVICES_HEALTH_TTL_S:
-        return cache[1]
-    timeout_s = float(cfg.services.timeout_s)
-    targets = [
-        ("ploverdb", cfg.endpoints.ploverdb),
-        ("openrouter", cfg.endpoints.openrouter),
-        ("nameres", cfg.endpoints.nameres),
-        ("nodenorm", cfg.endpoints.nodenorm),
-    ]
-    results = await asyncio.gather(
-        *(_probe_service(n, u, timeout_s) for n, u in targets)
-    )
-    resp = ServicesHealthResponse(services=list(results))
-    app.state.services_health_cache = (now, resp)
-    return resp
 
 
 @app.get(
@@ -492,22 +404,14 @@ async def services_health() -> ServicesHealthResponse:
     dependencies=[Depends(require_api_key)],
 )
 def list_questions() -> QuestionsResponse:
-    # the chat box's "Questions" dropdown prefills the textarea with
-    # one of these 10. each gold question is its own JSON file under
-    # benchmark/golden_questions/evidence/; use the shared loader so
-    # the API and the offline benchmark read the gold set identically.
-    cfg = app.state.cfg
-    from code.config import load_questions
-    out: list[GoldQuestion] = []
-    for q in load_questions(cfg):
-        pinned = q.get("pinned_entity") or {}
-        out.append(GoldQuestion(
-            id=str(q.get("question_id") or q.get("id", "")),
-            nl_question=str(q.get("nl_question", "")),
-            answer_category=str(q.get("answer_category", "")),
-            pinned_entity_label=str(pinned.get("label", "")),
-        ))
-    return QuestionsResponse(questions=out)
+    # the "Example questions" menu and the start page prefill the
+    # question box with one of these. they come from
+    # pipeline/examples.yaml, not from the benchmark's gold set.
+    from pipeline.code.config import load_examples
+    return QuestionsResponse(questions=[
+        ExampleQuestion(id=f"e{i}", nl_question=q)
+        for i, q in enumerate(load_examples(app.state.cfg), start=1)
+    ])
 
 
 @app.get(
@@ -515,19 +419,17 @@ def list_questions() -> QuestionsResponse:
     response_model=RunsResponse,
     dependencies=[Depends(require_api_key)],
 )
-def list_runs(
-    guest_id: Annotated[str, Depends(require_guest_id)],
-    limit: int = 50,
-    offset: int = 0,
-) -> RunsResponse:
-    # walks `outputs/<guest_id>/RUN_*/<model>/grounded/<q_id>/` and
-    # reads the cheap-to-parse meta.json + question.json for each,
-    # newest first. full artifacts are NOT loaded — that's what
-    # /api/v1/runs/{id} is for. the listing is scoped to one guest so
-    # each visitor sees only their own browser's history.
+def list_runs(limit: int = 50, offset: int = 0) -> RunsResponse:
+    # walks `code/outputs/RUN_*/<model>/<condition>/<q_id>/` and reads the
+    # cheap-to-parse meta.json + question.json for each, newest first.
+    # full artifacts are NOT loaded — that's what /api/v1/runs/{id} is
+    # for. limit caps how many rows the UI sidebar pulls at once;
+    # offset lets the sidebar paginate older entries on infinite-scroll.
+    # the history is shared, on the public site too: every visitor sees
+    # every run in the system, whoever asked it.
     results_root: Path = app.state.cfg.paths.results
     return RunsResponse(runs=_collect_run_summaries(
-        results_root, guest_id=guest_id, limit=limit, offset=offset,
+        results_root, limit=limit, offset=offset,
     ))
 
 
@@ -539,34 +441,39 @@ def list_runs(
 def get_run(run_id: str) -> QueryResponse:
     # rehydrates a past run's full artifacts into the same shape /api/
     # v1/query returns, so the UI can re-open any history entry and
-    # see exactly what it saw the first time. NO guest_id dep here:
-    # this is a capability-style lookup so direct URLs (e.g. a link
-    # shared in a slide or email) work for any visitor, not just the
-    # one who originally created the run.
+    # see exactly what it saw the first time.
     results_root: Path = app.state.cfg.paths.results
-    run_dir = _find_run_dir_any_guest(results_root, run_id)
-    if run_dir is None:
+    run_dir = results_root / f"RUN_{run_id}"
+    if not run_dir.is_dir():
         raise HTTPException(404, f"unknown run: {run_id!r}")
     qp = _find_question_paths_in_run(run_dir)
     if qp is None:
         raise HTTPException(404, f"no artifacts inside run: {run_id!r}")
     meta = _read_json_if_exists(qp.meta) or {}
     cost = _read_json_if_exists(qp.cost) or {}
+    question, model_id = _run_question_and_model(qp, run_dir)
     return QueryResponse(
         run_id=run_id,
+        question=question,
+        model_id=model_id,
         success=meta.get("status") == "ok",
-        status=str(meta.get("status", "")),
         outcome=meta.get("outcome"),
         cost_usd=_cost_total_usd(cost),
         elapsed_s=float(meta.get("elapsed_s", 0.0)),
         answer=_read_json_if_exists(qp.answer),
         answer_graph_view=_read_json_if_exists(qp.answer_graph_view),
+        reasoning_graph=_read_json_if_exists(qp.reasoning_graph),
         explanation=_read_text_if_exists(qp.explanation),
         intermediates={
             "trapi_query": _read_json_if_exists(qp.trapi_query),
             "validation": _read_json_if_exists(qp.validation),
-            "plover_request": _read_json_if_exists(qp.plover_request),
-            "plover_response_summary": _summarize_plover_response(qp.plover_response),
+            "reasoner_request": _read_json_if_exists(
+                _first_existing(qp.reasoner_request, qp.root / "plover_request.json")
+            ),
+            "reasoner_response_summary": _summarize_reasoner_response(
+                _first_existing(qp.reasoner_response, qp.root / "plover_response.json")
+            ),
+            "reduced_data": _summarize_reduced_data(qp.reduced_data),
             "nameres": _read_json_if_exists(qp.nameres),
             "candidate_probes": _read_json_if_exists(qp.candidate_probes),
             "nodenorm": _read_json_if_exists(qp.nodenorm),
@@ -584,12 +491,9 @@ def get_run(run_id: str) -> QueryResponse:
 )
 def list_models() -> ModelsResponse:
     # the UI calls this once on mount to populate its model selector
-    # with real names + prices instead of the m1..m8 stub. config.yaml
+    # with real names + prices instead of a hard-coded list. config.yaml
     # stays the single source of truth; the dropdown tracks it.
     cfg = app.state.cfg
-    # budget-only deployments (PLOVERAI_BUDGET_ONLY) hide frontier models from
-    # the picker so public visitors only see the cheap ones.
-    budget_only: bool = app.state.budget_only
     return ModelsResponse(
         models=[
             ModelInfo(
@@ -599,10 +503,9 @@ def list_models() -> ModelsResponse:
                 tier=m.tier,
                 price_in=m.price_in,
                 price_out=m.price_out,
-                recommended=m.recommended,
             )
             for m in cfg.models
-            if not budget_only or m.tier == "budget"
+            if app.state.guard is None or m.id in cfg.public.models
         ]
     )
 
@@ -612,19 +515,22 @@ def list_models() -> ModelsResponse:
     response_model=QueryResponse,
     dependencies=[Depends(require_api_key)],
 )
-def query(
-    req: QueryRequest,
-    guest_id: Annotated[str, Depends(require_guest_id)],
-) -> QueryResponse:
+def query(req: QueryRequest, http_request: Request) -> QueryResponse:
+    model_spec = _resolve_model(app.state.cfg, req.model)
+    admitted_ip = _admit_public(req, http_request)
+    try:
+        return _run_query(req, model_spec)
+    finally:
+        _release_public(admitted_ip)
+
+
+def _run_query(req: QueryRequest, model_spec: ModelSpec) -> QueryResponse:
     cfg = app.state.cfg
     logger = app.state.logger
-    model_spec = _resolve_model(cfg, req.model)
-    _assert_query_allowed(model_spec)
-    request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
+    request_run_id, qp = _prepare_run_paths(cfg, model_spec, req.reasoner)
 
     logger.info(
         f"-> /api/v1/query  request_run_id={request_run_id}  "
-        f"guest={guest_id[:8]}  "
         f"model={model_spec.id}  q_len={len(req.question)}"
     )
 
@@ -636,12 +542,14 @@ def query(
         llm=app.state.llm,
         nameres=app.state.nameres,
         nodenorm=app.state.nodenorm,
-        plover=app.state.plover,
+        retriever=app.state.retriever,
         logger=logger,
         predicate_index=app.state.predicate_index,
         pubtator=app.state.pubtator,
         available_categories=app.state.available_categories,
         biolink_neighborhoods=app.state.biolink_neighborhoods,
+        reasoner=req.reasoner,
+        arax=app.state.arax,
     )
 
     logger.info(
@@ -657,10 +565,7 @@ def query(
     "/api/v1/query/stream",
     dependencies=[Depends(require_api_key)],
 )
-async def query_stream(
-    req: QueryRequest,
-    guest_id: Annotated[str, Depends(require_guest_id)],
-) -> StreamingResponse:
+async def query_stream(req: QueryRequest, http_request: Request) -> StreamingResponse:
     # Server-Sent Events variant of /api/v1/query. emits a sequence of
     # JSON events while the pipeline runs so the UI can show live
     # progress, then a final 'result' event with the same payload the
@@ -668,6 +573,9 @@ async def query_stream(
     #
     # event types we emit:
     #   log    — one pipeline log line. {level, msg, t}
+    #   stage  — one structured pipeline step for the live graph:
+    #            {stage, ..., t}; stages entity / query / results /
+    #            answers / graph (see pipeline._ui_event)
     #   result — terminal success. full QueryResponse body.
     #   error  — terminal failure. {message}
     #
@@ -677,8 +585,14 @@ async def query_stream(
     cfg = app.state.cfg
     logger: logging.Logger = app.state.logger
     model_spec = _resolve_model(cfg, req.model)
-    _assert_query_allowed(model_spec)
-    request_run_id, qp = _prepare_run_paths(cfg, model_spec, guest_id)
+    # the slot is held until the worker thread ends (not until the
+    # browser disconnects: the run goes on either way).
+    admitted_ip = _admit_public(req, http_request)
+    try:
+        request_run_id, qp = _prepare_run_paths(cfg, model_spec, req.reasoner)
+    except Exception:
+        _release_public(admitted_ip)
+        raise
 
     loop = asyncio.get_running_loop()
     events: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
@@ -696,6 +610,13 @@ async def query_stream(
         # must never raise — it would tear down the request mid-pipeline.
         def emit(self, record: logging.LogRecord) -> None:
             with suppress(Exception):
+                # a record logged with extra={"ui_event": {...}} (see
+                # pipeline._ui_event) is a structured step the live graph
+                # draws; it goes out as a "stage" event instead of a line.
+                ui_event = getattr(record, "ui_event", None)
+                if isinstance(ui_event, dict):
+                    emit({"type": "stage", **ui_event, "t": round(time.monotonic() - t0, 3)})
+                    return
                 emit({
                     "type": "log",
                     "level": record.levelname,
@@ -705,6 +626,9 @@ async def query_stream(
 
     handler = _SSEHandler()
     handler.setLevel(logging.INFO)
+    # the logger is shared by every question in flight; this stream takes
+    # only the records of this request (set in worker, below).
+    handler.addFilter(RequestFilter(request_run_id))
     logger.addHandler(handler)
 
     def worker() -> None:
@@ -713,10 +637,10 @@ async def query_stream(
         # would return. on failure (an unexpected exception from inside
         # run_grounded, not a normal pipeline 'failed' status) we emit
         # an 'error' event so the UI shows the cause.
+        current_request.set(request_run_id)
         try:
             logger.info(
                 f"-> /api/v1/query/stream  request_run_id={request_run_id}  "
-                f"guest={guest_id[:8]}  "
                 f"model={model_spec.id}  q_len={len(req.question)}"
             )
             result = run_grounded(
@@ -727,12 +651,14 @@ async def query_stream(
                 llm=app.state.llm,
                 nameres=app.state.nameres,
                 nodenorm=app.state.nodenorm,
-                plover=app.state.plover,
+                retriever=app.state.retriever,
                 logger=logger,
                 predicate_index=app.state.predicate_index,
                 pubtator=app.state.pubtator,
                 available_categories=app.state.available_categories,
                 biolink_neighborhoods=app.state.biolink_neighborhoods,
+                reasoner=req.reasoner,
+                arax=app.state.arax,
             )
             logger.info(
                 f"<- /api/v1/query/stream  request_run_id={request_run_id}  "
@@ -749,6 +675,8 @@ async def query_stream(
             # 'error' event the UI can render rather than a dead socket.
             logger.exception("pipeline crashed inside /api/v1/query/stream")
             emit({"type": "error", "message": str(e)})
+        finally:
+            _release_public(admitted_ip)
 
     threading.Thread(target=worker, daemon=True).start()
 
@@ -776,6 +704,49 @@ async def query_stream(
 
 
 # helpers shared by both /api/v1/query and /api/v1/query/stream.
+def _client_ip(http_request: Request) -> str:
+    # behind nginx every request arrives from loopback and nginx puts the
+    # visitor's address in X-Real-IP. the header is trusted only from
+    # loopback, so a caller that reaches uvicorn directly cannot fake it.
+    peer = http_request.client.host if http_request.client else "unknown"
+    if peer in ("127.0.0.1", "::1"):
+        return http_request.headers.get("x-real-ip") or peer
+    return peer
+
+
+def _admit_public(req: QueryRequest, http_request: Request) -> str | None:
+    # on the public site: only the allowed models, only ARAX, and only
+    # when the guard has a free slot. returns the address that holds a
+    # slot (release it when the run ends), or None off the public site.
+    guard: PublicGuard | None = app.state.guard
+    if guard is None:
+        return None
+    cfg = app.state.cfg
+    if req.model not in cfg.public.models:
+        raise HTTPException(403, f"model {req.model!r} is not available on the public site")
+    if req.reasoner != "arax":
+        raise HTTPException(403, "the public site answers with ARAX only")
+    client_ip = _client_ip(http_request)
+    admission = guard.admit(client_ip)
+    if not admission.allowed:
+        app.state.logger.info(
+            f"public guard refused  ip={client_ip}  status={admission.status}  "
+            f"retry_after_s={admission.retry_after_s}  reason={admission.reason}"
+        )
+        raise HTTPException(
+            admission.status,
+            admission.reason,
+            headers={"Retry-After": str(admission.retry_after_s)},
+        )
+    return client_ip
+
+
+def _release_public(admitted_ip: str | None) -> None:
+    guard: PublicGuard | None = app.state.guard
+    if guard is not None and admitted_ip is not None:
+        guard.release(admitted_ip)
+
+
 def _resolve_model(cfg: Any, model_id: str) -> ModelSpec:
     # a bogus id should 422 at the boundary, not blow up halfway
     # through the pipeline.
@@ -786,21 +757,18 @@ def _resolve_model(cfg: Any, model_id: str) -> ModelSpec:
 
 
 def _prepare_run_paths(
-    cfg: Any, model_spec: ModelSpec, guest_id: str,
+    cfg: Any, model_spec: ModelSpec, reasoner: str = "arax",
 ) -> tuple[str, QuestionPaths]:
     # fresh artifact folder per HTTP request. ISO-8601 UTC timestamp
     # plus a short uuid lets concurrent requests coexist without
-    # clobbering each other's files. runs are nested under the
-    # caller's guest_id so the sidebar listing for one browser stays
-    # isolated from another's (capability-read still works via
-    # _find_run_dir_any_guest below — see GET /api/v1/runs/{id}).
+    # clobbering each other's files.
     request_run_id = f"{utc_stamp()}_{uuid.uuid4().hex[:8]}"
-    guest_results_root = cfg.paths.results / guest_id
-    run_dir = make_run_dir(guest_results_root, request_run_id)
+    run_dir = make_run_dir(cfg.paths.results, request_run_id)
     run_root = make_run_root(run_dir, model_spec.id, model_spec.slug)
-    # grounded is currently the only condition the service exposes;
-    # ungrounded is benchmark-only and doesn't reach this layer.
-    qp = QuestionPaths.under(run_root.root / "grounded", q_id="adhoc")
+    # the same condition folder names as the runner: arax/ for an ARAX
+    # run, lookup/ for a one-hop Tier 0 lookup.
+    condition = "arax" if reasoner == "arax" else "lookup"
+    qp = QuestionPaths.under(run_root.root / condition, q_id="adhoc")
     return request_run_id, qp
 
 
@@ -808,21 +776,30 @@ def _build_query_response(request_run_id: str, result: Any, qp: QuestionPaths) -
     # read back what the pipeline wrote to disk. files that don't exist
     # because the run failed before that stage are returned as None;
     # the caller can tell from the status / outcome fields.
+    run_dir = app.state.cfg.paths.results / f"RUN_{request_run_id}"
+    question, model_id = _run_question_and_model(qp, run_dir)
     return QueryResponse(
         run_id=request_run_id,
+        question=question,
+        model_id=model_id,
         success=result.status == "ok",
-        status=result.status,
         outcome=result.outcome,
         cost_usd=result.cost_total_usd,
         elapsed_s=result.elapsed_s,
         answer=_read_json_if_exists(qp.answer),
         answer_graph_view=_read_json_if_exists(qp.answer_graph_view),
+        reasoning_graph=_read_json_if_exists(qp.reasoning_graph),
         explanation=_read_text_if_exists(qp.explanation),
         intermediates={
             "trapi_query": _read_json_if_exists(qp.trapi_query),
             "validation": _read_json_if_exists(qp.validation),
-            "plover_request": _read_json_if_exists(qp.plover_request),
-            "plover_response_summary": _summarize_plover_response(qp.plover_response),
+            "reasoner_request": _read_json_if_exists(
+                _first_existing(qp.reasoner_request, qp.root / "plover_request.json")
+            ),
+            "reasoner_response_summary": _summarize_reasoner_response(
+                _first_existing(qp.reasoner_response, qp.root / "plover_response.json")
+            ),
+            "reduced_data": _summarize_reduced_data(qp.reduced_data),
             "nameres": _read_json_if_exists(qp.nameres),
             "candidate_probes": _read_json_if_exists(qp.candidate_probes),
             "nodenorm": _read_json_if_exists(qp.nodenorm),
@@ -864,8 +841,15 @@ def _cost_total_usd(cost: dict[str, Any] | None) -> float:
     return 0.0
 
 
-def _summarize_plover_response(path: Path) -> dict[str, Any] | None:
-    # raw PloverDB responses can run to megabytes; the full body would
+def _first_existing(path: Path, legacy: Path) -> Path:
+    # the first ARAX runs (2026-09-29, before the file rename) still
+    # wrote Stage 10 to plover_request.json / plover_response.json; 8 of
+    # the 12 ARAX run folders from that day use the old names.
+    return path if path.exists() or not legacy.exists() else legacy
+
+
+def _summarize_reasoner_response(path: Path) -> dict[str, Any] | None:
+    # raw ARAX / Retriever responses can run to megabytes; the full body would
     # bloat every API response. for the wire we send counts only — the
     # full JSON is on disk under the run_id if the UI or the user
     # actually wants it.
@@ -881,63 +865,43 @@ def _summarize_plover_response(path: Path) -> dict[str, Any] | None:
     }
 
 
-# PloverDB meta_KG → {(subject_cat, object_cat): [valid predicates]}.
-# called once at start-up. the meta_KG body has ~10k category-triples;
-# inverting it into a dict lookup makes the per-query "what predicates
-# are valid for (Disease, PhenotypicFeature)?" question a single dict
-# access. predicates are sorted alphabetically so the LLM sees a
-# deterministic list (same prompt across calls = better caching).
-def _build_predicate_index(meta_kg: dict[str, Any]) -> dict[tuple[str, str], list[str]]:
-    index: dict[tuple[str, str], set[str]] = {}
-    for edge in meta_kg.get("edges") or []:
-        s = edge.get("subject")
-        o = edge.get("object")
-        p = edge.get("predicate")
-        if not s or not o or not p:
-            continue
-        index.setdefault((s, o), set()).add(p)
-    return {k: sorted(v) for k, v in index.items()}
+# how many reduced rows we put on the wire. the artifact can hold up to
+# reduction.top_k_edges rows (300 by default) and each row is a dict of
+# 13 fields, so shipping all of them would dominate the API payload.
+# the stats always go out in full; the rows are a preview and the whole
+# file is on disk under the run_id.
+MAX_REDUCED_ROWS_ON_WIRE = 50
 
 
-def _build_category_set(meta_kg: dict[str, Any]) -> list[str]:
-    # extract every Biolink category PloverDB actually carries — from
-    # both the nodes block (one entry per indexed category) and the
-    # edges block (subject/object categories that appear in at least
-    # one supported predicate triple). returned sorted so the LLM
-    # always sees the same order (prompt caching).
-    cats: set[str] = set()
-    for c in meta_kg.get("nodes") or {}:
-        if isinstance(c, str) and c.startswith("biolink:"):
-            cats.add(c)
-    for edge in meta_kg.get("edges") or []:
-        for k in ("subject", "object"):
-            v = edge.get(k)
-            if isinstance(v, str) and v.startswith("biolink:"):
-                cats.add(v)
-    return sorted(cats)
+def _summarize_reduced_data(path: Path) -> dict[str, Any] | None:
+    data = _read_json_if_exists(path)
+    if data is None:
+        return None
+    rows = data.get("rows") or []
+    if len(rows) <= MAX_REDUCED_ROWS_ON_WIRE:
+        return data
+    return {
+        **{key: value for key, value in data.items() if key != "rows"},
+        "rows": rows[:MAX_REDUCED_ROWS_ON_WIRE],
+        "rows_truncated": True,
+        "rows_total": len(rows),
+    }
 
 
 # history-walking helpers used by GET /api/v1/runs and /api/v1/runs/{id}.
 # the on-disk layout is owned by trace.py — these functions assume that
 # layout and break loudly if it changes (which is what we want).
-def _find_run_dir_any_guest(results_root: Path, run_id: str) -> Path | None:
-    # capability-style lookup for GET /api/v1/runs/{id}. any visitor
-    # with a known run_id can re-open the run regardless of which
-    # guest namespace it was created under — that's how shareable URLs
-    # work without sign-in. cost is O(num guest namespaces); fine for
-    # thesis-demo scale, graduates to a DB lookup later. order is
-    # arbitrary — run_ids are timestamp-prefixed + 8-hex-nonce so
-    # collisions across namespaces are practically impossible.
-    if not results_root.is_dir():
-        return None
-    target = f"RUN_{run_id}"
-    for guest_dir in results_root.iterdir():
-        if not guest_dir.is_dir():
-            continue
-        candidate = guest_dir / target
-        if candidate.is_dir():
-            return candidate
-    return None
+def _run_question_and_model(qp: QuestionPaths, run_dir: Path) -> tuple[str | None, str | None]:
+    # the question comes from the run's frozen question.json; the model
+    # id from the model folder name "<id>_<safe_slug>", the first path
+    # component under the run dir (same rule as _collect_run_summaries).
+    record = _read_json_if_exists(qp.question) or {}
+    try:
+        model_folder = qp.root.relative_to(run_dir).parts[0]
+    except ValueError:
+        model_folder = ""
+    question = record.get("nl_question")
+    return (question if isinstance(question, str) else None), (model_folder.partition("_")[0] or None)
 
 
 def _find_question_paths_in_run(run_dir: Path) -> QuestionPaths | None:
@@ -958,26 +922,24 @@ def _find_question_paths_in_run(run_dir: Path) -> QuestionPaths | None:
 
 def _collect_run_summaries(
     results_root: Path,
-    guest_id: str,
     limit: int,
     offset: int = 0,
 ) -> list[RunSummary]:
-    # newest-first listing of completed runs for one guest namespace.
-    # malformed folders (a crashed run that never wrote meta.json) are
-    # skipped rather than failing the whole listing — better UX, and
-    # the user can spot the gap by the timestamp.
+    # newest-first listing of completed runs. malformed folders (a
+    # crashed run that never wrote meta.json) are skipped rather than
+    # failing the whole listing — better UX, and the user can spot
+    # the gap by the timestamp.
     #
     # offset enables the sidebar's infinite scroll: each successive
     # ?limit=50&offset=N call returns the next page of older runs.
     # crashed-folder skipping is applied AFTER offset/limit so callers
     # get a stable count of N rows per page regardless of how many
     # malformed folders are scattered through the directory.
-    guest_root = results_root / guest_id
-    if not guest_root.is_dir():
+    if not results_root.is_dir():
         return []
     summaries: list[RunSummary] = []
     run_dirs = sorted(
-        (d for d in guest_root.iterdir() if d.is_dir() and d.name.startswith("RUN_")),
+        (d for d in results_root.iterdir() if d.is_dir() and d.name.startswith("RUN_")),
         key=lambda d: d.name,
         reverse=True,
     )
@@ -986,6 +948,10 @@ def _collect_run_summaries(
         run_id = run_dir.name.removeprefix("RUN_")
         qp = _find_question_paths_in_run(run_dir)
         if qp is None:
+            continue
+        # the history is ARAX's: runs of the benchmark's lookup
+        # condition stay on disk and open by URL, but are not listed.
+        if not qp.root.parent.name.startswith("arax"):
             continue
         # advance past `offset` VALID rows, not raw directory entries —
         # otherwise the caller's "next page" could miss rows when
@@ -997,12 +963,15 @@ def _collect_run_summaries(
         question_record = _read_json_if_exists(qp.question) or {}
         cost = _read_json_if_exists(qp.cost) or {}
         # the (model_id, model_slug) pair lives at the model folder
-        # name: "<id>_<safe_slug>". split on the first underscore.
-        model_folder = qp.root.parent.parent.name
+        # name: "<id>_<safe_slug>" — the first path component under the
+        # run dir.
+        model_folder = qp.root.relative_to(run_dir).parts[0]
         model_id, _, model_slug = model_folder.partition("_")
         summaries.append(RunSummary(
             run_id=run_id,
-            started_utc=meta.get("started_utc", run_id),
+            # meta.json records no start time; the run id is
+            # "<utc_stamp>_<uuid8>", stamped when the run started.
+            started_utc=run_id.partition("_")[0],
             model_id=model_id,
             model_slug=model_slug.replace("_", "/", 1),
             question=question_record.get("nl_question", "(unknown question)"),

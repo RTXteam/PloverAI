@@ -1,11 +1,40 @@
-# macOS
+# root ignores. backend-specific rules live in pipeline/.gitignore;
+# the backend (formerly split across benchmark/ and pipeline/) is now
+# fully self-contained inside pipeline/, so this file is short.
+node_modules/
+claude-docs/
 .DS_Store
+.playwright-mcp/
+.claude/
 
-# local-only working docs (kept on disk, not published)
-AGENTS.md
-AUDIT.md
+# claude code: project-shared settings stay tracked, local-only ones do not.
+.claude/settings.local.json
+
+# secrets at any level
+.env
+
+# local-only working docs. the thesis paper, the agent-instruction
+# files, and the project-context/deployment docs are personal scratch
+# that get copied manually into each clone. one canonical set on the
+# maintainer's laptop; sub-folder copies are gone. note that the
+# deploy/ DIRECTORY (with nginx + systemd + bootstrap templates)
+# stays tracked — those are functional infrastructure code, not
+# orientation prose.
+paper/
 CLAUDE.md
+AGENTS.md
 CONTEXT.md
 DEPLOY.md
-PIPELINE.md
-PLAN.md
+
+# build artifacts and dependencies for the Next.js frontend. the
+# frontend has its own .gitignore that handles /.next, /out, and
+# /node_modules — these root duplicates are just a belt-and-suspenders
+# layer so a stray ls/grep from the project root never surfaces them
+# as untracked.
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env*.local
+
+.venv/

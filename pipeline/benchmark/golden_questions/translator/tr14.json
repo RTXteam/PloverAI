@@ -1,0 +1,82 @@
+{
+  "question_id": "tr14",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_628"
+    ],
+    "question_key": "MONDO:0005357|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Creutzfeldt Jacob Disease?",
+    "paraphrase": "Is there any drug that treats CJD?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0005357",
+    "label": "Creutzfeldt Jacob disease",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0005357",
+    "asset_name": "Creutzfeldt Jacob Disease"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0005357"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 0,
+  "label_counts": {
+    "Acceptable": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_628",
+      "asset_curie": "MESH:D000911",
+      "label": "Antibodies, Monoclonal",
+      "expected_output": "Acceptable",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0003250",
+      "equivalent_curies": [
+        "MESH:D000911",
+        "NCIT:C20401",
+        "UMLS:C0003250"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

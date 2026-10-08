@@ -3,9 +3,9 @@
 
 # -------- production --------
 
-# httpx: HTTP client used to call OpenRouter and PloverDB. we prefer it
-# over requests for proper timeout handling and connection pooling
-# across the 160-instance benchmark.
+# httpx: HTTP client for OpenRouter, ARAX, Retriever, NameRes and
+# NodeNorm. we prefer it over requests for proper timeout handling,
+# connection pooling across a benchmark run, and ARAX's streamed reply.
 httpx==0.28.1
 
 # pyyaml: parses pipeline/config.yaml (the single source of truth for
@@ -28,7 +28,7 @@ rich==13.9.4
 # reasoner-validator: NCATSTranslator's official validator for TRAPI
 # 1.5 messages and Biolink 4.x predicates / categories. we run it on
 # every LLM-built query (via check_biolink_model_compliance) before
-# sending it to PloverDB. 6.0.1 is the version verified working with
+# sending it to ARAX. 6.0.1 is the version verified working with
 # Python 3.12; the older 4.x line caps at Python <3.12.
 reasoner-validator==6.0.1
 
@@ -54,6 +54,11 @@ fastapi==0.115.5
 # stdlib asyncio implementation.
 uvicorn[standard]==0.32.1
 
+# pydantic: request / response models of the FastAPI service. comes in
+# through fastapi, but api.py imports it directly, so it is pinned here
+# at the version the service was verified with.
+pydantic==2.13.3
+
 # -------- dev (linting, types, dead-code detection) --------
 
 # ruff: very fast linter; replaces flake8 / isort / pyupgrade for us.
@@ -64,3 +69,6 @@ mypy==1.13.0
 
 # vulture: dead-code finder; flags imports / functions that are never used.
 vulture==2.13
+
+# pytest: runs the unit tests in code/tests (224 on 2026-09-29).
+pytest==9.0.3

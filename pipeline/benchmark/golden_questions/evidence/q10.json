@@ -1,5 +1,6 @@
 {
   "question_id": "q10",
+  "split": "dev",
   "nl_question": "Which pathways involve lanosterol?",
   "pinned_entity": {
     "curie": "CHEBI:16521",

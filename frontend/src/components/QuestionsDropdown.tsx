@@ -1,16 +1,17 @@
 "use client";
 
-// pill-style dropdown that lives inside the unified chat-input box.
-// opens DOWNWARD (below the trigger). selecting a row hands the
-// question text up to the parent so the textarea prefills.
+// the "Example questions" menu beside the question box. it opens
+// downward; choosing one puts its text in the box. each example shows
+// as plain natural language, the way a user would ask it: no relation,
+// no Biolink type, no id.
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { GoldQuestion } from "@/lib/api";
+import type { ExampleQuestion } from "@/lib/api";
 
 type Props = {
-  questions: GoldQuestion[];
-  onSelect: (question: GoldQuestion) => void;
+  questions: ExampleQuestion[];
+  onSelect: (question: ExampleQuestion) => void;
   disabled?: boolean;
 };
 
@@ -44,10 +45,10 @@ export function QuestionsDropdown({ questions, onSelect, disabled }: Props) {
         disabled={disabled || questions.length === 0}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex h-9 items-center gap-1.5 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 text-[12.5px] font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <PlusIcon />
-        Gold questions
+        Example questions
         <Chevron open={open} />
       </button>
 
@@ -59,10 +60,10 @@ export function QuestionsDropdown({ questions, onSelect, disabled }: Props) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.14, ease: "easeOut" }}
-            className="absolute left-0 top-full mt-2 z-30 w-[28rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto"
+            className="absolute right-0 top-full mt-1 z-30 w-[28rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto scroll-thin"
           >
             <li className="px-3 py-2 text-[10px] uppercase tracking-wide text-zinc-500 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-950">
-              Pick one of the gold benchmark questions
+              {questions.length} example questions
             </li>
             {questions.map((q) => (
               <li
@@ -75,19 +76,7 @@ export function QuestionsDropdown({ questions, onSelect, disabled }: Props) {
                 }}
                 className="cursor-pointer px-3 py-2.5 text-sm border-b border-zinc-100 dark:border-zinc-900 last:border-b-0 hover:bg-zinc-50 dark:hover:bg-zinc-900"
               >
-                <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-400 dark:text-zinc-600 shrink-0">
-                    {q.id}
-                  </span>
-                  <span className="text-zinc-900 dark:text-zinc-100 leading-snug">{q.nl_question}</span>
-                </div>
-                {(q.pinned_entity_label || q.answer_category) && (
-                  <div className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 ml-7 font-mono">
-                    {q.pinned_entity_label && <span>{q.pinned_entity_label}</span>}
-                    {q.pinned_entity_label && q.answer_category && <span> · </span>}
-                    {q.answer_category && <span>→ {q.answer_category.replace(/^biolink:/, "")}</span>}
-                  </div>
-                )}
+                <span className="leading-snug text-zinc-900 dark:text-zinc-100">{q.nl_question}</span>
               </li>
             ))}
           </motion.ul>

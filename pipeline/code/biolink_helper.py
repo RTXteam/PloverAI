@@ -4,14 +4,14 @@
 # Biolink categories for the NameRes biolink_type filter. the reason
 # this exists is a class of pipeline failures where Stage 2 picks one
 # Biolink category that's semantically correct in English but doesn't
-# match how the entity is typed in KG2c — so NameRes filters out the
+# match how the entity is typed in the graph — so NameRes filters out the
 # right answer.
 #
 # concrete failure (q "Which genes participate in the cholesterol
 # biosynthesis pathway?"):
 #   - Stage 2 picks expected_category = biolink:Pathway
 #   - the actual entity GO:0006695 ("cholesterol biosynthetic process")
-#     is typed as biolink:BiologicalProcess in KG2c, NOT biolink:Pathway
+#     is typed as biolink:BiologicalProcess in KG2, NOT biolink:Pathway
 #   - NameRes filtered to Pathway only → GO:0006695 is excluded →
 #     BM25 falls back to matching just the token "process" and returns
 #     5 unrelated "Processing..." pathways all at the same score 75.26
@@ -26,8 +26,8 @@
 #
 # rule used:
 #   loose_neighborhood(C) =
-#       descendants(C)
-#     ∪ (descendants(parent(C))  if parent(C) is not in GENERIC_PARENTS)
+#             descendants(C)
+#     union  (descendants(parent(C))  if parent(C) is not in GENERIC_PARENTS)
 #
 # the GENERIC_PARENTS stop-list catches Biolink umbrella classes that
 # are too broad to be useful for narrowing entity resolution — e.g.
@@ -40,6 +40,10 @@ from __future__ import annotations
 
 import logging
 
+# bmt: Biolink Model Toolkit (pinned in requirements.txt). reads the
+# Biolink class hierarchy (parents, descendants) so the loose filter is
+# derived from the model itself; no py.typed marker, see the mypy
+# override in pyproject.toml.
 import bmt
 
 

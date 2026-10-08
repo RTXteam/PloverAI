@@ -1,5 +1,6 @@
 {
   "question_id": "q6",
+  "split": "dev",
   "nl_question": "Which diseases present with seizures?",
   "pinned_entity": {
     "curie": "HP:0001250",

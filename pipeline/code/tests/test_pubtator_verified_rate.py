@@ -16,17 +16,21 @@
 # of the picked answer edges, what fraction are independently
 # verifiable by PubTator?
 
-from code.pipeline import _pubtator_verified_edge_rate
+from __future__ import annotations
+
+from typing import Any
+
+from pipeline.code.pipeline import _pubtator_verified_edge_rate
 
 
-def _view(edges):
+def _view(edges: list[dict[str, Any]]) -> dict[str, Any]:
     # minimal answer_graph_view shape — only edges matter for this metric
     return {"pinned_node": {}, "answer_nodes": [], "edges": edges}
 
 
 # ---- typical cases ----
 
-def test_simple_rate_calculation():
+def test_simple_rate_calculation() -> None:
     # 2 verified, 1 unverified, 0 NA → rate = 2/3
     view = _view([
         {"pubtator_verified": {"verified": True}},
@@ -41,7 +45,7 @@ def test_simple_rate_calculation():
     assert out["rate"] == 2/3
 
 
-def test_all_verified_gives_rate_one():
+def test_all_verified_gives_rate_one() -> None:
     view = _view([
         {"pubtator_verified": {"verified": True}},
         {"pubtator_verified": {"verified": True}},
@@ -50,7 +54,7 @@ def test_all_verified_gives_rate_one():
     assert out["rate"] == 1.0
 
 
-def test_all_unverified_gives_rate_zero():
+def test_all_unverified_gives_rate_zero() -> None:
     view = _view([
         {"pubtator_verified": {"verified": False}},
         {"pubtator_verified": {"verified": False}},
@@ -62,7 +66,7 @@ def test_all_unverified_gives_rate_zero():
 
 # ---- not-applicable cases ----
 
-def test_na_edges_excluded_from_denominator():
+def test_na_edges_excluded_from_denominator() -> None:
     # 1 verified, 0 unverified, 2 NA (no PMIDs cited). rate = 1 / 1 = 1.0
     # — NA edges do NOT drag the rate down, they're simply ineligible.
     view = _view([
@@ -78,7 +82,7 @@ def test_na_edges_excluded_from_denominator():
     assert out["rate"] == 1.0
 
 
-def test_all_na_gives_rate_none():
+def test_all_na_gives_rate_none() -> None:
     # no edges had any PMIDs to verify → rate is undefined. returning
     # None lets the caller distinguish "no verifiable evidence" from
     # "all verified" or "all unverified".
@@ -91,7 +95,7 @@ def test_all_na_gives_rate_none():
     assert out["not_applicable"] == 2
 
 
-def test_no_edges_gives_rate_none():
+def test_no_edges_gives_rate_none() -> None:
     # the answer set had 0 edges (e.g. picked an answer node but no
     # connecting edge in the KG). rate is None — there is literally
     # nothing to score.
@@ -102,7 +106,7 @@ def test_no_edges_gives_rate_none():
 
 # ---- defensive: missing pubtator_verified key ----
 
-def test_edge_missing_pubtator_verified_key_is_treated_as_na():
+def test_edge_missing_pubtator_verified_key_is_treated_as_na() -> None:
     # in normal flow every edge has the key (set explicitly by
     # _enrich_edges_with_pubtator), but be defensive — old artifacts
     # replayed through a newer pipeline could lack it. treat as NA, not

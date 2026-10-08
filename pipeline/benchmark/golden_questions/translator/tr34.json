@@ -1,0 +1,215 @@
+{
+  "question_id": "tr34",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_124",
+      "Asset_125",
+      "Asset_126",
+      "Asset_127",
+      "Asset_128",
+      "Asset_129",
+      "Asset_130"
+    ],
+    "question_key": "MONDO:0018911|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Maturity-onset Diabetes Of The Young?",
+    "paraphrase": "What medications are used for MODY diabetes?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0018911",
+    "label": "maturity-onset diabetes of the young",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0018911",
+    "asset_name": "Maturity-onset Diabetes Of The Young"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0018911"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 0,
+  "label_counts": {
+    "NeverShow": 7
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_125",
+      "asset_curie": "MESH:D001323",
+      "label": "Autoantibodies",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0004358",
+      "equivalent_curies": [
+        "MESH:D001323",
+        "NCIT:C48966",
+        "UMLS:C0004358"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_129",
+      "asset_curie": "MESH:D003165",
+      "label": "Complement system proteins",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0009498",
+      "equivalent_curies": [
+        "MESH:D003165",
+        "NCIT:C16459",
+        "NCIT:C21523",
+        "UMLS:C0009498"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_127",
+      "asset_curie": "MESH:D004798",
+      "label": "Enzymes",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0014442",
+      "equivalent_curies": [
+        "MESH:D004798",
+        "NCIT:C16554",
+        "UMLS:C0014442"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_124",
+      "asset_curie": "MESH:D011972",
+      "label": "Receptor, insulin",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0034818",
+      "equivalent_curies": [
+        "MESH:D011972",
+        "UMLS:C0034818"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_128",
+      "asset_curie": "MESH:D017526",
+      "label": "Receptor, IGF Type 1",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0140080",
+      "equivalent_curies": [
+        "MESH:D017526",
+        "UMLS:C0140080"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_126",
+      "asset_curie": "PUBCHEM.COMPOUND:53462828",
+      "label": "Thyroid hormones",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:60311",
+      "equivalent_curies": [
+        "CAS:288-730-8",
+        "CAS:85883-80-3",
+        "CHEBI:60311",
+        "INCHIKEY:PVQQWBPTBLFFMS-UHFFFAOYSA-N",
+        "MESH:D013963",
+        "PUBCHEM.COMPOUND:53462828",
+        "UMLS:C0040135"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_130",
+      "asset_curie": "PUBCHEM.COMPOUND:6623",
+      "label": "bisphenol A",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33216",
+      "equivalent_curies": [
+        "CAS:201-245-8",
+        "CAS:80-05-7",
+        "CHEBI:22900",
+        "CHEBI:31295",
+        "CHEBI:33216",
+        "CHEBI:47094",
+        "CHEMBL.COMPOUND:CHEMBL418971",
+        "DRUGBANK:DB06973",
+        "GTOPDB:7865",
+        "HMDB:HMDB0032133",
+        "INCHIKEY:IISBACLAFKSPIT-UHFFFAOYSA-N",
+        "KEGG.COMPOUND:C13624",
+        "MESH:C006780",
+        "MESH:C482296",
+        "PUBCHEM.COMPOUND:6623",
+        "RXCUI:1433347",
+        "UMLS:C0053800",
+        "UMLS:C1435456",
+        "UNII:MLT3645I99"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

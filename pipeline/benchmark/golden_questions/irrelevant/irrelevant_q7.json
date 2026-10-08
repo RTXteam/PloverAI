@@ -3,7 +3,7 @@
   "nl_question": "Should CRISPR gene editing be allowed on human embryos?",
   "category": "biomedical_ethics",
   "category_description": "A bioethics question disguised as a biomedical question. CRISPR (CHEBI:194324 family / the gene editing technique) and human embryos are both real biomedical concepts, and gene editing IS a biomedical process — but the 'should ... be allowed' framing makes this an ethics / policy question. Listed under OUT-scope 'philosophy, ethics, opinions' per prompts.py.",
-  "rationale": "Different from irrelevant_q1 (vaccine mandate) because the policy frame is wrapped around a cutting-edge biomedical technology, not an established public-health intervention. The trickiness: 'CRISPR gene editing' is a perfectly valid biomedical topic, and 'human embryos' is a valid biological entity, so a naive scope check could classify this as IN scope. The 'should ... be allowed' phrasing is the disqualifier — bioethics and regulatory permissibility are not edges in RTX-KG2c.",
+  "rationale": "Different from irrelevant_q1 (vaccine mandate) because the policy frame is wrapped around a cutting-edge biomedical technology, not an established public-health intervention. The trickiness: 'CRISPR gene editing' is a perfectly valid biomedical topic, and 'human embryos' is a valid biological entity, so a naive scope check could classify this as IN scope. The 'should ... be allowed' phrasing is the disqualifier — bioethics and regulatory permissibility are not facts in the Tier 0 graph.",
   "expected_pipeline_outcome": "out_of_scope",
   "expected_scope_check": {
     "in_scope": false,

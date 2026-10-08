@@ -1,0 +1,286 @@
+{
+  "question_id": "tr71",
+  "question_type": "affects_decreased",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_399"
+    ],
+    "question_key": "NCBIGene:79001|biolink:affects|decreased|activity_or_abundance",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What chemicals may decrease the activity or abundance of VKORC1?",
+    "paraphrase": "Which drugs inhibit vitamin K epoxide reductase (VKORC1)?"
+  },
+  "pinned_entity": {
+    "curie": "NCBIGene:79001",
+    "label": "VKORC1",
+    "category": "biolink:Gene",
+    "asset_curie": "NCBIGene:79001",
+    "asset_name": "VKORC1"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:affects",
+  "qualifiers": [
+    {
+      "qualifier_type_id": "biolink:qualified_predicate",
+      "qualifier_value": "biolink:causes"
+    },
+    {
+      "qualifier_type_id": "biolink:object_aspect_qualifier",
+      "qualifier_value": "activity_or_abundance"
+    },
+    {
+      "qualifier_type_id": "biolink:object_direction_qualifier",
+      "qualifier_value": "decreased"
+    }
+  ],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "NCBIGene:79001"
+        ],
+        "categories": [
+          "biolink:Gene"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:affects"
+        ],
+        "qualifier_constraints": [
+          {
+            "qualifier_set": [
+              {
+                "qualifier_type_id": "biolink:qualified_predicate",
+                "qualifier_value": "biolink:causes"
+              },
+              {
+                "qualifier_type_id": "biolink:object_aspect_qualifier",
+                "qualifier_value": "activity_or_abundance"
+              },
+              {
+                "qualifier_type_id": "biolink:object_direction_qualifier",
+                "qualifier_value": "decreased"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "gold_query_results": 7,
+  "label_counts": {
+    "TopAnswer": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_399",
+      "asset_curie": "PUBCHEM.COMPOUND:54678486",
+      "label": "warfarin",
+      "expected_output": "TopAnswer",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:10033",
+      "equivalent_curies": [
+        "CAS:201-377-6",
+        "CAS:81-81-2",
+        "CAS:951658-59-6",
+        "CHEBI:10033",
+        "CHEBI:23403",
+        "CHEBI:87732",
+        "CHEMBL.COMPOUND:CHEMBL1464",
+        "DRUGBANK:DB00682",
+        "DrugCentral:2847",
+        "GTOPDB:6853",
+        "HMDB:HMDB0001935",
+        "INCHIKEY:PJVWKTKQMONHTI-UHFFFAOYSA-N",
+        "KEGG.COMPOUND:C01541",
+        "MESH:D003374",
+        "MESH:D014859",
+        "PUBCHEM.COMPOUND:54678486",
+        "RXCUI:11289",
+        "RXCUI:114194",
+        "RXCUI:1161789",
+        "RXCUI:1161790",
+        "RXCUI:1161791",
+        "RXCUI:1167808",
+        "RXCUI:1167809",
+        "RXCUI:1171655",
+        "RXCUI:1171656",
+        "RXCUI:202421",
+        "RXCUI:2648634",
+        "RXCUI:2654201",
+        "RXCUI:2655262",
+        "RXCUI:2655823",
+        "RXCUI:2656852",
+        "RXCUI:2660488",
+        "RXCUI:2662939",
+        "RXCUI:2663210",
+        "RXCUI:368417",
+        "RXCUI:374319",
+        "RXCUI:405155",
+        "RXCUI:406078",
+        "RXCUI:82118",
+        "RXCUI:855287",
+        "RXCUI:855288",
+        "RXCUI:855289",
+        "RXCUI:855290",
+        "RXCUI:855291",
+        "RXCUI:855292",
+        "RXCUI:855295",
+        "RXCUI:855296",
+        "RXCUI:855297",
+        "RXCUI:855298",
+        "RXCUI:855299",
+        "RXCUI:855300",
+        "RXCUI:855301",
+        "RXCUI:855302",
+        "RXCUI:855303",
+        "RXCUI:855304",
+        "RXCUI:855305",
+        "RXCUI:855306",
+        "RXCUI:855311",
+        "RXCUI:855312",
+        "RXCUI:855313",
+        "RXCUI:855314",
+        "RXCUI:855315",
+        "RXCUI:855316",
+        "RXCUI:855317",
+        "RXCUI:855318",
+        "RXCUI:855319",
+        "RXCUI:855320",
+        "RXCUI:855321",
+        "RXCUI:855322",
+        "RXCUI:855323",
+        "RXCUI:855324",
+        "RXCUI:855325",
+        "RXCUI:855326",
+        "RXCUI:855327",
+        "RXCUI:855328",
+        "RXCUI:855331",
+        "RXCUI:855332",
+        "RXCUI:855333",
+        "RXCUI:855334",
+        "RXCUI:855335",
+        "RXCUI:855336",
+        "RXCUI:855337",
+        "RXCUI:855338",
+        "RXCUI:855339",
+        "RXCUI:855340",
+        "RXCUI:855341",
+        "RXCUI:855342",
+        "RXCUI:855343",
+        "RXCUI:855344",
+        "RXCUI:855345",
+        "RXCUI:855346",
+        "RXCUI:855347",
+        "RXCUI:855348",
+        "RXCUI:855349",
+        "RXCUI:855350",
+        "UMLS:C0010207",
+        "UMLS:C0043031",
+        "UMLS:C0282378",
+        "UMLS:C0376218",
+        "UMLS:C0690746",
+        "UMLS:C0699129",
+        "UMLS:C0710780",
+        "UMLS:C0710781",
+        "UMLS:C0710782",
+        "UMLS:C0710783",
+        "UMLS:C0710785",
+        "UMLS:C0710786",
+        "UMLS:C0710787",
+        "UMLS:C0714723",
+        "UMLS:C0714724",
+        "UMLS:C0981134",
+        "UMLS:C0981135",
+        "UMLS:C0981136",
+        "UMLS:C0981140",
+        "UMLS:C0981141",
+        "UMLS:C0981793",
+        "UMLS:C0981794",
+        "UMLS:C1242401",
+        "UMLS:C1248397",
+        "UMLS:C1276897",
+        "UMLS:C1329346",
+        "UMLS:C1329347",
+        "UMLS:C1329348",
+        "UMLS:C1329349",
+        "UMLS:C1329351",
+        "UMLS:C1329352",
+        "UMLS:C1329353",
+        "UMLS:C1329464",
+        "UMLS:C1329465",
+        "UMLS:C1330361",
+        "UMLS:C1331311",
+        "UMLS:C1584930",
+        "UMLS:C2709897",
+        "UMLS:C2709898",
+        "UMLS:C2709899",
+        "UMLS:C2709901",
+        "UMLS:C2709902",
+        "UMLS:C2709903",
+        "UMLS:C2709904",
+        "UMLS:C2709905",
+        "UMLS:C2709906",
+        "UMLS:C2709909",
+        "UMLS:C2709910",
+        "UMLS:C2709911",
+        "UMLS:C2709912",
+        "UMLS:C2709913",
+        "UMLS:C2709914",
+        "UMLS:C2709915",
+        "UMLS:C2709916",
+        "UMLS:C2709917",
+        "UMLS:C2709919",
+        "UMLS:C2709920",
+        "UMLS:C2709921",
+        "UMLS:C2709922",
+        "UMLS:C2709923",
+        "UMLS:C2709924",
+        "UMLS:C2709925",
+        "UMLS:C2709926",
+        "UMLS:C2709927",
+        "UMLS:C2709928",
+        "UMLS:C3216122",
+        "UMLS:C3216123",
+        "UMLS:C3216124",
+        "UMLS:C3221983",
+        "UMLS:C3221984",
+        "UMLS:C3225723",
+        "UMLS:C3225724",
+        "UMLS:C4720019",
+        "UMLS:C5838068",
+        "UMLS:C5839127",
+        "UMLS:C5839684",
+        "UMLS:C5840710",
+        "UMLS:C5844295",
+        "UMLS:C5846743",
+        "UMLS:C5847014",
+        "UNII:5Q7ZVV76EI"
+      ],
+      "reachable_one_hop": {
+        "gold_query": true,
+        "predicate_without_qualifiers": true,
+        "any_predicate": true
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

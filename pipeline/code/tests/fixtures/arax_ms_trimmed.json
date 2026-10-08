@@ -1,0 +1,4319 @@
+{
+ "message": {
+  "auxiliary_graphs": {
+   "ARAX-prediction-auxgraph-1f5c4fe1-bbbc-5715-9665-4d25ff5b3d8c": {
+    "edges": [
+     "infores:retriever:DRUGBANK:DB05259--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:text-mining-provider-targeted",
+     "infores:retriever:DRUGBANK:DB05259--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:obie"
+    ]
+   },
+   "ARAX-prediction-auxgraph-674863e7-6aa7-5584-9903-0263c90d51d7": {
+    "edges": [
+     "infores:retriever:CHEBI:187893--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:faers",
+     "infores:retriever:CHEBI:187893--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:multiomics-clinicaltrials",
+     "infores:retriever:CHEBI:187893--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:obie"
+    ]
+   },
+   "ARAX-prediction-auxgraph-8bb8b100-54f7-5cf5-b3d1-99974ebaf59d": {
+    "edges": [
+     "infores:retriever:CHEBI:63115--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:faers",
+     "infores:retriever:CHEBI:63115--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:multiomics-clinicaltrials",
+     "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:ctd",
+     "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:semmeddb",
+     "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:text-mining-provider-targeted",
+     "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:obie",
+     "infores:retriever:CHEBI:63115--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:obie",
+     "infores:retriever:CHEBI:63115--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:obie"
+    ]
+   },
+   "aux_1733b6b8-de71-474a-9b96-82e9ab3c259f_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+    "edges": [
+     "1733b6b8-de71-474a-9b96-82e9ab3c259f",
+     "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+    ]
+   },
+   "aux_717c3189-4d19-3256-bb1a-3518b76580bb_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+    "edges": [
+     "717c3189-4d19-3256-bb1a-3518b76580bb",
+     "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+    ]
+   },
+   "aux_90ae38ad-0872-4830-8e80-25f48a2f46e9_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+    "edges": [
+     "90ae38ad-0872-4830-8e80-25f48a2f46e9",
+     "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+    ]
+   },
+   "aux_cda70042-5428-3d40-80fc-b30b268ec39e_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+    "edges": [
+     "cda70042-5428-3d40-80fc-b30b268ec39e",
+     "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+    ]
+   },
+   "aux_e0c51124-59e0-44e2-98b0-a9966ecc9af9_ef79efc7-428b-44f8-8975-60a33258886a": {
+    "edges": [
+     "e0c51124-59e0-44e2-98b0-a9966ecc9af9",
+     "ef79efc7-428b-44f8-8975-60a33258886a"
+    ]
+   },
+   "aux_fe224334-7eff-535f-bbac-7e8e7a82d0a3_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+    "edges": [
+     "fe224334-7eff-535f-bbac-7e8e7a82d0a3",
+     "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+    ]
+   },
+   "aux_graph_778_creative_DTD_option_group_0": {
+    "edges": [
+     "23bd6a0c-6f62-4b09-b7b9-69107fbfc643",
+     "c4ae6804-dcd8-4287-bbdd-0d2a2b4a09b5",
+     "379d33aa-c45b-49fa-94aa-f237d7444453",
+     "5a75122d-744e-4a47-995a-2b7ca6175189",
+     "0b0a08d0-f448-45b0-a914-853905e4cec9",
+     "9faeafcc-7267-47a8-96df-78a195580637",
+     "340a184b-7022-41bf-b871-659b6d9c37a8",
+     "ea6ab7c0-75f1-483e-a9a9-4654331a4788",
+     "fe8d67a5-0f22-4180-80fe-075e721c14ba",
+     "375cb78a-488f-42f4-9c50-35c1ab7c8e36",
+     "2840cad9-f004-4154-a813-5cca9fcaca2c",
+     "magma_NCBIGene:5595_MONDO:0005301NCBIGene:5595MONDO:0005301",
+     "magma_NCBIGene:4790_MONDO:0005301NCBIGene:4790MONDO:0005301",
+     "70b107c5-e6ae-4288-b433-53ea65386216",
+     "cf9dc3c8-10a4-4fd4-9796-f5ef82bc33ab",
+     "magma_NCBIGene:5594_MONDO:0005301NCBIGene:5594MONDO:0005301",
+     "0582b7ff-cea6-435b-b483-7d59308be030",
+     "magma_NCBIGene:7128_MONDO:0005301NCBIGene:7128MONDO:0005301",
+     "f4e34fa6-faf4-4195-a1f6-03b75e3af090",
+     "48c8210d-ce42-4ac1-8bfd-93215b227ba6",
+     "9fb1e788-d15f-4600-876a-9450ec6a3ab4",
+     "3ec9de26-1bbd-4286-8338-c1e531afa4a0",
+     "3b0b21ef-30ce-4f31-9db4-8189cfa24b2d",
+     "c754b7c0-2843-481d-96aa-e42a96cf0448",
+     "magma_NCBIGene:6774_MONDO:0005301NCBIGene:6774MONDO:0005301",
+     "be621ac6-3b0b-4446-8927-685b34116e40",
+     "magma_NCBIGene:4340_MONDO:0005301NCBIGene:4340MONDO:0005301",
+     "ff34524d-fa5a-4c50-a6d5-d5356b754946",
+     "94cdb8c6-24cf-4be8-b944-f0057f020d98",
+     "03759fa4-535b-4d14-917e-a01ae2144c1b",
+     "magma_NCBIGene:7124_MONDO:0005301NCBIGene:7124MONDO:0005301",
+     "magma_NCBIGene:7132_MONDO:0005301NCBIGene:7132MONDO:0005301",
+     "ae95ef9d-5792-40e0-bb95-8e45c62fefe4",
+     "fe39e836-c9de-418e-a927-f2363ec5e655",
+     "02cd9489-d4f0-4745-b0b7-4cdb32a32a17",
+     "799e0fac-c6d6-45c6-8fd8-db8c4c35e3a2",
+     "25728c32-70ab-4931-8705-d419fa5f426f",
+     "38e423d0-9ac6-44c1-99b6-a28bb24ee9d2",
+     "4996cc0a-0dee-4bf4-bc93-2d7054334d05",
+     "516a3ba3-ba1a-482a-9cfc-2bac9e77ce2f",
+     "ed9fc968-4372-42f2-a365-4919af3394b1",
+     "magma_NCBIGene:203068_MONDO:0005301NCBIGene:203068MONDO:0005301",
+     "1615627f-b9e7-478d-8696-44ba23016452",
+     "db542752-5efa-48df-baab-f0d7ab81ca4c",
+     "88766191-4d90-4930-b6d4-62d85be993f6",
+     "99e43387-7d70-448f-b997-57d1a80d43e9",
+     "389f4ff3-b7d3-4034-8ba1-d9bc7d4562fa",
+     "7ad8af88-05b1-418f-805f-baf4322981fd",
+     "41770fb4-bb95-49c6-af6e-e940427a1fb3",
+     "317668ff-e405-47f9-b29d-ec1edfc4c68d",
+     "587b18e8-9c12-4302-928b-1a9e96c11bee",
+     "9ee1f72c-29b1-4210-b052-4a50afca4940",
+     "e63b03a7-4194-4171-b077-2558f50a8b09",
+     "3da71358-eec0-44f7-bc73-01b4a5540d31"
+    ]
+   },
+   "aux_graph_N1_1055": {
+    "edges": [
+     "N1_1055"
+    ]
+   },
+   "aux_graph_N1_274": {
+    "edges": [
+     "N1_274"
+    ]
+   },
+   "aux_graph_N1_759": {
+    "edges": [
+     "N1_759"
+    ]
+   }
+  },
+  "knowledge_graph": {
+   "edges": {
+    "02cd9489-d4f0-4745-b0b7-4cdb32a32a17": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6537172",
+        "PMC:8613465",
+        "PMC:3299293"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "03759fa4-535b-4d14-917e-a01ae2144c1b": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6572549"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7128",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "0582b7ff-cea6-435b-b483-7d59308be030": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:7795239"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:100125288",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "0b0a08d0-f448-45b0-a914-853905e4cec9": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:9171384"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3383"
+    },
+    "1615627f-b9e7-478d-8696-44ba23016452": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6514922",
+        "PMC:6514922",
+        "PMC:5133669"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5595",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "1733b6b8-de71-474a-9b96-82e9ab3c259f": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMC:4545781",
+        "PMC:6534646",
+        "PMC:4545781"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005314",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "23bd6a0c-6f62-4b09-b7b9-69107fbfc643": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6950382"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:4790",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "25728c32-70ab-4931-8705-d419fa5f426f": {
+     "attributes": [
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:10773851",
+        "PMID:23149905",
+        "PMID:29054587"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:semmeddb",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:7124"
+    },
+    "2840cad9-f004-4154-a813-5cca9fcaca2c": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6491577"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7056",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "317668ff-e405-47f9-b29d-ec1edfc4c68d": {
+     "attributes": [
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:10802028",
+        "PMID:11418279",
+        "PMID:11421579"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:causes",
+     "sources": [
+      {
+       "resource_id": "infores:semmeddb",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:7124"
+    },
+    "340a184b-7022-41bf-b871-659b6d9c37a8": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:8431671"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:3383",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "375cb78a-488f-42f4-9c50-35c1ab7c8e36": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6514922",
+        "PMC:6514922",
+        "PMID:27910925"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "379d33aa-c45b-49fa-94aa-f237d7444453": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5133669",
+        "PMC:5133669"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5595",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "389f4ff3-b7d3-4034-8ba1-d9bc7d4562fa": {
+     "attributes": [
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:20374625",
+        "PMID:9307980"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "UMLS:C0021760",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:semmeddb",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "38e423d0-9ac6-44c1-99b6-a28bb24ee9d2": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:25841036",
+        "PMC:8104893",
+        "PMC:7995963"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:6711",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "3b0b21ef-30ce-4f31-9db4-8189cfa24b2d": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:8081970"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:3570",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "3da71358-eec0-44f7-bc73-01b4a5540d31": {
+     "attributes": [
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:semmeddb",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:11421579",
+        "PMID:20583029",
+        "PMID:21090238"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:causes",
+     "sources": [
+      {
+       "resource_id": "infores:semmeddb",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "UMLS:C0021760"
+    },
+    "3ec9de26-1bbd-4286-8338-c1e531afa4a0": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:3184260",
+        "PMC:3184260",
+        "PMID:18180317"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "41770fb4-bb95-49c6-af6e-e940427a1fb3": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:8853071",
+        "PMC:8853071",
+        "PMC:8072392"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3383"
+    },
+    "48c8210d-ce42-4ac1-8bfd-93215b227ba6": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:31881271"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "4996cc0a-0dee-4bf4-bc93-2d7054334d05": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:4327797",
+        "PMC:8888891",
+        "PMC:4327797"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "516a3ba3-ba1a-482a-9cfc-2bac9e77ce2f": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:22842565",
+        "PMC:8775408"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:6774",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "587b18e8-9c12-4302-928b-1a9e96c11bee": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:19853911"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7132",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "5a75122d-744e-4a47-995a-2b7ca6175189": {
+     "attributes": [
+      {
+       "attribute_source": "infores:intact",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:intact",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:intact",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:33961781"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:203068",
+     "predicate": "biolink:physically_interacts_with",
+     "sources": [
+      {
+       "resource_id": "infores:intact",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "70b107c5-e6ae-4288-b433-53ea65386216": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:3144767",
+        "PMC:7919490"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:213",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "717c3189-4d19-3256-bb1a-3518b76580bb": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "observation",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_validation_of_automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005314",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:faers",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:187893"
+    },
+    "799e0fac-c6d6-45c6-8fd8-db8c4c35e3a2": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:3580761"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:4790",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "7ad8af88-05b1-418f-805f-baf4322981fd": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:33836597"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "88766191-4d90-4930-b6d4-62d85be993f6": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:4327797",
+        "PMC:8888891",
+        "PMC:4327797"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5595",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "90ae38ad-0872-4830-8e80-25f48a2f46e9": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_validation_of_automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005314",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:drugcentral",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": [
+        "https://drugcentral.org/drugcard/4167#druguse"
+       ],
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "94cdb8c6-24cf-4be8-b944-f0057f020d98": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:4498190"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:6711",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "99e43387-7d70-448f-b997-57d1a80d43e9": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:3398863",
+        "PMC:3398863"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3383"
+    },
+    "9ee1f72c-29b1-4210-b052-4a50afca4940": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:4449386",
+        "PMC:2864368",
+        "PMC:5812131"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:213"
+    },
+    "9faeafcc-7267-47a8-96df-78a195580637": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:8315026"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:6711"
+    },
+    "9fb1e788-d15f-4600-876a-9450ec6a3ab4": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5557281",
+        "PMC:4468131",
+        "PMC:6510777"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:213",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3383"
+    },
+    "ARAX-prediction-edge-1f5c4fe1-bbbc-5715-9665-4d25ff5b3d8c": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "ARAX-prediction-auxgraph-1f5c4fe1-bbbc-5715-9665-4d25ff5b3d8c"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "prediction",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "ARAX-prediction-edge-674863e7-6aa7-5584-9903-0263c90d51d7": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "ARAX-prediction-auxgraph-674863e7-6aa7-5584-9903-0263c90d51d7"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "prediction",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "CHEBI:187893"
+    },
+    "ARAX-prediction-edge-8bb8b100-54f7-5cf5-b3d1-99974ebaf59d": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "ARAX-prediction-auxgraph-8bb8b100-54f7-5cf5-b3d1-99974ebaf59d"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "prediction",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "N1_1055": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:24401825",
+        "PMID:24005026",
+        "PMID:11809732"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "DRUGBANK:DB05259",
+     "predicate": "biolink:occurs_together_in_literature_with",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "MONDO:0005301"
+    },
+    "N1_274": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:22652162",
+        "PMID:2303874",
+        "PMID:15471367"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "CHEBI:187893",
+     "predicate": "biolink:occurs_together_in_literature_with",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "MONDO:0005301"
+    },
+    "N1_759": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:26742785",
+        "PMID:32126977",
+        "PMID:37322755"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "CHEBI:63115",
+     "predicate": "biolink:occurs_together_in_literature_with",
+     "sources": [
+      {
+       "resource_id": "infores:arax",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "MONDO:0005301"
+    },
+    "ae95ef9d-5792-40e0-bb95-8e45c62fefe4": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:35776111"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:4340",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "be621ac6-3b0b-4446-8927-685b34116e40": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:2865633",
+        "PMC:8299183",
+        "PMC:8299183"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "c4ae6804-dcd8-4287-bbdd-0d2a2b4a09b5": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5133669",
+        "PMC:5133669"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:7056"
+    },
+    "c754b7c0-2843-481d-96aa-e42a96cf0448": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5276855"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5595",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "cda70042-5428-3d40-80fc-b30b268ec39e": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "observation",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_validation_of_automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005314",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:faers",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "cf9dc3c8-10a4-4fd4-9796-f5ef82bc33ab": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:4893905",
+        "PMC:4335670",
+        "PMC:4335670"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:4049",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "creative_DTD_prediction_18": {
+     "attributes": [
+      {
+       "attribute_source": "infores:arax-xdtd",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "computational_model",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax-xdtd",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "prediction",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:arax-xdtd",
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_graph_778_creative_DTD_option_group_0"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:arax-xdtd",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "db542752-5efa-48df-baab-f0d7ab81ca4c": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5276855"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:5594",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "e0c51124-59e0-44e2-98b0-a9966ecc9af9": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMC:7400006",
+        "PMC:6617229",
+        "PMC:7695340"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0018784",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "e63b03a7-4194-4171-b077-2558f50a8b09": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:1309368",
+        "PMC:2212266"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "ea6ab7c0-75f1-483e-a9a9-4654331a4788": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:25926267"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:6711"
+    },
+    "ed9fc968-4372-42f2-a365-4919af3394b1": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMID:11562527",
+        "PMID:15297310",
+        "PMC:4844010"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:6774",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "ef79efc7-428b-44f8-8975-60a33258886a": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:subclass_of",
+     "sources": [
+      {
+       "resource_id": "infores:ubergraph",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "MONDO:0018784"
+    },
+    "f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3": {
+     "attributes": [
+      {
+       "attribute_source": "infores:ubergraph",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:ubergraph",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:subclass_of",
+     "sources": [
+      {
+       "resource_id": "infores:ubergraph",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "MONDO:0005314"
+    },
+    "f4e34fa6-faf4-4195-a1f6-03b75e3af090": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:6572549",
+        "PMC:6572549"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "fe224334-7eff-535f-bbac-7e8e7a82d0a3": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005314",
+     "predicate": "biolink:in_clinical_trials_for",
+     "sources": [
+      {
+       "resource_id": "infores:multiomics-clinicaltrials",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": [
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=61c3bbcf-4d2b-3a10-9785-4ef4353afc18",
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=64c5c8df-53f0-3b61-abbb-3b74a2081c11",
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=9a75e844-7f8b-39df-860b-212d5237fc91"
+       ],
+       "upstream_resource_ids": [
+        "infores:aact"
+       ]
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "fe39e836-c9de-418e-a927-f2363ec5e655": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:1887694",
+        "PMC:6027429"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:7124",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:4049"
+    },
+    "fe8d67a5-0f22-4180-80fe-075e721c14ba": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:8964978"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:6774",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:3570"
+    },
+    "ff34524d-fa5a-4c50-a6d5-d5356b754946": {
+     "attributes": [
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:text-mining-provider-targeted",
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": "publications",
+       "value": [
+        "PMC:5655807"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "NCBIGene:213",
+     "predicate": "biolink:affects",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "NCBIGene:100125288"
+    },
+    "infores:retriever:CHEBI:187893--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:faers": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "observation",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_validation_of_automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:faers",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:187893"
+    },
+    "infores:retriever:CHEBI:187893--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_717c3189-4d19-3256-bb1a-3518b76580bb_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:187893"
+    },
+    "infores:retriever:CHEBI:187893--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:multiomics-clinicaltrials": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:in_clinical_trials_for",
+     "sources": [
+      {
+       "resource_id": "infores:multiomics-clinicaltrials",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": [
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=75eab294-c15a-39ef-a745-6dec5f318632"
+       ],
+       "upstream_resource_ids": [
+        "infores:aact"
+       ]
+      }
+     ],
+     "subject": "CHEBI:187893"
+    },
+    "infores:retriever:CHEBI:63115--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:faers": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "observation",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_validation_of_automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:faers",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:applied_to_treat--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_cda70042-5428-3d40-80fc-b30b268ec39e_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:applied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:multiomics-clinicaltrials": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:in_clinical_trials_for",
+     "sources": [
+      {
+       "resource_id": "infores:multiomics-clinicaltrials",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": [
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=2fbdfc26-238c-3aa9-a863-efcf6e91f3af",
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=326029cf-a484-3c4e-8d58-65cd744f4c4b",
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=515cf033-ed72-3b0c-9688-13be62067d69",
+        "https://db.systemsbiology.net/gestalt/cgi-pub/KGinfo.pl?id=ba3d1691-e512-3827-9c40-303f5d744369"
+       ],
+       "upstream_resource_ids": [
+        "infores:aact"
+       ]
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:in_clinical_trials_for--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_fe224334-7eff-535f-bbac-7e8e7a82d0a3_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:in_clinical_trials_for",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:treats--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_90ae38ad-0872-4830-8e80-25f48a2f46e9_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:ctd": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMID:25223691"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "knowledge_assertion",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "manual_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:ctd",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_e0c51124-59e0-44e2-98b0-a9966ecc9af9_ef79efc7-428b-44f8-8975-60a33258886a"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:semmeddb": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMID:31843437",
+        "PMID:31880065",
+        "PMID:31941953"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:semmeddb",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:CHEBI:63115--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:text-mining-provider-targeted": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMC:3872266",
+        "PMC:5722642",
+        "PMC:7555234"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "CHEBI:63115"
+    },
+    "infores:retriever:DRUGBANK:DB05259--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:obie": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "logical_entailment",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "automated_agent",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:support_graphs",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "aux_1733b6b8-de71-474a-9b96-82e9ab3c259f_f1645f96-d3f4-50bd-a7b8-d1cc3dbe68e3"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:obie",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": []
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "infores:retriever:DRUGBANK:DB05259--biolink:treats_or_applied_or_studied_to_treat--None--None--None--MONDO:0005301--infores:text-mining-provider-targeted": {
+     "attributes": [
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:publications",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": [
+        "PMC:6345788",
+        "PMC:4329654",
+        "PMC:4369831"
+       ],
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "not_provided",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": null,
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "text_mining_agent",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:treats_or_applied_or_studied_to_treat",
+     "sources": [
+      {
+       "resource_id": "infores:text-mining-provider-targeted",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": [
+        "infores:pubmed"
+       ]
+      }
+     ],
+     "subject": "DRUGBANK:DB05259"
+    },
+    "magma_NCBIGene:203068_MONDO:0005301NCBIGene:203068MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:203068"
+    },
+    "magma_NCBIGene:4340_MONDO:0005301NCBIGene:4340MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:4340"
+    },
+    "magma_NCBIGene:4790_MONDO:0005301NCBIGene:4790MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:4790"
+    },
+    "magma_NCBIGene:5594_MONDO:0005301NCBIGene:5594MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:5594"
+    },
+    "magma_NCBIGene:5595_MONDO:0005301NCBIGene:5595MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:5595"
+    },
+    "magma_NCBIGene:6774_MONDO:0005301NCBIGene:6774MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:6774"
+    },
+    "magma_NCBIGene:7124_MONDO:0005301NCBIGene:7124MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:7124"
+    },
+    "magma_NCBIGene:7128_MONDO:0005301NCBIGene:7128MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:7128"
+    },
+    "magma_NCBIGene:7132_MONDO:0005301NCBIGene:7132MONDO:0005301": {
+     "attributes": [
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:agent_type",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "data_analysis_pipeline",
+       "value_type_id": null,
+       "value_url": null
+      },
+      {
+       "attribute_source": "infores:geneticskp",
+       "attribute_type_id": "biolink:knowledge_level",
+       "attributes": null,
+       "description": null,
+       "original_attribute_name": null,
+       "value": "statistical_association",
+       "value_type_id": null,
+       "value_url": null
+      }
+     ],
+     "object": "MONDO:0005301",
+     "predicate": "biolink:gene_associated_with_condition",
+     "sources": [
+      {
+       "resource_id": "infores:geneticskp",
+       "resource_role": "primary_knowledge_source",
+       "source_record_urls": null,
+       "upstream_resource_ids": null
+      }
+     ],
+     "subject": "NCBIGene:7132"
+    }
+   },
+   "nodes": {
+    "CHEBI:187893": {
+     "categories": [
+      "biolink:ChemicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "Baclofen"
+    },
+    "CHEBI:63115": {
+     "categories": [
+      "biolink:ChemicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "Fingolimod"
+    },
+    "DRUGBANK:DB05259": {
+     "categories": [
+      "biolink:PhysicalEssence",
+      "biolink:PhysicalEssenceOrOccurrent",
+      "biolink:ChemicalEntity"
+     ],
+     "name": "Glatiramer"
+    },
+    "MONDO:0005301": {
+     "categories": [
+      "biolink:ThingWithTaxon",
+      "biolink:BiologicalEntity",
+      "biolink:Disease"
+     ],
+     "name": "multiple sclerosis"
+    },
+    "MONDO:0005314": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:Disease",
+      "biolink:DiseaseOrPhenotypicFeature"
+     ],
+     "name": "relapsing-remitting multiple sclerosis"
+    },
+    "MONDO:0018784": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:Disease",
+      "biolink:DiseaseOrPhenotypicFeature"
+     ],
+     "name": "pediatric multiple sclerosis"
+    },
+    "NCBIGene:100125288": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "ZGLP1"
+    },
+    "NCBIGene:203068": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "TUBB"
+    },
+    "NCBIGene:213": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "ALB"
+    },
+    "NCBIGene:3383": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "ICAM1"
+    },
+    "NCBIGene:3570": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "IL6R"
+    },
+    "NCBIGene:4049": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "LTA"
+    },
+    "NCBIGene:4340": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "MOG"
+    },
+    "NCBIGene:4790": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "NFKB1"
+    },
+    "NCBIGene:5594": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "MAPK1"
+    },
+    "NCBIGene:5595": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "MAPK3"
+    },
+    "NCBIGene:6711": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "SPTBN1"
+    },
+    "NCBIGene:6774": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "STAT3"
+    },
+    "NCBIGene:7056": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "THBD"
+    },
+    "NCBIGene:7124": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "TNF"
+    },
+    "NCBIGene:7128": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "TNFAIP3"
+    },
+    "NCBIGene:7132": {
+     "categories": [
+      "biolink:BiologicalEntity",
+      "biolink:ChemicalEntityOrGeneOrGeneProduct",
+      "biolink:ChemicalEntityOrProteinOrPolypeptide"
+     ],
+     "name": "TNFRSF1A"
+    },
+    "UMLS:C0021760": {
+     "categories": [
+      "biolink:Protein",
+      "biolink:GeneProductMixin",
+      "biolink:Polypeptide"
+     ],
+     "name": "interleukin-6"
+    }
+   }
+  },
+  "query_graph": {
+   "edges": {
+    "e0": {
+     "attribute_constraints": [],
+     "exclude": null,
+     "knowledge_type": "inferred",
+     "object": "n0",
+     "option_group_id": null,
+     "predicates": [
+      "biolink:treats"
+     ],
+     "qualifier_constraints": [],
+     "subject": "n1"
+    }
+   },
+   "nodes": {
+    "n0": {
+     "categories": null,
+     "constraints": [],
+     "ids": [
+      "MONDO:0005301"
+     ],
+     "is_set": false,
+     "option_group_id": null,
+     "set_id": null,
+     "set_interpretation": null
+    },
+    "n1": {
+     "categories": [
+      "biolink:ChemicalEntity"
+     ],
+     "constraints": [],
+     "ids": null,
+     "is_set": false,
+     "option_group_id": null,
+     "set_id": null,
+     "set_interpretation": null
+    }
+   }
+  },
+  "results": [
+   {
+    "analyses": [
+     {
+      "edge_bindings": {
+       "e0": [
+        {
+         "attributes": [],
+         "id": "infores:retriever:CHEBI:63115--biolink:treats--None--None--None--MONDO:0005301--infores:obie"
+        },
+        {
+         "attributes": [],
+         "id": "ARAX-prediction-edge-8bb8b100-54f7-5cf5-b3d1-99974ebaf59d"
+        }
+       ]
+      },
+      "score": 0.998,
+      "support_graphs": [
+       "aux_graph_N1_759"
+      ]
+     }
+    ],
+    "node_bindings": {
+     "n0": [
+      {
+       "attributes": [],
+       "id": "MONDO:0005301",
+       "query_id": null
+      }
+     ],
+     "n1": [
+      {
+       "attributes": [],
+       "id": "CHEBI:63115",
+       "query_id": null
+      }
+     ]
+    }
+   },
+   {
+    "analyses": [
+     {
+      "edge_bindings": {
+       "e0": [
+        {
+         "attributes": [],
+         "id": "ARAX-prediction-edge-674863e7-6aa7-5584-9903-0263c90d51d7"
+        }
+       ]
+      },
+      "score": 0.978,
+      "support_graphs": [
+       "aux_graph_N1_274"
+      ]
+     }
+    ],
+    "node_bindings": {
+     "n0": [
+      {
+       "attributes": [],
+       "id": "MONDO:0005301",
+       "query_id": null
+      }
+     ],
+     "n1": [
+      {
+       "attributes": [],
+       "id": "CHEBI:187893",
+       "query_id": null
+      }
+     ]
+    }
+   },
+   {
+    "analyses": [
+     {
+      "edge_bindings": {
+       "e0": [
+        {
+         "attributes": [],
+         "id": "ARAX-prediction-edge-1f5c4fe1-bbbc-5715-9665-4d25ff5b3d8c"
+        },
+        {
+         "attributes": [],
+         "id": "creative_DTD_prediction_18"
+        }
+       ]
+      },
+      "score": 0.961,
+      "support_graphs": [
+       "aux_graph_N1_1055"
+      ]
+     }
+    ],
+    "node_bindings": {
+     "n0": [
+      {
+       "attributes": [],
+       "id": "MONDO:0005301",
+       "query_id": null
+      }
+     ],
+     "n1": [
+      {
+       "attributes": [],
+       "id": "DRUGBANK:DB05259",
+       "query_id": null
+      }
+     ]
+    }
+   }
+  ]
+ }
+}

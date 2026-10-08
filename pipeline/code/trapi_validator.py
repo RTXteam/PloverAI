@@ -1,6 +1,6 @@
 # trapi_validator.py — wraps NCATSTranslator's reasoner-validator (6.x).
 # the rest of the pipeline calls a single function and gets a typed
-# result. this is the v15 "validation policy" gate: invalid TRAPI ->
+# result. this is the "validation policy" gate: invalid TRAPI ->
 # the run stops; we never auto-repair the query.
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def validate_query(
     # we don't pull "info" messages separately. reasoner-validator's
     # get_all_messages_of_type() expects a MessageType enum (not a
     # string), and the API drifts between minor versions. info-level
-    # diagnostics aren't actionable for our v15 gate anyway — they're
+    # diagnostics aren't actionable for this gate anyway — they're
     # in the full report we keep in `raw` if anyone needs them.
     info: dict[str, Any] = {}
     raw = v.get_all_messages() or {}

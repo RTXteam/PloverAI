@@ -1,5 +1,6 @@
 {
   "question_id": "q2",
+  "split": "dev",
   "nl_question": "What diseases are associated with CFTR?",
   "pinned_entity": {
     "curie": "NCBIGene:1080",

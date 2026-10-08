@@ -1,0 +1,1064 @@
+{
+  "question_id": "tr13",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_270",
+      "Asset_271",
+      "Asset_272",
+      "Asset_273",
+      "Asset_274",
+      "Asset_275",
+      "Asset_276",
+      "Asset_277",
+      "Asset_278",
+      "Asset_279",
+      "Asset_280",
+      "Asset_281",
+      "Asset_282",
+      "Asset_283",
+      "Asset_284",
+      "Asset_285",
+      "Asset_286",
+      "Asset_287",
+      "Asset_288",
+      "Asset_289",
+      "Asset_290",
+      "Asset_291",
+      "Asset_292",
+      "Asset_293",
+      "Asset_294",
+      "Asset_295",
+      "Asset_296",
+      "Asset_297",
+      "Asset_298",
+      "Asset_299",
+      "Asset_300",
+      "Asset_301",
+      "Asset_302"
+    ],
+    "question_key": "MONDO:0016063|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Cowden Disease?",
+    "paraphrase": "Are there medicines for Cowden syndrome?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0016063",
+    "label": "Cowden disease",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0016063",
+    "asset_name": "Cowden Disease"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0016063"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 1,
+  "label_counts": {
+    "NeverShow": 33
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_302",
+      "asset_curie": "CHEBI:16042",
+      "label": "Halide anion",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:16042",
+      "equivalent_curies": [
+        "CHEBI:14384",
+        "CHEBI:16042",
+        "CHEBI:5605",
+        "KEGG.COMPOUND:C00462"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_288",
+      "asset_curie": "CHEBI:24532",
+      "label": "Organic heterocyclic compound",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:24532",
+      "equivalent_curies": [
+        "CHEBI:24532"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_290",
+      "asset_curie": "CHEBI:24867",
+      "label": "Monoatomic ion",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:24867",
+      "equivalent_curies": [
+        "CHEBI:24867"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_280",
+      "asset_curie": "CHEBI:25585",
+      "label": "Nonmetal atom",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:25585",
+      "equivalent_curies": [
+        "CHEBI:25585"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_283",
+      "asset_curie": "CHEBI:27081",
+      "label": "Transition element atom",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:27081",
+      "equivalent_curies": [
+        "CHEBI:27081"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_294",
+      "asset_curie": "CHEBI:33431",
+      "label": "Elemental chlorine",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33431",
+      "equivalent_curies": [
+        "CHEBI:33431"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_291",
+      "asset_curie": "CHEBI:33432",
+      "label": "Monoatomic chlorine",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33432",
+      "equivalent_curies": [
+        "CHEBI:33432"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_292",
+      "asset_curie": "CHEBI:33433",
+      "label": "Monoatomic halogen",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33433",
+      "equivalent_curies": [
+        "CHEBI:33433"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_289",
+      "asset_curie": "CHEBI:33434",
+      "label": "Elemental halogen",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33434",
+      "equivalent_curies": [
+        "CHEBI:33434"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_282",
+      "asset_curie": "CHEBI:33497",
+      "label": "Transition element molecular entity",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33497",
+      "equivalent_curies": [
+        "CHEBI:33497"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_284",
+      "asset_curie": "CHEBI:33562",
+      "label": "F-block element atom",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33562",
+      "equivalent_curies": [
+        "CHEBI:33562"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_293",
+      "asset_curie": "CHEBI:33674",
+      "label": "S-block molecular entity",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33674",
+      "equivalent_curies": [
+        "CHEBI:33674"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_281",
+      "asset_curie": "CHEBI:33677",
+      "label": "F-block molecular entity",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33677",
+      "equivalent_curies": [
+        "CHEBI:33677"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_287",
+      "asset_curie": "CHEBI:33695",
+      "label": "Information biomacromolecule",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33695",
+      "equivalent_curies": [
+        "CHEBI:33695"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_299",
+      "asset_curie": "CHEBI:33710",
+      "label": "Alpha-amino-acid residue",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33710",
+      "equivalent_curies": [
+        "CHEBI:33710"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_286",
+      "asset_curie": "CHEBI:36963",
+      "label": "Organooxygen compound",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:36963",
+      "equivalent_curies": [
+        "CHEBI:36963"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_296",
+      "asset_curie": "CHEBI:37578",
+      "label": "Halide",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:37578",
+      "equivalent_curies": [
+        "CHEBI:37578"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_295",
+      "asset_curie": "CHEBI:50047",
+      "label": "Organic amino compound",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:50047",
+      "equivalent_curies": [
+        "CHEBI:50047"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_300",
+      "asset_curie": "CHEBI:79389",
+      "label": "Monovalent inorganic anion",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:79389",
+      "equivalent_curies": [
+        "CHEBI:79389"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_285",
+      "asset_curie": "MESH:D000071940",
+      "label": "Nucleons",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33253",
+      "equivalent_curies": [
+        "CHEBI:33253",
+        "MESH:D000071940"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_301",
+      "asset_curie": "MESH:D000470",
+      "label": "Alkaloids",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:22315",
+      "equivalent_curies": [
+        "CHEBI:22315",
+        "MESH:D000470",
+        "UMLS:C0002062"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_275",
+      "asset_curie": "MESH:D002412",
+      "label": "Cations",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:36916",
+      "equivalent_curies": [
+        "CHEBI:36916",
+        "KEGG.COMPOUND:C01373",
+        "MESH:D002412",
+        "UMLS:C0007447"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_271",
+      "asset_curie": "MESH:D007477",
+      "label": "Ions",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:24870",
+      "equivalent_curies": [
+        "CHEBI:24870",
+        "MESH:D007477",
+        "UMLS:C0022023"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_298",
+      "asset_curie": "MESH:D061065",
+      "label": "Polyketides",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:26188",
+      "equivalent_curies": [
+        "CHEBI:26188",
+        "MESH:D061065",
+        "UMLS:C3179052"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_276",
+      "asset_curie": "PUBCHEM.COMPOUND:",
+      "label": "Electrons",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:",
+      "equivalent_curies": [],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_277",
+      "asset_curie": "PUBCHEM.COMPOUND:",
+      "label": "Formaldehyde",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:",
+      "equivalent_curies": [],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_278",
+      "asset_curie": "PUBCHEM.COMPOUND:",
+      "label": "Organic anion",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:",
+      "equivalent_curies": [],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_279",
+      "asset_curie": "PUBCHEM.COMPOUND:",
+      "label": "Acyl group",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:",
+      "equivalent_curies": [],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_272",
+      "asset_curie": "PUBCHEM.COMPOUND:190217",
+      "label": "Oxide",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:25741",
+      "equivalent_curies": [
+        "CAS:16833-27-5",
+        "CHEBI:25741",
+        "CHEBI:29356",
+        "INCHIKEY:AHKZTVQIVOEVFO-UHFFFAOYSA-N",
+        "MESH:D010087",
+        "PUBCHEM.COMPOUND:190217",
+        "UMLS:C0030015"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_270",
+      "asset_curie": "PUBCHEM.COMPOUND:23982",
+      "label": "Gadolinium",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:33375",
+      "equivalent_curies": [
+        "CAS:231-162-2",
+        "CAS:7440-54-2",
+        "CHEBI:33375",
+        "DRUGBANK:DB12091",
+        "HMDB:HMDB0041899",
+        "INCHIKEY:UIWYJDYFSGRHKR-UHFFFAOYSA-N",
+        "MESH:D005682",
+        "PUBCHEM.COMPOUND:175671784",
+        "PUBCHEM.COMPOUND:175671803",
+        "PUBCHEM.COMPOUND:23982",
+        "RXCUI:1310171",
+        "UMLS:C0016911",
+        "UNII:AU0V1LM3JT"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_297",
+      "asset_curie": "PUBCHEM.COMPOUND:23991",
+      "label": "Xenon",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:49956",
+      "equivalent_curies": [
+        "CAS:13965-99-6",
+        "CAS:14932-42-4",
+        "CAS:231-172-7",
+        "CAS:7440-63-3",
+        "CHEBI:135959",
+        "CHEBI:32305",
+        "CHEBI:49956",
+        "CHEBI:49957",
+        "CHEBI:52453",
+        "CHEMBL.COMPOUND:CHEMBL1200685",
+        "CHEMBL.COMPOUND:CHEMBL1236802",
+        "CHEMBL.COMPOUND:CHEMBL4594411",
+        "DRUGBANK:DB09315",
+        "DRUGBANK:DB13453",
+        "DRUGBANK:DB17386",
+        "DrugCentral:4369",
+        "DrugCentral:4371",
+        "DrugCentral:5695",
+        "INCHIKEY:FHNFHKCVQCLJFQ-NJFSPNSNSA-N",
+        "INCHIKEY:FHNFHKCVQCLJFQ-UHFFFAOYSA-N",
+        "INCHIKEY:FHNFHKCVQCLJFQ-YPZZEJLDSA-N",
+        "MESH:C000614971",
+        "MESH:C000614978",
+        "MESH:D014978",
+        "PUBCHEM.COMPOUND:10290811",
+        "PUBCHEM.COMPOUND:175671520",
+        "PUBCHEM.COMPOUND:175671525",
+        "PUBCHEM.COMPOUND:175671534",
+        "PUBCHEM.COMPOUND:23991",
+        "PUBCHEM.COMPOUND:66376",
+        "RXCUI:11363",
+        "RXCUI:259282",
+        "RXCUI:2626219",
+        "RXCUI:2626220",
+        "UMLS:C0043339",
+        "UMLS:C0872916",
+        "UMLS:C4287660",
+        "UMLS:C4546736",
+        "UNII:3H3U766W84",
+        "UNII:X3P9A5HNYF"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_273",
+      "asset_curie": "PUBCHEM.COMPOUND:5462310",
+      "label": "Carbon",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:27594",
+      "equivalent_curies": [
+        "CAS:101239-80-9",
+        "CAS:106907-70-4",
+        "CAS:109766-76-9",
+        "CAS:114680-00-1",
+        "CAS:115344-49-5",
+        "CAS:116788-82-0",
+        "CAS:12424-49-6",
+        "CAS:124760-06-1",
+        "CAS:12751-41-6",
+        "CAS:12768-98-8",
+        "CAS:12789-22-9",
+        "CAS:130960-03-1",
+        "CAS:131640-45-4",
+        "CAS:133136-50-2",
+        "CAS:1333-86-4",
+        "CAS:1343-03-9",
+        "CAS:137322-21-5",
+        "CAS:137906-62-8",
+        "CAS:138464-41-2",
+        "CAS:1399-57-1",
+        "CAS:147335-73-7",
+        "CAS:155660-93-8",
+        "CAS:156854-02-3",
+        "CAS:158271-80-8",
+        "CAS:159251-18-0",
+        "CAS:16291-96-6",
+        "CAS:164973-65-3",
+        "CAS:179607-25-1",
+        "CAS:181719-82-4",
+        "CAS:182761-22-4",
+        "CAS:186708-92-9",
+        "CAS:186708-96-3",
+        "CAS:208519-32-8",
+        "CAS:208728-20-5",
+        "CAS:208728-21-6",
+        "CAS:214540-86-0",
+        "CAS:231-153-3",
+        "CAS:26837-67-2",
+        "CAS:308068-56-6",
+        "CAS:326874-96-8",
+        "CAS:37196-29-5",
+        "CAS:37265-44-4",
+        "CAS:37265-48-8",
+        "CAS:39422-04-3",
+        "CAS:39434-34-9",
+        "CAS:429685-07-4",
+        "CAS:50814-81-8",
+        "CAS:52623-24-2",
+        "CAS:53095-52-6",
+        "CAS:53851-02-8",
+        "CAS:55353-42-9",
+        "CAS:55607-95-9",
+        "CAS:56257-79-5",
+        "CAS:56257-80-8",
+        "CAS:56274-59-0",
+        "CAS:566149-76-6",
+        "CAS:56729-25-0",
+        "CAS:56729-26-1",
+        "CAS:58517-29-6",
+        "CAS:610-410-7",
+        "CAS:61512-59-2",
+        "CAS:63661-31-4",
+        "CAS:64365-11-3",
+        "CAS:64427-56-1",
+        "CAS:64900-31-8",
+        "CAS:65407-06-9",
+        "CAS:67167-41-3",
+        "CAS:681225-93-4",
+        "CAS:72536-89-1",
+        "CAS:72840-52-9",
+        "CAS:73560-38-0",
+        "CAS:7440-44-0",
+        "CAS:75026-75-4",
+        "CAS:76416-61-0",
+        "CAS:76632-92-3",
+        "CAS:7782-40-3",
+        "CAS:7782-42-5",
+        "CAS:798556-12-4",
+        "CAS:798556-14-6",
+        "CAS:79921-09-8",
+        "CAS:81180-26-9",
+        "CAS:82600-58-6",
+        "CAS:82696-74-0",
+        "CAS:82696-75-1",
+        "CAS:82701-02-8",
+        "CAS:82701-03-9",
+        "CAS:82701-04-0",
+        "CAS:82701-05-1",
+        "CAS:82701-06-2",
+        "CAS:82709-42-0",
+        "CAS:83138-28-7",
+        "CAS:83797-07-3",
+        "CAS:84739-05-9",
+        "CAS:857167-12-5",
+        "CAS:87934-03-0",
+        "CAS:90452-98-5",
+        "CAS:90597-58-3",
+        "CAS:97708-44-6",
+        "CAS:97793-37-8",
+        "CHEBI:23009",
+        "CHEBI:27594",
+        "CHEBI:33415",
+        "CHEBI:33417",
+        "CHEBI:33418",
+        "CHEBI:3399",
+        "CHEMBL.COMPOUND:CHEMBL2106049",
+        "DRUGBANK:DB09278",
+        "DRUGBANK:DB11980",
+        "DRUGBANK:DB18717",
+        "INCHIKEY:OKTJSMMVPCPJKN-UHFFFAOYSA-N",
+        "KEGG.COMPOUND:C06265",
+        "MESH:C040896",
+        "MESH:D002244",
+        "MESH:D002606",
+        "MESH:D006108",
+        "MESH:D018130",
+        "PUBCHEM.COMPOUND:5462310",
+        "RXCUI:1153454",
+        "RXCUI:1153455",
+        "RXCUI:1153456",
+        "RXCUI:1167389",
+        "RXCUI:1167390",
+        "RXCUI:1173419",
+        "RXCUI:1173420",
+        "RXCUI:1251406",
+        "RXCUI:1251407",
+        "RXCUI:1251408",
+        "RXCUI:1251409",
+        "RXCUI:1251410",
+        "RXCUI:1251411",
+        "RXCUI:1362686",
+        "RXCUI:142091",
+        "RXCUI:1440919",
+        "RXCUI:199241",
+        "RXCUI:2032",
+        "RXCUI:2102502",
+        "RXCUI:2102503",
+        "RXCUI:2102504",
+        "RXCUI:211245",
+        "RXCUI:212227",
+        "RXCUI:217743",
+        "RXCUI:226681",
+        "RXCUI:2296",
+        "RXCUI:2373442",
+        "RXCUI:2373443",
+        "RXCUI:237836",
+        "RXCUI:240379",
+        "RXCUI:2699483",
+        "RXCUI:2699484",
+        "RXCUI:272",
+        "RXCUI:309145",
+        "RXCUI:309146",
+        "RXCUI:309147",
+        "RXCUI:309150",
+        "RXCUI:315613",
+        "RXCUI:315614",
+        "RXCUI:315615",
+        "RXCUI:315616",
+        "RXCUI:315618",
+        "RXCUI:329210",
+        "RXCUI:330608",
+        "RXCUI:331361",
+        "RXCUI:365856",
+        "RXCUI:370534",
+        "RXCUI:370535",
+        "RXCUI:385211",
+        "RXCUI:412115",
+        "RXCUI:572450",
+        "RXCUI:616227",
+        "RXCUI:706078",
+        "RXCUI:706145",
+        "RXCUI:830455",
+        "RXCUI:90249",
+        "RXCUI:92128",
+        "UMLS:C0001275",
+        "UMLS:C0007009",
+        "UMLS:C0007010",
+        "UMLS:C0007955",
+        "UMLS:C0052561",
+        "UMLS:C0057717",
+        "UMLS:C0302933",
+        "UMLS:C0305605",
+        "UMLS:C0543294",
+        "UMLS:C0692617",
+        "UMLS:C0713257",
+        "UMLS:C0714842",
+        "UMLS:C0714844",
+        "UMLS:C0721074",
+        "UMLS:C0732236",
+        "UMLS:C0773672",
+        "UMLS:C0777944",
+        "UMLS:C0975485",
+        "UMLS:C0975486",
+        "UMLS:C0975487",
+        "UMLS:C0975492",
+        "UMLS:C0984663",
+        "UMLS:C0984665",
+        "UMLS:C0984666",
+        "UMLS:C0984667",
+        "UMLS:C0984669",
+        "UMLS:C1124329",
+        "UMLS:C1126304",
+        "UMLS:C1127228",
+        "UMLS:C1239821",
+        "UMLS:C1244555",
+        "UMLS:C1244556",
+        "UMLS:C1262566",
+        "UMLS:C1341371",
+        "UMLS:C1564677",
+        "UMLS:C1606647",
+        "UMLS:C1606874",
+        "UMLS:C1703827",
+        "UMLS:C1948635",
+        "UMLS:C1948718",
+        "UMLS:C1948782",
+        "UMLS:C2586796",
+        "UMLS:C3207938",
+        "UMLS:C3207939",
+        "UMLS:C3207940",
+        "UMLS:C3221582",
+        "UMLS:C3221583",
+        "UMLS:C3227453",
+        "UMLS:C3227454",
+        "UMLS:C3282440",
+        "UMLS:C3282441",
+        "UMLS:C3668513",
+        "UMLS:C4735017",
+        "UMLS:C4735018",
+        "UMLS:C4735019",
+        "UMLS:C5383355",
+        "UMLS:C5384519",
+        "UMLS:C5966811",
+        "UMLS:C5979822"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_274",
+      "asset_curie": "PUBCHEM.COMPOUND:962",
+      "label": "Water",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:15377",
+      "equivalent_curies": [
+        "CAS:117318-92-0",
+        "CAS:146915-49-3",
+        "CAS:146915-50-6",
+        "CAS:158061-35-9",
+        "CAS:191612-61-0",
+        "CAS:191612-63-2",
+        "CAS:231-791-2",
+        "CAS:686-299-4",
+        "CAS:7732-18-5",
+        "CHEBI:10743",
+        "CHEBI:13352",
+        "CHEBI:15377",
+        "CHEBI:27313",
+        "CHEBI:42043",
+        "CHEBI:42857",
+        "CHEBI:43228",
+        "CHEBI:44292",
+        "CHEBI:44701",
+        "CHEBI:44819",
+        "CHEBI:5585",
+        "CHEMBL.COMPOUND:CHEMBL1098659",
+        "DRUGBANK:DB09145",
+        "HMDB:HMDB0002111",
+        "INCHIKEY:XLYOFNOQVPJJNP-UHFFFAOYSA-N",
+        "KEGG.COMPOUND:C00001",
+        "MESH:D014867",
+        "MESH:D060766",
+        "PUBCHEM.COMPOUND:962",
+        "RXCUI:1043588",
+        "RXCUI:1045437",
+        "RXCUI:1045439",
+        "RXCUI:1053147",
+        "RXCUI:1053148",
+        "RXCUI:1053153",
+        "RXCUI:1053154",
+        "RXCUI:1053172",
+        "RXCUI:1053173",
+        "RXCUI:1053428",
+        "RXCUI:1053429",
+        "RXCUI:107129",
+        "RXCUI:11295",
+        "RXCUI:1151100",
+        "RXCUI:1151101",
+        "RXCUI:1161792",
+        "RXCUI:1161794",
+        "RXCUI:1161795",
+        "RXCUI:1180556",
+        "RXCUI:1235498",
+        "RXCUI:1235499",
+        "RXCUI:1235500",
+        "RXCUI:1235501",
+        "RXCUI:1235502",
+        "RXCUI:1235503",
+        "RXCUI:1235504",
+        "RXCUI:1423320",
+        "RXCUI:1423321",
+        "RXCUI:1424601",
+        "RXCUI:1424602",
+        "RXCUI:1424603",
+        "RXCUI:1424604",
+        "RXCUI:1424605",
+        "RXCUI:1425974",
+        "RXCUI:1425975",
+        "RXCUI:1425976",
+        "RXCUI:1425977",
+        "RXCUI:1425978",
+        "RXCUI:1427071",
+        "RXCUI:1489375",
+        "RXCUI:1489376",
+        "RXCUI:1489377",
+        "RXCUI:1489378",
+        "RXCUI:150985",
+        "RXCUI:1539535",
+        "RXCUI:1549851",
+        "RXCUI:1549852",
+        "RXCUI:1549853",
+        "RXCUI:1549854",
+        "RXCUI:1549855",
+        "RXCUI:1551628",
+        "RXCUI:1923419",
+        "RXCUI:1923420",
+        "RXCUI:204918",
+        "RXCUI:2108561",
+        "RXCUI:2704855",
+        "RXCUI:2704856",
+        "RXCUI:340584",
+        "RXCUI:379002",
+        "UMLS:C0043047",
+        "UMLS:C0359299",
+        "UMLS:C0590256",
+        "UMLS:C0705005",
+        "UMLS:C0720356",
+        "UMLS:C0770156",
+        "UMLS:C0976847",
+        "UMLS:C1141499",
+        "UMLS:C1253380",
+        "UMLS:C1584203",
+        "UMLS:C1883551",
+        "UMLS:C2948223",
+        "UMLS:C2948224",
+        "UMLS:C2948996",
+        "UMLS:C2948997",
+        "UMLS:C2949578",
+        "UMLS:C2961554",
+        "UMLS:C2961555",
+        "UMLS:C2961560",
+        "UMLS:C2961561",
+        "UMLS:C2961577",
+        "UMLS:C2961756",
+        "UMLS:C3205651",
+        "UMLS:C3205652",
+        "UMLS:C3216125",
+        "UMLS:C3216127",
+        "UMLS:C3216128",
+        "UMLS:C3234408",
+        "UMLS:C3254839",
+        "UMLS:C3254840",
+        "UMLS:C3254841",
+        "UMLS:C3254842",
+        "UMLS:C3254843",
+        "UMLS:C3254844",
+        "UMLS:C3542472",
+        "UMLS:C3644010",
+        "UMLS:C3644056",
+        "UMLS:C3644310",
+        "UMLS:C3644311",
+        "UMLS:C3644312",
+        "UMLS:C3644313",
+        "UMLS:C3644850",
+        "UMLS:C3644851",
+        "UMLS:C3644852",
+        "UMLS:C3644853",
+        "UMLS:C3644854",
+        "UMLS:C3818671",
+        "UMLS:C3819654",
+        "UMLS:C3820105",
+        "UMLS:C3820231",
+        "UMLS:C3832760",
+        "UMLS:C3856248",
+        "UMLS:C3856249",
+        "UMLS:C3856250",
+        "UMLS:C3857954",
+        "UMLS:C4476407",
+        "UMLS:C4476408",
+        "UMLS:C5979196",
+        "UMLS:C5979197",
+        "UNII:059QF0KO0R"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

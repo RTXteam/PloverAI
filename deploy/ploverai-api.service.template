@@ -1,14 +1,14 @@
 # PloverAI FastAPI service — copy to /etc/systemd/system/ploverai-api.service
 # then: sudo systemctl daemon-reload && sudo systemctl enable --now ploverai-api
 #
-# this assumes the following layout:
+# this assumes the layout from deploy/README.md:
 #   /var/lib/ploverai/app/        ← git clone
 #   /var/lib/ploverai/app/pipeline/.venv/  ← python venv
 #   /var/lib/ploverai/app/pipeline/.env    ← OPENROUTER_API_KEY + PLOVERAI_API_KEY
 
 [Unit]
 Description=PloverAI FastAPI service (uvicorn, port 8000)
-Documentation=https://github.com/RTXteam/PloverAI
+Documentation=https://github.com/RamseyLab/ploverai
 After=network-online.target
 Wants=network-online.target
 
@@ -17,10 +17,9 @@ Type=simple
 User=ploverai
 Group=ploverai
 
-# pipeline/ is the self-contained service root. uvicorn resolves the
-# python module path `code.api:app` from this directory, so this MUST
-# be the pipeline/ subdir of the clone, not the repo root.
-WorkingDirectory=/var/lib/ploverai/app/pipeline
+# repo root — the python module path `pipeline.code.api:app` is
+# resolved from here, so this MUST be the top-level repo dir.
+WorkingDirectory=/var/lib/ploverai/app
 
 # env file with OPENROUTER_API_KEY + PLOVERAI_API_KEY. systemd reads
 # it once at service start. update with `sudo systemctl restart`.
@@ -31,7 +30,7 @@ EnvironmentFile=/var/lib/ploverai/app/pipeline/.env
 # you ever debug from a remote machine, do it through an SSH tunnel:
 #   ssh -L 8000:127.0.0.1:8000 ec2-user@<ip>
 ExecStart=/var/lib/ploverai/app/pipeline/.venv/bin/uvicorn \
-          code.api:app \
+          pipeline.code.api:app \
           --host 127.0.0.1 \
           --port 8000 \
           --workers 1

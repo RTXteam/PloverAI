@@ -23,10 +23,14 @@
 #      "PubTator didn't index this PMID").
 #   5. empty body → empty dict.
 
-from code.pubtator_client import _parse_pubtator_biocjson
+from __future__ import annotations
+
+from typing import Any
+
+from pipeline.code.pubtator_client import _parse_pubtator_biocjson
 
 
-def _minimal_biocjson():
+def _minimal_biocjson() -> dict[str, Any]:
     # representative fixture: 1 PMID, 2 passages (title + abstract),
     # 3 annotations spread across them. mirrors PubTator3's real shape.
     return {
@@ -74,7 +78,7 @@ def _minimal_biocjson():
 
 # ---- happy path ----
 
-def test_extracts_all_annotation_identifiers():
+def test_extracts_all_annotation_identifiers() -> None:
     # 3 annotations spread across 2 passages → expect 3 CURIEs collapsed
     # into one set for the single PMID.
     out = _parse_pubtator_biocjson(_minimal_biocjson())
@@ -83,7 +87,7 @@ def test_extracts_all_annotation_identifiers():
     }
 
 
-def test_pmid_key_is_prefixed():
+def test_pmid_key_is_prefixed() -> None:
     # PubTator returns pmid as a bare integer; we must return CURIE-formatted
     # "PMID:<n>" so callers can compare directly with edge.supporting_publications
     # (which are CURIE-formatted in TRAPI).
@@ -94,7 +98,7 @@ def test_pmid_key_is_prefixed():
 
 # ---- multi-document fixture ----
 
-def test_multiple_documents_each_get_own_pmid_key():
+def test_multiple_documents_each_get_own_pmid_key() -> None:
     # PubTator3 can return multiple docs in one call (batched PMIDs).
     # we must produce one entry per pmid.
     body = {
@@ -123,7 +127,7 @@ def test_multiple_documents_each_get_own_pmid_key():
 
 # ---- degraded inputs ----
 
-def test_pmid_with_no_annotations_emits_empty_set():
+def test_pmid_with_no_annotations_emits_empty_set() -> None:
     # PubTator indexed the PMID but found no entities. we must emit the
     # PMID with an empty set — NOT drop it — so callers can distinguish
     # "no entities found" from "PMID unknown to PubTator".
@@ -137,7 +141,7 @@ def test_pmid_with_no_annotations_emits_empty_set():
     assert out == {"PMID:33487311": set()}
 
 
-def test_passage_with_no_annotations_key_does_not_raise():
+def test_passage_with_no_annotations_key_does_not_raise() -> None:
     # some passages (especially auto-generated ones) lack the
     # "annotations" key entirely. parser must tolerate this.
     body = {
@@ -155,7 +159,7 @@ def test_passage_with_no_annotations_key_does_not_raise():
     assert out == {"PMID:33487311": {"MESH:D003924"}}
 
 
-def test_annotation_missing_identifier_is_skipped():
+def test_annotation_missing_identifier_is_skipped() -> None:
     # an annotation with no identifier in infons (rare, but happens for
     # partial matches) must be skipped, NOT raise.
     body = {
@@ -173,14 +177,14 @@ def test_annotation_missing_identifier_is_skipped():
     assert out == {"PMID:33487311": {"MESH:D003924"}}
 
 
-def test_empty_body_returns_empty_dict():
+def test_empty_body_returns_empty_dict() -> None:
     # the most degenerate input — PubTator returned nothing useful.
     # must not raise; just empty result.
     assert _parse_pubtator_biocjson({}) == {}
     assert _parse_pubtator_biocjson({"PubTator3": []}) == {}
 
 
-def test_non_string_identifier_is_skipped():
+def test_non_string_identifier_is_skipped() -> None:
     # defensive: if PubTator ever returns a numeric or null identifier,
     # we drop it. asserting on this prevents a future schema drift
     # from sneaking a non-CURIE value into the output set.

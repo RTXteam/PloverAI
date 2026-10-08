@@ -17,12 +17,12 @@
 #   - answer_category:   None if absent or not a non-empty string.
 #   - granularity:       "general" (default) unless explicitly "specific".
 
-from code.pipeline import _parse_stage0_output
+from pipeline.code.pipeline import _parse_stage0_output
 
 
 # ---- happy path: full 4-field JSON ----
 
-def test_full_four_field_json_parses_all_fields():
+def test_full_four_field_json_parses_all_fields() -> None:
     raw = (
         '{"entity":"warfarin",'
         '"expected_category":"biolink:Drug",'
@@ -41,7 +41,7 @@ def test_full_four_field_json_parses_all_fields():
 # pre-2026-05 prompt called the entity field "name". some snapshot
 # logs / older models still emit that. the parser MUST honour the
 # alias — that's the whole point of having it.
-def test_legacy_name_alias_is_honoured():
+def test_legacy_name_alias_is_honoured() -> None:
     raw = '{"name":"aspirin","expected_category":"biolink:ChemicalEntity"}'
     out = _parse_stage0_output(raw)
     assert out.mention == "aspirin"
@@ -49,7 +49,7 @@ def test_legacy_name_alias_is_honoured():
 
 
 # pre-2026-05 prompt called expected_category "category". same logic.
-def test_legacy_category_alias_is_honoured():
+def test_legacy_category_alias_is_honoured() -> None:
     raw = '{"entity":"HMGCR","category":"biolink:Gene"}'
     out = _parse_stage0_output(raw)
     assert out.mention == "HMGCR"
@@ -58,7 +58,7 @@ def test_legacy_category_alias_is_honoured():
 
 # ---- missing-field defaults ----
 
-def test_missing_expected_category_yields_none():
+def test_missing_expected_category_yields_none() -> None:
     raw = '{"entity":"CFTR"}'
     out = _parse_stage0_output(raw)
     assert out.mention == "CFTR"
@@ -66,14 +66,14 @@ def test_missing_expected_category_yields_none():
     assert out.answer_category is None
 
 
-def test_missing_granularity_defaults_to_general():
+def test_missing_granularity_defaults_to_general() -> None:
     # default of "general" matches the prompt's "when unsure" rule
     raw = '{"entity":"seizures","expected_category":"biolink:PhenotypicFeature"}'
     out = _parse_stage0_output(raw)
     assert out.granularity_preference == "general"
 
 
-def test_explicit_specific_is_preserved():
+def test_explicit_specific_is_preserved() -> None:
     raw = '{"entity":"warfarin","granularity_preference":"specific"}'
     out = _parse_stage0_output(raw)
     assert out.granularity_preference == "specific"
@@ -82,18 +82,18 @@ def test_explicit_specific_is_preserved():
 # only the literal string "specific" should switch to specific. any
 # other value (typo, capitalised, garbage) reverts to "general" — this
 # is fail-soft behaviour for a low-stakes preference.
-def test_unknown_granularity_value_defaults_to_general():
+def test_unknown_granularity_value_defaults_to_general() -> None:
     raw = '{"entity":"aspirin","granularity_preference":"detailed"}'
     out = _parse_stage0_output(raw)
     assert out.granularity_preference == "general"
 
 
-# ---- plain-string fallback (legacy v15 pre-JSON output) ----
+# ---- plain-string fallback (legacy pre-JSON output) ----
 
 # older models / earlier prompts returned just the entity name as a bare
 # string. parser falls back to using the whole text as the mention with
 # no category info. this MUST keep working for replayed snapshot data.
-def test_plain_string_falls_back_to_mention_only():
+def test_plain_string_falls_back_to_mention_only() -> None:
     out = _parse_stage0_output("warfarin")
     assert out.mention == "warfarin"
     assert out.expected_category is None
@@ -105,13 +105,13 @@ def test_plain_string_falls_back_to_mention_only():
 
 # the LLM occasionally wraps its single-string output in extra quotes,
 # even when given a JSON contract. tolerate it.
-def test_quoted_plain_string_strips_quotes():
+def test_quoted_plain_string_strips_quotes() -> None:
     out = _parse_stage0_output('"warfarin"')
     assert out.mention == "warfarin"
 
 
 # leading/trailing whitespace around JSON
-def test_surrounding_whitespace_in_json_tolerated():
+def test_surrounding_whitespace_in_json_tolerated() -> None:
     raw = '   {"entity":"warfarin"}  \n'
     out = _parse_stage0_output(raw)
     assert out.mention == "warfarin"
@@ -119,7 +119,7 @@ def test_surrounding_whitespace_in_json_tolerated():
 
 # ---- empty / whitespace-only input ----
 
-def test_empty_string_yields_empty_mention():
+def test_empty_string_yields_empty_mention() -> None:
     # caller (run_grounded) will turn an empty mention into
     # STATUS_ENTITY_EMPTY. the parser must NOT raise — pipeline must
     # propagate the empty result, not crash.
@@ -128,7 +128,7 @@ def test_empty_string_yields_empty_mention():
     assert out.expected_category is None
 
 
-def test_whitespace_only_yields_empty_mention():
+def test_whitespace_only_yields_empty_mention() -> None:
     out = _parse_stage0_output("   \n\t  ")
     assert out.mention == ""
 
@@ -137,7 +137,7 @@ def test_whitespace_only_yields_empty_mention():
 
 # Stage 2 shares the same _extract_json under the hood, so fenced JSON
 # should round-trip through _parse_stage0_output too.
-def test_fenced_json_is_unwrapped():
+def test_fenced_json_is_unwrapped() -> None:
     raw = '```json\n{"entity":"warfarin","expected_category":"biolink:Drug"}\n```'
     out = _parse_stage0_output(raw)
     assert out.mention == "warfarin"
@@ -149,7 +149,7 @@ def test_fenced_json_is_unwrapped():
 # the LLM sometimes returns non-string values for the entity (e.g.,
 # putting a number when given "1") — the parser coerces to str so the
 # rest of the pipeline doesn't crash on a type error.
-def test_non_string_entity_is_coerced_to_string():
+def test_non_string_entity_is_coerced_to_string() -> None:
     raw = '{"entity":42}'
     out = _parse_stage0_output(raw)
     assert out.mention == "42"

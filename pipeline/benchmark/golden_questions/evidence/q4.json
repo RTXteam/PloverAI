@@ -1,5 +1,6 @@
 {
   "question_id": "q4",
+  "split": "dev",
   "nl_question": "What human genes/proteins does aspirin physically interact with?",
   "pinned_entity": {
     "curie": "CHEBI:15365",

@@ -1,0 +1,43 @@
+{
+  "source_repo": "https://github.com/NCATSTranslator/Tests",
+  "source_commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+  "converted_on": "2026-09-28",
+  "n_assets": 655,
+  "n_questions_grouped": 85,
+  "n_questions_written": 81,
+  "question_types": {
+    "treats": 47,
+    "affects_decreased": 24,
+    "affects_increased": 10
+  },
+  "label_counts": {
+    "TopAnswer": 101,
+    "NeverShow": 433,
+    "BadButForgivable": 17,
+    "Acceptable": 95,
+    "OverlyGeneric": 1
+  },
+  "excluded": [
+    {
+      "key": "NCBIGene:4609|biolink:affects|decreased|activity_or_abundance",
+      "name": "MYC proto-oncogene, bHLH transcription factor",
+      "reason": "no labelled answer in biolink:ChemicalEntity"
+    },
+    {
+      "key": "MONDO:0800029|biolink:treats|-|-",
+      "name": "Interstitial lung disease 2",
+      "reason": "input id does not normalise"
+    },
+    {
+      "key": "PUBCHEM.COMPOUND:187|biolink:affects|increased|activity_or_abundance",
+      "name": "Acetylcholine",
+      "reason": "no labelled answer in biolink:Gene"
+    },
+    {
+      "key": "RXCUI:151392|biolink:affects|increased|activity_or_abundance",
+      "name": "Augmentin (amoxicillin and clavulanate) - clavulanate (CHEBI:2676)",
+      "reason": "Augmentin normalises to UMLS:C5965653 'Kesium' (a veterinary brand), so the gold entity cannot be resolved from any wording of the question"
+    }
+  ],
+  "missing_paraphrases": []
+}

@@ -1,0 +1,122 @@
+{
+  "question_id": "tr32",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_327",
+      "Asset_328",
+      "Asset_329"
+    ],
+    "question_key": "MONDO:0011705|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Lymphangioleiomyomatosis?",
+    "paraphrase": "Which drug is used to treat LAM, the rare lung disease?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0011705",
+    "label": "lymphangioleiomyomatosis",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0011705",
+    "asset_name": "Lymphangioleiomyomatosis"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0011705"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 2,
+  "label_counts": {
+    "Acceptable": 1,
+    "TopAnswer": 1,
+    "NeverShow": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_328",
+      "asset_curie": "PUBCHEM.COMPOUND:11520894",
+      "label": "Ridaforolimus",
+      "expected_output": "Acceptable",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:11520894",
+      "equivalent_curies": [
+        "CAS:572924-54-0",
+        "CAS:682-462-9",
+        "INCHIKEY:BUROJSBIWGDYCN-QHPXJTPRSA-N",
+        "PUBCHEM.COMPOUND:11520894",
+        "PUBCHEM.COMPOUND:57495783"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_327",
+      "asset_curie": "PUBCHEM.COMPOUND:5284616",
+      "label": "Sirolimus",
+      "expected_output": "TopAnswer",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "PUBCHEM.COMPOUND:5284616",
+      "equivalent_curies": [
+        "CAS:53123-88-9",
+        "INCHIKEY:QFJCIRLUMZQUOT-KADBNGAOSA-N",
+        "PUBCHEM.COMPOUND:5284616"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_329",
+      "asset_curie": "UMLS:C0116660",
+      "label": "ESTROSTEP Fe (Norethindrone Acetate and Ethinyl Estradiol)",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0116660",
+      "equivalent_curies": [
+        "UMLS:C0116660"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

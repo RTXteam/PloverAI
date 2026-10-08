@@ -1,18 +1,6 @@
 # tool configs only. we do NOT publish this folder as a python package,
 # so there's no [project] / [build-system] table here.
 
-[tool.pytest.ini_options]
-# importmode=importlib is required because our package is named `code`,
-# which collides with Python's stdlib `code` module (interactive
-# interpreter helper). pytest's default importmode=prepend tries to
-# import tests by their computed dotted name `code.tests.test_X`,
-# which resolves stdlib `code` first and fails because it isn't a
-# package. importlib mode uses a synthetic module name per test file
-# and doesn't trigger that lookup. at test runtime, `from code.X
-# import Y` still works because cwd (pipeline/) is on sys.path[0] and
-# our code/ package wins the lookup there.
-addopts = "--import-mode=importlib"
-
 [tool.ruff]
 target-version = "py311"
 line-length    = 100
@@ -34,17 +22,13 @@ select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF", "TRY"]
 #       use Path(...) as a default and that's fine for our scale.
 # I001: "import block is un-sorted" - we deliberately interleave imports
 #       with explanatory comments, which I001 rejects.
-# RUF003: "ambiguous unicode in comments" - we use ∪ for set union,
-#         × for multiplication, and – for ranges. all deliberate.
-ignore = ["E501", "TRY003", "TRY300", "B008", "I001", "RUF003"]
+ignore = ["E501", "TRY003", "TRY300", "B008", "I001"]
 
 [tool.ruff.lint.isort]
 # group: stdlib | third-party | first-party (us). makes import blocks
 # scannable and matches what the comments say about "where it's from".
-# pipeline/ is a self-contained service: its package is `code`
-# (.py modules live under pipeline/code/), and everything imports as
-# `from code.X import Y` from inside pipeline/.
-known-first-party = ["code"]
+# our package is `pipeline.code` (.py modules live under pipeline/code/).
+known-first-party = ["pipeline"]
 
 [tool.mypy]
 python_version          = "3.11"
@@ -59,21 +43,19 @@ explicit_package_bases  = true
 # reasoner-validator (6.x) does NOT ship a py.typed marker, so mypy
 # refuses to analyse it under --strict. we silence ONLY that module
 # here. httpx, rich, python-dotenv, and PyYAML (via types-PyYAML)
-# all ship their own stubs and need no override.
+# all ship their own stubs and need no override. a `name.*` pattern
+# also matches `name` itself, and strict mode warns about any pattern
+# that matches nothing, so each override lists one pattern.
 [[tool.mypy.overrides]]
-module = ["reasoner_validator", "reasoner_validator.*", "bmt", "bmt.*"]
+module = ["reasoner_validator.*"]
 ignore_missing_imports = true
-
-# tests use the pytest collection convention (def test_foo(): ...) which
-# is naturally untyped. enforcing --strict on every test function adds
-# noise without catching real bugs — the production code under code/
-# is what carries the strict type contract. mypy still runs on tests
-# via pytest's own type-aware plumbing if needed.
+# bmt (Biolink Model Toolkit 1.4.x, imported by code/biolink_helper.py)
+# ships no py.typed marker and there is no stubs package for it. same
+# treatment, same reason: its calls come back as Any, and the helper's
+# own signatures (list[str], dict[str, list[str]]) are what callers see.
 [[tool.mypy.overrides]]
-module = ["code.tests.*"]
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-check_untyped_defs = false
+module = ["bmt.*"]
+ignore_missing_imports = true
 
 [tool.vulture]
 # vulture finds dead code. min_confidence 80 keeps it useful without

@@ -1,5 +1,6 @@
 {
   "question_id": "q8",
+  "split": "dev",
   "nl_question": "Which pathways involve HMGCR?",
   "pinned_entity": {
     "curie": "NCBIGene:3156",

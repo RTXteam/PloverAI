@@ -1,0 +1,144 @@
+{
+  "question_id": "tr47",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_96",
+      "Asset_97"
+    ],
+    "question_key": "MONDO:0019600|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Xeroderma Pigmentosum?",
+    "paraphrase": "Are there drugs for XP (xeroderma pigmentosum)?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0019600",
+    "label": "xeroderma pigmentosum",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0019600",
+    "asset_name": "Xeroderma Pigmentosum"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0019600"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 0,
+  "label_counts": {
+    "NeverShow": 2
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_96",
+      "asset_curie": "CHEBI:22977",
+      "label": "cadmium",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:22977",
+      "equivalent_curies": [
+        "CAS:10108-64-2",
+        "CAS:13966-86-4",
+        "CAS:231-152-8",
+        "CAS:233-296-7",
+        "CAS:72172-64-6",
+        "CAS:7440-43-9",
+        "CAS:81271-94-5",
+        "CHEBI:22977",
+        "CHEBI:35456",
+        "CHEBI:37249",
+        "DRUGBANK:DB14085",
+        "INCHIKEY:BDOSMKKIYDKNTQ-UHFFFAOYSA-N",
+        "INCHIKEY:YKYOUMDCQGMQQO-UHFFFAOYSA-L",
+        "KEGG.COMPOUND:C15233",
+        "MESH:D002104",
+        "MESH:D019256",
+        "PUBCHEM.COMPOUND:175671743",
+        "PUBCHEM.COMPOUND:175671753",
+        "PUBCHEM.COMPOUND:175671764",
+        "PUBCHEM.COMPOUND:23973",
+        "PUBCHEM.COMPOUND:24947",
+        "RXCUI:1362694",
+        "RXCUI:1863268",
+        "UMLS:C0006632",
+        "UMLS:C0054412",
+        "UNII:00BH33GNGH",
+        "UNII:J6K4F9V3BA"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_97",
+      "asset_curie": "CHEBI:25195",
+      "label": "mercury",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:16170",
+      "equivalent_curies": [
+        "CAS:231-106-7",
+        "CAS:7439-97-6",
+        "CHEBI:13369",
+        "CHEBI:16170",
+        "CHEBI:25195",
+        "CHEBI:29319",
+        "CHEBI:5713",
+        "INCHIKEY:QSHDDOUJBYECFT-UHFFFAOYSA-N",
+        "KEGG.COMPOUND:C01319",
+        "MESH:D008628",
+        "PUBCHEM.COMPOUND:175672194",
+        "PUBCHEM.COMPOUND:175672204",
+        "PUBCHEM.COMPOUND:175672211",
+        "PUBCHEM.COMPOUND:175672218",
+        "PUBCHEM.COMPOUND:175672224",
+        "PUBCHEM.COMPOUND:175672232",
+        "PUBCHEM.COMPOUND:175672239",
+        "PUBCHEM.COMPOUND:175672246",
+        "PUBCHEM.COMPOUND:23931",
+        "RXCUI:6769",
+        "UMLS:C0025424",
+        "UNII:FXS1BY2PGL"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

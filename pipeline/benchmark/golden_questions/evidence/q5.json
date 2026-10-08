@@ -1,5 +1,6 @@
 {
   "question_id": "q5",
+  "split": "dev",
   "nl_question": "Which genes participate in the cholesterol biosynthesis pathway?",
   "pinned_entity": {
     "curie": "GO:0006695",

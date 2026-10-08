@@ -1,10 +1,9 @@
 "use client";
 
-// segmented control with three options: light / dark / system.
-// the highlighted background slides with framer-motion's layoutId
-// trick — one shared element animates between three positions.
+// three icon buttons: light / dark / system (follow the OS). the colours
+// switch with the rest of the page inside the root view transition
+// (lib/theme.ts).
 
-import { motion } from "framer-motion";
 import type { ReactElement } from "react";
 import type { Theme } from "@/lib/theme";
 
@@ -24,7 +23,7 @@ export function ThemeSwitch({ theme, onChange }: Props) {
     <div
       role="radiogroup"
       aria-label="Theme"
-      className="relative flex w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-0.5"
+      className="inline-flex h-7 items-center gap-0.5 rounded border border-zinc-200 bg-white p-0.5 dark:border-zinc-800 dark:bg-zinc-900"
     >
       {OPTIONS.map((opt) => {
         const active = opt.id === theme;
@@ -34,23 +33,14 @@ export function ThemeSwitch({ theme, onChange }: Props) {
             type="button"
             role="radio"
             aria-checked={active}
+            aria-label={opt.label}
             onClick={() => onChange(opt.id)}
-            className="relative flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium z-10"
             title={opt.label}
+            className={`flex h-[22px] w-[22px] items-center justify-center rounded-[3px] ${
+              active ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+            }`}
           >
-            {active && (
-              <motion.span
-                layoutId="theme-switch-indicator"
-                className="absolute inset-0 rounded bg-zinc-100 dark:bg-zinc-800 -z-10"
-                transition={{ type: "spring", stiffness: 400, damping: 32 }}
-              />
-            )}
-            <span className={active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500"}>
-              {opt.icon}
-            </span>
-            <span className={active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500"}>
-              {opt.label}
-            </span>
+            {opt.icon}
           </button>
         );
       })}
@@ -58,28 +48,40 @@ export function ThemeSwitch({ theme, onChange }: Props) {
   );
 }
 
+const ICON = {
+  width: 14,
+  height: 14,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.9,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
 function SunIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-      <path d="M10 4a1 1 0 011 1v1a1 1 0 11-2 0V5a1 1 0 011-1zm4.243 1.757a1 1 0 011.414 1.414l-.707.707a1 1 0 11-1.414-1.414l.707-.707zM16 10a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zm-1.757 4.243a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707zM10 14a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.243-.343a1 1 0 010 1.414l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 0zM4 10a1 1 0 01-1 1H2a1 1 0 110-2h1a1 1 0 011 1zm.343-4.243a1 1 0 011.414 0l.707.707A1 1 0 015.05 7.879l-.707-.707a1 1 0 010-1.414zM10 7a3 3 0 100 6 3 3 0 000-6z" />
+    <svg {...ICON}>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4" />
     </svg>
   );
 }
+
 function MoonIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-      <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+    <svg {...ICON}>
+      <path d="M20 14.6A8.5 8.5 0 1 1 9.4 4a6.6 6.6 0 0 0 10.6 10.6z" />
     </svg>
   );
 }
+
 function ScreenIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-      <path
-        fillRule="evenodd"
-        d="M3 5a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V5zm5 10a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
-        clipRule="evenodd"
-      />
+    <svg {...ICON}>
+      <rect x="3" y="4.5" width="18" height="12" rx="2" />
+      <path d="M8.5 20h7M12 16.5V20" />
     </svg>
   );
 }

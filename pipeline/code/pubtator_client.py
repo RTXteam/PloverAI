@@ -2,7 +2,7 @@
 #
 # used at Stage 13 in the grounded pipeline: for each edge in the
 # answer_graph_view, the supporting_publications list is a set of
-# PMIDs cited by RTX-KG2c as evidence. PubTator independently re-
+# PMIDs the knowledge graph cites as evidence. PubTator independently re-
 # annotates each abstract with biomedical entities, so we can check
 # whether the cited PMIDs actually mention BOTH endpoints of the
 # edge — converting "the KG says this is supported" into "this is
@@ -29,7 +29,6 @@ from .config import Config
 
 @dataclass(frozen=True)
 class PubTatorReply:
-    requested: list[str]                       # PMIDs we asked about (no PMID: prefix)
     annotations: dict[str, set[str]]           # PMID:<n> -> set of identifier CURIEs
     missing_pmids: list[str]                   # PMIDs not present in PubTator's response
     raw: dict[str, Any]                        # full response body, preserved
@@ -99,7 +98,6 @@ class PubTatorClient:
         # entries compare directly.
         if not pmid_curies:
             return PubTatorReply(
-                requested=[],
                 annotations={},
                 missing_pmids=[],
                 raw={},
@@ -117,7 +115,6 @@ class PubTatorClient:
         bare_pmids = list(dict.fromkeys(bare_pmids))
         if not bare_pmids:
             return PubTatorReply(
-                requested=[],
                 annotations={},
                 missing_pmids=list(pmid_curies),
                 raw={},
@@ -158,7 +155,6 @@ class PubTatorClient:
         )
 
         return PubTatorReply(
-            requested=bare_pmids,
             annotations=annotations,
             missing_pmids=missing,
             raw=body,

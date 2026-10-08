@@ -1,0 +1,438 @@
+{
+  "question_id": "q19",
+  "split": "test",
+  "nl_question": "What is the molecular target of metaxalone?",
+  "expected_behavior": "abstain",
+  "pinned_entity": {
+    "curie": "CHEBI:6797",
+    "label": "metaxalone",
+    "category": "biolink:SmallMolecule",
+    "resolution_check": "NameRes /lookup?string=metaxalone rank 1 = CHEBI:6797 'Metaxalone' (biolink:SmallMolecule); brand 'Skelaxin' also resolves at rank 1 to CHEBI:6797; NodeNorm canonical id.identifier = CHEBI:6797. Checked 2026-09-28."
+  },
+  "answer_category": "biolink:Gene",
+  "predicate": "biolink:physically_interacts_with",
+  "predicate_note": "Same encoding as dev questions q4/q7 (drug -physically_interacts_with-> Gene). In KG2c, drug-target facts are stored as physically_interacts_with (ChEMBL, DrugBank, NCIT) and as affects with activity qualifiers (ChEMBL mechanisms, DGIdb, DrugBank, DrugCentral; see q11). For metaxalone both are 0, as is the child predicate directly_physically_interacts_with, for answer categories Gene, Protein, GeneOrGeneProduct and NamedThing, in both directions (see zero_result_variants).",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "CHEBI:6797"
+          ],
+          "categories": [
+            "biolink:SmallMolecule"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Gene"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:physically_interacts_with"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 0,
+    "results_count_revalidated": 0,
+    "distinct_answer_nodes": 0,
+    "edges_in_knowledge_graph": 0,
+    "baseline_date": "2026-09-28",
+    "revalidated_date": "2026-09-28",
+    "gold_curies_all_present_at_revalidation": null,
+    "predicate_fix": null,
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0",
+    "plover_build": "Plover build 2026-07-24 from kg2c-2.10.2-v1.0 nodes/edges; code commit c3ec8ba (GET /code_version, 2026-09-28)",
+    "zero_result_variants": [
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Gene",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:Protein",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:GeneOrGeneProduct",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:directly_physically_interacts_with",
+        "pinned_is_subject": false,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": true,
+        "results_count": 0
+      },
+      {
+        "answer_category": "biolink:NamedThing",
+        "predicate": "biolink:affects",
+        "pinned_is_subject": false,
+        "results_count": 0
+      }
+    ],
+    "zero_result_variants_note": "The 24 variants above use pinned category biolink:SmallMolecule. The same grid with pinned category biolink:Drug and biolink:ChemicalEntity was also run: all 72 variants return 0.",
+    "predicate_populated_elsewhere": "physically_interacts_with Drug -> Gene is populated for most drugs, e.g. imatinib (CHEBI:45783, dev q7) 6 results (ChEMBL, NCIT) and aspirin (CHEBI:15365, dev q4) 9 results (DrugBank, ChEMBL, NCIT) on 2026-09-28. Among ~110 drugs probed for this item, only metaxalone and bedaquiline had zero target edges (physically_interacts_with and affects) but non-empty Gene/Protein-category neighbours; bedaquiline has just 1 (a drug-drug interaction with somatrogon).",
+    "hidden_target_check": {
+      "all_edges_of_pinned_node": 2850,
+      "gene_or_protein_category_neighbours": [
+        {
+          "curie": "CHEBI:28001",
+          "label": "vancomycin"
+        },
+        {
+          "curie": "CHEBI:28669",
+          "label": "bacitracin"
+        },
+        {
+          "curie": "CHEBI:34650",
+          "label": "colistimethate sodium"
+        },
+        {
+          "curie": "CHEBI:4450",
+          "label": "desmopressin"
+        },
+        {
+          "curie": "UNII:0Y70779M1F",
+          "label": "RIMABOTULINUMTOXINB"
+        },
+        {
+          "curie": "UNII:6892UQT2GK",
+          "label": "SUSOCTOCOG ALFA"
+        }
+      ],
+      "note": "Every Gene/Protein-category neighbour of metaxalone is a peptide or biologic DRUG reached only through a DrugBank drug-drug-interaction edge (original predicate DRUGBANK:drug-interaction). KG2c has no edge from metaxalone to any enzyme, receptor or channel; not even the CYP enzymes named in the label's Metabolism section are linked."
+    },
+    "trap": {
+      "summary": "The correct query returns 0, but interacts_with / related_to return 6 Gene/Protein-category nodes. All 6 are other drugs (DrugBank drug-drug interactions), not molecular targets.",
+      "looser_predicates": [
+        {
+          "answer_category": "biolink:Gene",
+          "predicate": "biolink:interacts_with",
+          "pinned_is_subject": true,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Gene",
+          "predicate": "biolink:interacts_with",
+          "pinned_is_subject": false,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Gene",
+          "predicate": "biolink:related_to",
+          "pinned_is_subject": true,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Gene",
+          "predicate": "biolink:regulates",
+          "pinned_is_subject": true,
+          "results_count": 0,
+          "primary_sources": {},
+          "example_answers": []
+        },
+        {
+          "answer_category": "biolink:Gene",
+          "predicate": "biolink:has_participant",
+          "pinned_is_subject": false,
+          "results_count": 0,
+          "primary_sources": {},
+          "example_answers": []
+        },
+        {
+          "answer_category": "biolink:Protein",
+          "predicate": "biolink:interacts_with",
+          "pinned_is_subject": true,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Protein",
+          "predicate": "biolink:interacts_with",
+          "pinned_is_subject": false,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Protein",
+          "predicate": "biolink:related_to",
+          "pinned_is_subject": true,
+          "results_count": 6,
+          "primary_sources": {
+            "infores:drugbank": 12
+          },
+          "example_answers": [
+            "RIMABOTULINUMTOXINB",
+            "SUSOCTOCOG ALFA",
+            "bacitracin",
+            "colistimethate sodium",
+            "desmopressin",
+            "vancomycin"
+          ]
+        },
+        {
+          "answer_category": "biolink:Protein",
+          "predicate": "biolink:regulates",
+          "pinned_is_subject": true,
+          "results_count": 0,
+          "primary_sources": {},
+          "example_answers": []
+        },
+        {
+          "answer_category": "biolink:Protein",
+          "predicate": "biolink:has_participant",
+          "pinned_is_subject": false,
+          "results_count": 0,
+          "primary_sources": {},
+          "example_answers": []
+        },
+        {
+          "answer_category": "biolink:MolecularActivity",
+          "predicate": "biolink:related_to",
+          "pinned_is_subject": true,
+          "results_count": 1,
+          "primary_sources": {
+            "infores:medrt-umls": 1
+          },
+          "example_answers": [
+            "Unknown Cellular or Molecular Interaction [MoA]"
+          ]
+        },
+        {
+          "answer_category": "biolink:BiologicalProcess",
+          "predicate": "biolink:causes",
+          "pinned_is_subject": true,
+          "results_count": 4,
+          "primary_sources": {
+            "infores:medrt-umls": 4
+          },
+          "example_answers": [
+            "Centrally-mediated Muscle Relaxation",
+            "Decreased Central Nervous System Organized Electrical Activity",
+            "Decreased Striated Muscle Tone",
+            "Striated Muscle Metabolic Alteration"
+          ]
+        }
+      ],
+      "trap_answer_labels": {
+        "CHEBI:28001": "vancomycin (DrugBank drug-drug interaction partner; KG2c categories biolink:SmallMolecule, biolink:MolecularMixture, biolink:Drug)",
+        "UNII:6892UQT2GK": "SUSOCTOCOG ALFA (DrugBank drug-drug interaction partner; KG2c categories biolink:ChemicalEntity, biolink:Drug, biolink:Protein)",
+        "CHEBI:28669": "bacitracin (DrugBank drug-drug interaction partner; KG2c categories biolink:ChemicalEntity, biolink:Drug, biolink:Protein)",
+        "CHEBI:34650": "colistimethate sodium (DrugBank drug-drug interaction partner; KG2c categories biolink:SmallMolecule, biolink:MolecularMixture, biolink:Drug)",
+        "UNII:0Y70779M1F": "RIMABOTULINUMTOXINB (DrugBank drug-drug interaction partner; KG2c categories biolink:ChemicalEntity, biolink:Drug, biolink:Protein)",
+        "CHEBI:4450": "desmopressin (DrugBank drug-drug interaction partner; KG2c categories biolink:SmallMolecule, biolink:MolecularMixture, biolink:Drug)"
+      },
+      "supporting_signal_for_abstention": "Looser related_to to MolecularActivity returns 1 node, UMLS:C1373108 'Unknown Cellular or Molecular Interaction [MoA]' (infores:medrt-umls, UMLS:mechanism_of_action_of): the KG itself records the mechanism as unknown. causes -> BiologicalProcess returns 4 MED-RT physiologic-effect nodes (e.g. 'Centrally-mediated Muscle Relaxation'), which are effects, not targets.",
+      "severity": "HARD trap: every looser Gene/Protein answer is a co-administered drug (vancomycin, desmopressin, bacitracin, colistimethate, factor VIII susoctocog alfa, rimabotulinumtoxinB). None is a molecular target under any reading of the question. RimabotulinumtoxinB (a neuromuscular-junction toxin) looks superficially plausible for a muscle relaxant."
+    },
+    "gold_zero_result_confirmed_at_revalidation": true
+  },
+  "verification_guide": {
+    "summary": "No gold answers: the correct one-hop query (metaxalone -physically_interacts_with-> Gene) returns 0 in KG2c 2.10.2c, and so do directly_physically_interacts_with and affects in every category/direction variant. The ideal response says KG2c has no target edges for metaxalone (optionally: the KG's MED-RT annotation and the FDA label both say the mechanism is not established).",
+    "how_to_verify": "POST validation.query_graph to https://kg2cploverdb.ci.transltr.io/query (TRAPI 1.5) and confirm message.results is empty. Repeat with validation.zero_result_variants. Then run validation.trap.looser_predicates to see the drug-drug-interaction partners.",
+    "scoring_guidance": "Abstain = correct. Presenting any DrugBank interaction partner (vancomycin, desmopressin, bacitracin, colistimethate sodium, susoctocog alfa, rimabotulinumtoxinB) as a target = fail. Naming GABA receptors, MAO or CYP enzymes as targets from model memory = unfaithful (no KG edge)."
+  },
+  "verified_answers": [],
+  "context_evidence": [
+    {
+      "purpose": "Shows the question is realistic and that no molecular target is established for metaxalone, so any named target is unsupported. Unlike q14/q15/q18, the real-world answer is also empty-to-uncertain, not just the KG answer.",
+      "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=b3a4f6bc-abd4-4b8e-970f-59b3aa6f17a0",
+      "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=b3a4f6bc-abd4-4b8e-970f-59b3aa6f17a0#:~:text=mechanism%20of%20action%20has%20not%20been%20fully%20characterized",
+      "page_title": "DailyMed - METAXALONE tablet (Actavis Pharma / Teva)",
+      "publisher": "U.S. National Library of Medicine — DailyMed",
+      "source_type": "fda_drug_label",
+      "label_version": "label updated July 30, 2025",
+      "section_heading": "12 CLINICAL PHARMACOLOGY — 12.1 Mechanism of Action",
+      "where_on_page": "FULL PRESCRIBING INFORMATION, section 12 CLINICAL PHARMACOLOGY, subsection 12.1 Mechanism of Action: the whole two-sentence subsection is quoted. (The Amneal metaxalone label, setid 3aa9dba9-29b0-4520-a0f7-66d19d52c6bc, has the identical text.)",
+      "exact_quote": "Metaxalone’s mechanism of action has not been fully characterized, but may be related to its sedative properties. Metaxalone has no direct action on the contractile mechanism of striated muscle, the motor end plate, or the nerve fiber."
+    }
+  ],
+  "curation_notes": [
+    "This abstain item is 'true negative plus KG gap': the label does not establish a target, so an abstention is right both against the KG and against the literature. q14, q15 and q18 are pure KG gaps (the real answer exists). Keep this difference in mind when interpreting abstention rates.",
+    "The current metaxalone label adds a serotonin-syndrome warning and treats metaxalone as a serotonergic drug, which some readers take as a hint of monoamine-oxidase activity; the label does not name a target, and KG2c has no metaxalone-MAOA/MAOB edge. An answer of 'MAO' is therefore unfaithful to the KG.",
+    "Rejected drug-target candidates: mavacamten, vericiguat, vonoprazan, daprodustat, givinostat, edaravone, phenazopyridine, guaifenesin (physically_interacts_with = 0 but affects returns the real target or DGIdb/DrugBank genes, so loosening to affects is arguably correct, cf. q11); ozanimod, ubrogepant, cenobamate, sugammadex, vamorolone, ursodiol, sucralfate (no gene/protein neighbours at all, so no trap); bedaquiline (only 1 trap answer); tramadol-type 'metabolite' questions (has_metabolite = 0 but MeSH related_to edges reach the true metabolite).",
+    "Wording matters: 'Which proteins does metaxalone interact with?' would make the DrugBank drug-drug interaction partners arguably correct under a loose reading; the question asks for the molecular target.",
+    "Unused-entity check: CHEBI:6797 is not pinned in evidence/q1-q15 or translator/tr01-tr82."
+  ]
+}

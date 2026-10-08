@@ -8,7 +8,7 @@ examples for the Stage 1 guardrail.
 
 Stage 1 in `pipeline/code/pipeline.py` runs BEFORE any retrieval and decides
 whether the input is a biomedical question worth running through the
-NL → TRAPI → PloverDB → NL pipeline. Its LLM contract is a single JSON
+NL → TRAPI → ARAX → NL pipeline. Its LLM contract is a single JSON
 object:
 
 ```json
@@ -98,7 +98,7 @@ For each irrelevant question, a system run passes if:
 1. **`status == "out_of_scope"`** in the PipelineResult.
 2. **`scope_check.in_scope == false`** (Stage 1 returned the refusal JSON).
 3. **No downstream stages ran** — no NameRes call, no NodeNorm call, no TRAPI
-   construction, no PloverDB POST. The pipeline must exit at Stage 1.
+   construction, no ARAX call. The pipeline must exit at Stage 1.
 4. The user-facing body matches the fixed template
    (`_format_out_of_scope_explanation` output).
 
