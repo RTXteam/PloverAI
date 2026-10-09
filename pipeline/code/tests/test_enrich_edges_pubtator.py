@@ -27,14 +27,18 @@
 # explicitly set to None (not omitted, not empty) — callers downstream
 # can distinguish "no evidence to check" from "checked, found nothing".
 
-from code.pipeline import _enrich_edges_with_pubtator
+from __future__ import annotations
+
+from typing import Any
+
+from pipeline.code.pipeline import _enrich_edges_with_pubtator
 
 
 # ---- shared fixtures ----
 
 # the edge under test: metformin (CHEBI:6801) treats T2DM (MONDO:0005148),
 # cited by 3 PMIDs. mirrors what _build_answer_graph_view produces.
-def _edges_basic():
+def _edges_basic() -> list[dict[str, Any]]:
     return [{
         "id": "edge1",
         "source": "CHEBI:6801",          # metformin
@@ -49,7 +53,7 @@ def _edges_basic():
 
 # equivalent CURIE map mirrors what NodeNorm returns for the two endpoints.
 # the MeSH variants are what PubTator actually annotates with.
-def _equiv_basic():
+def _equiv_basic() -> dict[str, list[str]]:
     return {
         "CHEBI:6801": ["CHEBI:6801", "MESH:D008687", "UMLS:C0025598"],
         "MONDO:0005148": ["MONDO:0005148", "MESH:D003924", "UMLS:C0011860"],
@@ -58,7 +62,7 @@ def _equiv_basic():
 
 # ---- happy path ----
 
-def test_edge_with_one_co_mention_pmid_is_verified():
+def test_edge_with_one_co_mention_pmid_is_verified() -> None:
     # PMID:100 mentions both (via MeSH equivalents).
     # PMID:200 only mentions the drug. PMID:300 unknown to PubTator.
     ann = {
@@ -77,7 +81,7 @@ def test_edge_with_one_co_mention_pmid_is_verified():
     assert v["verified"] is True
 
 
-def test_edge_with_zero_co_mentions_is_not_verified():
+def test_edge_with_zero_co_mentions_is_not_verified() -> None:
     # all PMIDs annotated but only one side appears in each → verified=False
     ann = {
         "PMID:100": {"MESH:D008687"},                # drug only
@@ -91,7 +95,7 @@ def test_edge_with_zero_co_mentions_is_not_verified():
     assert v["co_mention_rate"] == 0.0
 
 
-def test_all_pmids_missing_yields_zero_rate_unverified():
+def test_all_pmids_missing_yields_zero_rate_unverified() -> None:
     # PubTator doesn't index any of the cited PMIDs. rate is 0 (we
     # divide by 0 non-missing → defined-as 0.0). verified is False.
     out = _enrich_edges_with_pubtator(_edges_basic(), _equiv_basic(), {})
@@ -103,7 +107,7 @@ def test_all_pmids_missing_yields_zero_rate_unverified():
 
 # ---- equivalence-class bridging ----
 
-def test_match_uses_equivalent_curies_not_just_canonical():
+def test_match_uses_equivalent_curies_not_just_canonical() -> None:
     # the edge endpoints are CHEBI/MONDO, but PubTator's annotations
     # are pure MeSH. without equivalent_identifiers from NodeNorm this
     # would never match. the test pins that the function does the
@@ -120,7 +124,7 @@ def test_match_uses_equivalent_curies_not_just_canonical():
     assert out[0]["pubtator_verified"]["co_mention_pmids"] == ["PMID:100"]
 
 
-def test_canonical_curie_alone_also_matches():
+def test_canonical_curie_alone_also_matches() -> None:
     # if PubTator's annotation set happens to use the canonical CHEBI
     # CURIE (rare but possible for chemicals), it should still match.
     # validates that the function searches the canonical AND the equivalents,
@@ -132,7 +136,7 @@ def test_canonical_curie_alone_also_matches():
 
 # ---- edge cases ----
 
-def test_edge_without_supporting_publications_gets_null_verified_block():
+def test_edge_without_supporting_publications_gets_null_verified_block() -> None:
     # an edge with no PMIDs to verify — explicit None signals
     # "not applicable" downstream, distinguished from "checked, found none".
     edges = [{
@@ -146,7 +150,7 @@ def test_edge_without_supporting_publications_gets_null_verified_block():
     assert out[0]["pubtator_verified"] is None
 
 
-def test_edge_without_equivalents_in_map_falls_back_to_canonical_only():
+def test_edge_without_equivalents_in_map_falls_back_to_canonical_only() -> None:
     # if NodeNorm didn't return equivalents for an endpoint (network
     # error, unresolvable CURIE), the function should still try matching
     # against the canonical CURIE alone — degrade gracefully.
@@ -163,7 +167,7 @@ def test_edge_without_equivalents_in_map_falls_back_to_canonical_only():
     assert out[0]["pubtator_verified"]["co_mention_pmids"] == ["PMID:100"]
 
 
-def test_original_edges_are_not_mutated():
+def test_original_edges_are_not_mutated() -> None:
     # function returns a NEW list; the input edges objects must be
     # unchanged after the call (no in-place pubtator_verified key on
     # the originals). this matters because the same edges object could
@@ -175,7 +179,7 @@ def test_original_edges_are_not_mutated():
 
 # ---- multi-edge case ----
 
-def test_multiple_edges_each_get_independent_verification():
+def test_multiple_edges_each_get_independent_verification() -> None:
     edges = [
         # edge A: full PMID overlap → verified
         {

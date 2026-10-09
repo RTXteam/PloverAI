@@ -1,0 +1,117 @@
+{
+  "question_id": "tr12",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_502"
+    ],
+    "question_key": "MONDO:0100096|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat COVID-19?",
+    "paraphrase": "what drugs treat covid"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0100096",
+    "label": "COVID-19",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0100096",
+    "asset_name": "COVID-19"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0100096"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 104,
+  "label_counts": {
+    "Acceptable": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_502",
+      "asset_curie": "PUBCHEM.COMPOUND:121304016",
+      "label": "Remdesivir",
+      "expected_output": "Acceptable",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:145994",
+      "equivalent_curies": [
+        "CAS:1809249-37-3",
+        "CHEBI:145994",
+        "CHEMBL.COMPOUND:CHEMBL4065616",
+        "DRUGBANK:DB14761",
+        "DrugCentral:5376",
+        "HMDB:HMDB0304869",
+        "INCHIKEY:RWWYLEGWBNMMLJ-YSOARWBDSA-N",
+        "MESH:C000606551",
+        "PUBCHEM.COMPOUND:121304016",
+        "RXCUI:2284718",
+        "RXCUI:2284957",
+        "RXCUI:2284958",
+        "RXCUI:2284959",
+        "RXCUI:2284960",
+        "RXCUI:2367757",
+        "RXCUI:2367758",
+        "RXCUI:2395498",
+        "RXCUI:2395499",
+        "RXCUI:2395500",
+        "RXCUI:2395501",
+        "RXCUI:2395502",
+        "RXCUI:2395503",
+        "RXCUI:2395504",
+        "UMLS:C4726677",
+        "UMLS:C5242371",
+        "UMLS:C5242372",
+        "UMLS:C5242373",
+        "UMLS:C5242374",
+        "UMLS:C5245064",
+        "UMLS:C5245065",
+        "UMLS:C5402116",
+        "UMLS:C5402117",
+        "UMLS:C5402118",
+        "UMLS:C5402119",
+        "UMLS:C5402120",
+        "UMLS:C5402121",
+        "UMLS:C5402122",
+        "UNII:3QKI37EEHE"
+      ],
+      "reachable_one_hop": {
+        "gold_query": true,
+        "predicate_without_qualifiers": true,
+        "any_predicate": true
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

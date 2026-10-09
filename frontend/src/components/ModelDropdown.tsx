@@ -48,7 +48,7 @@ export function ModelDropdown({ models, value, onChange, disabled, compact, open
   }, [open]);
 
   const triggerClass = compact
-    ? "inline-flex items-center gap-1.5 rounded-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+    ? "inline-flex h-9 items-center gap-1.5 rounded border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 text-[12.5px] font-medium text-zinc-700 dark:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
     : "w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-left font-mono text-sm flex items-center justify-between gap-3 hover:border-zinc-400 dark:hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed";
 
   // anchor + sizing:
@@ -57,10 +57,10 @@ export function ModelDropdown({ models, value, onChange, disabled, compact, open
   //   so labels with prices fit even though the trigger is a small pill.
   // - default (full-width trigger): below + matches the trigger width.
   const menuClass = openUpward
-    ? "absolute right-0 bottom-full mb-2 z-30 w-[36rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto"
+    ? "absolute right-0 bottom-full mb-2 z-30 w-[36rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto scroll-thin"
     : compact
-      ? "absolute right-0 top-full mt-2 z-30 w-[36rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto"
-      : "absolute left-0 right-0 top-full mt-1 z-30 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-lg overflow-hidden max-h-96 overflow-y-auto";
+      ? "absolute right-0 top-full mt-2 z-30 w-[36rem] max-w-[calc(100vw-3rem)] rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-xl overflow-hidden max-h-96 overflow-y-auto scroll-thin"
+      : "absolute left-0 right-0 top-full mt-1 z-30 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-lg overflow-hidden max-h-96 overflow-y-auto scroll-thin";
 
   const enterY = openUpward ? 6 : -4;
 
@@ -135,18 +135,9 @@ function ModelLabel({ m, highlight }: { m: ModelInfo; highlight?: boolean }) {
       <span className={`font-semibold ${highlight ? "text-blue-700 dark:text-blue-300" : ""}`}>{m.id}</span>
       <span>{name}</span>
       <TierBadge tier={m.tier} />
-      {m.recommended && <RecommendedBadge />}
       <span className="text-zinc-500 dark:text-zinc-400 text-xs">
         ${m.price_in.toFixed(2)} in · ${m.price_out.toFixed(2)} out per 1M
       </span>
-    </span>
-  );
-}
-
-function RecommendedBadge() {
-  return (
-    <span className="text-[10px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300">
-      recommended
     </span>
   );
 }
@@ -157,7 +148,11 @@ function TierBadge({ tier }: { tier: string }) {
       ? "bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300"
       : tier === "budget"
         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
-        : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
+        : tier === "value"
+          ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+          : tier === "dev"
+            ? "bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300"
+            : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
   return (
     <span className={`text-[10px] uppercase tracking-wide font-medium px-1.5 py-0.5 rounded ${cls}`}>
       {tier}

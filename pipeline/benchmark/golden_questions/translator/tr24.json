@@ -1,0 +1,196 @@
+{
+  "question_id": "tr24",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_180",
+      "Asset_181"
+    ],
+    "question_key": "MONDO:0005393|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Gout?",
+    "paraphrase": "which meds help gout?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0005393",
+    "label": "gout",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0005393",
+    "asset_name": "Gout"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0005393"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 7,
+  "label_counts": {
+    "Acceptable": 2
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_181",
+      "asset_curie": "PUBCHEM.COMPOUND:5865",
+      "label": "Prednisone",
+      "expected_output": "Acceptable",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "CHEBI:8382",
+      "equivalent_curies": [
+        "CAS:200-160-3",
+        "CAS:53-03-2",
+        "CHEBI:8382",
+        "CHEMBL.COMPOUND:CHEMBL635",
+        "DRUGBANK:DB00635",
+        "DrugCentral:2253",
+        "HMDB:HMDB0014773",
+        "INCHIKEY:XOFYZVNMUHMLCC-ZPOLXVRWSA-N",
+        "KEGG.COMPOUND:C07370",
+        "MESH:D011241",
+        "PUBCHEM.COMPOUND:5865",
+        "RXCUI:1161704",
+        "RXCUI:1161705",
+        "RXCUI:1161706",
+        "RXCUI:1172410",
+        "RXCUI:1172411",
+        "RXCUI:1303124",
+        "RXCUI:1303125",
+        "RXCUI:1303126",
+        "RXCUI:1303127",
+        "RXCUI:1303128",
+        "RXCUI:1303129",
+        "RXCUI:1303130",
+        "RXCUI:1303131",
+        "RXCUI:1303132",
+        "RXCUI:1303133",
+        "RXCUI:1303134",
+        "RXCUI:1303135",
+        "RXCUI:1303136",
+        "RXCUI:1303137",
+        "RXCUI:198144",
+        "RXCUI:198145",
+        "RXCUI:198146",
+        "RXCUI:198148",
+        "RXCUI:205301",
+        "RXCUI:206997",
+        "RXCUI:227730",
+        "RXCUI:312615",
+        "RXCUI:312617",
+        "RXCUI:315187",
+        "RXCUI:316580",
+        "RXCUI:316581",
+        "RXCUI:316582",
+        "RXCUI:316584",
+        "RXCUI:316585",
+        "RXCUI:316586",
+        "RXCUI:317475",
+        "RXCUI:317663",
+        "RXCUI:335473",
+        "RXCUI:373583",
+        "RXCUI:373585",
+        "RXCUI:567793",
+        "RXCUI:763179",
+        "RXCUI:763181",
+        "RXCUI:763183",
+        "RXCUI:763185",
+        "RXCUI:8640",
+        "RXCUI:92354",
+        "UMLS:C0032952",
+        "UMLS:C0305834",
+        "UMLS:C0690120",
+        "UMLS:C0690121",
+        "UMLS:C0690123",
+        "UMLS:C0690128",
+        "UMLS:C0705898",
+        "UMLS:C0708232",
+        "UMLS:C0740144",
+        "UMLS:C0979757",
+        "UMLS:C0982851",
+        "UMLS:C0989245",
+        "UMLS:C0989246",
+        "UMLS:C0989247",
+        "UMLS:C0989249",
+        "UMLS:C0989250",
+        "UMLS:C0989251",
+        "UMLS:C0992820",
+        "UMLS:C0993472",
+        "UMLS:C1132474",
+        "UMLS:C1247651",
+        "UMLS:C1247653",
+        "UMLS:C1533720",
+        "UMLS:C1600210",
+        "UMLS:C3216039",
+        "UMLS:C3216040",
+        "UMLS:C3216041",
+        "UMLS:C3226469",
+        "UMLS:C3226470",
+        "UMLS:C3475332",
+        "UMLS:C3475333",
+        "UMLS:C3475334",
+        "UMLS:C3475335",
+        "UMLS:C3475336",
+        "UMLS:C3475337",
+        "UMLS:C3475338",
+        "UMLS:C3475339",
+        "UMLS:C3475340",
+        "UMLS:C3475341",
+        "UMLS:C3475342",
+        "UMLS:C3475343",
+        "UMLS:C3475344",
+        "UMLS:C3475345",
+        "UNII:VB0R961HZT"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": true
+      }
+    },
+    {
+      "asset_id": "Asset_180",
+      "asset_curie": "UNNI:R581OT55EA",
+      "label": "Pegloticase",
+      "expected_output": "Acceptable",
+      "output_category": null,
+      "canonical_curie": "UNNI:R581OT55EA",
+      "equivalent_curies": [],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

@@ -1,0 +1,424 @@
+{
+  "question_id": "q17",
+  "split": "test",
+  "nl_question": "Where in the body does endometriosis occur?",
+  "pinned_entity": {
+    "curie": "MONDO:0005133",
+    "label": "endometriosis",
+    "category": "biolink:Disease",
+    "resolution_check": "NameRes /lookup?string=endometriosis rank 1 = MONDO:0005133 'endometriosis' (biolink:Disease; ranks 2-3 are its subclasses ovarian endometriosis and cervix endometriosis); NodeNorm canonical id.identifier = MONDO:0005133. Checked 2026-09-28."
+  },
+  "answer_category": "biolink:AnatomicalEntity",
+  "predicate": "biolink:disease_has_location",
+  "predicate_note": "Edge direction: Disease (subject, n0 pinned) -> disease_has_location -> AnatomicalEntity (object, n1). KG2c populates disease_has_location from the ontology axioms RO:0004026 in MONDO, EFO and Disease Ontology (all knowledge_assertion). Other location-like predicates probed: located_in (108, SemMedDB text mining), affects (21, NCIT), occurs_in (1, SemMedDB 'adult organism'); has_location is not populated for this disease. 'Where in the body' is phrased to point at disease_has_location rather than affects.",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "MONDO:0005133"
+          ],
+          "categories": [
+            "biolink:Disease"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:AnatomicalEntity"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n0",
+          "object": "n1",
+          "predicates": [
+            "biolink:disease_has_location"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 7,
+    "results_count_revalidated": 7,
+    "distinct_answer_nodes": 7,
+    "edges_in_knowledge_graph": 16,
+    "baseline_date": "2026-09-28",
+    "revalidated_date": "2026-09-28",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "results_count_note": "7 results, 7 distinct anatomical entities. Six come from subclasses of endometriosis (PloverDB subclass expansion of the pinned node); only UBERON:0001295 'endometrium' comes from an edge on MONDO:0005133 itself.",
+    "n0_descendant_expansion": {
+      "MONDO:0001282": 1,
+      "MONDO:0002706": 1,
+      "MONDO:0001284": 1,
+      "MONDO:0001285": 2,
+      "MONDO:0006337": 1,
+      "MONDO:0005133": 1
+    },
+    "n0_descendant_labels": {
+      "MONDO:0001282": "fallopian tube endometriosis",
+      "MONDO:0006337": "ovarian endometriosis",
+      "MONDO:0001285": "endometriosis of pelvic peritoneum",
+      "MONDO:0005133": "endometriosis",
+      "MONDO:0001284": "endometriosis of intestine",
+      "MONDO:0002706": "cervix endometriosis"
+    },
+    "full_result_set": [
+      {
+        "curie": "UBERON:0000002",
+        "label": "uterine cervix",
+        "via_n0": [
+          "MONDO:0002706"
+        ],
+        "via_n0_label": [
+          "cervix endometriosis"
+        ],
+        "primary_sources": [
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5832132",
+          "5832135"
+        ]
+      },
+      {
+        "curie": "UBERON:0000160",
+        "label": "intestine",
+        "via_n0": [
+          "MONDO:0001284"
+        ],
+        "via_n0_label": [
+          "endometriosis of intestine"
+        ],
+        "primary_sources": [
+          "infores:disease-ontology",
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5829045",
+          "5829048",
+          "6301738"
+        ]
+      },
+      {
+        "curie": "UBERON:0000992",
+        "label": "ovary",
+        "via_n0": [
+          "MONDO:0006337"
+        ],
+        "via_n0_label": [
+          "ovarian endometriosis"
+        ],
+        "primary_sources": [
+          "infores:disease-ontology",
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5941549",
+          "6276990",
+          "6301745"
+        ]
+      },
+      {
+        "curie": "UBERON:0001295",
+        "label": "endometrium",
+        "via_n0": [
+          "MONDO:0005133"
+        ],
+        "via_n0_label": [
+          "endometriosis"
+        ],
+        "primary_sources": [
+          "infores:disease-ontology"
+        ],
+        "edge_ids": [
+          "6305114"
+        ]
+      },
+      {
+        "curie": "UBERON:0002355",
+        "label": "pelvic region of trunk",
+        "via_n0": [
+          "MONDO:0001285"
+        ],
+        "via_n0_label": [
+          "endometriosis of pelvic peritoneum"
+        ],
+        "primary_sources": [
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5829050",
+          "5829053"
+        ]
+      },
+      {
+        "curie": "UBERON:0002358",
+        "label": "peritoneum",
+        "via_n0": [
+          "MONDO:0001285"
+        ],
+        "via_n0_label": [
+          "endometriosis of pelvic peritoneum"
+        ],
+        "primary_sources": [
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5829051",
+          "5829054"
+        ]
+      },
+      {
+        "curie": "UBERON:0003889",
+        "label": "fallopian tube",
+        "via_n0": [
+          "MONDO:0001282"
+        ],
+        "via_n0_label": [
+          "fallopian tube endometriosis"
+        ],
+        "primary_sources": [
+          "infores:disease-ontology",
+          "infores:efo",
+          "infores:mondo"
+        ],
+        "edge_ids": [
+          "5829039",
+          "5829042",
+          "6301734"
+        ]
+      }
+    ],
+    "result_set_primary_sources": {
+      "infores:efo": 6,
+      "infores:mondo": 6,
+      "infores:disease-ontology": 4
+    },
+    "result_set_knowledge_levels": {
+      "knowledge_assertion": 16
+    },
+    "robustness": {
+      "answer_category_biolink:GrossAnatomicalStructure": 7,
+      "answer_category_biolink:NamedThing": 7,
+      "anatomy_as_subject (reverse direction)": 0
+    },
+    "alternative_queries_probed": {
+      "MONDO:0005133 -located_in-> AnatomicalEntity": {
+        "results_count": 108,
+        "distinct_answer_nodes": 107,
+        "primary_sources": {
+          "infores:semmeddb": 108,
+          "infores:efo": 1
+        },
+        "note": "SemMedDB LOCATION_OF text mining; contains all 5 gold CURIEs plus ~100 others (blood, brain, breast, stomach, tissue, organ, ...)."
+      },
+      "MONDO:0005133 -affects-> AnatomicalEntity": {
+        "results_count": 21,
+        "distinct_answer_nodes": 9,
+        "primary_sources": {
+          "infores:semmeddb": 1,
+          "infores:ncit": 20
+        },
+        "note": "NCIT disease_has_primary_anatomic_site / disease_has_associated_anatomic_site edges (20 results) plus 1 SemMedDB 'disrupts' edge; contains ovary, fallopian tube, uterine cervix but not intestine or peritoneum."
+      },
+      "MONDO:0005133 -occurs_in-> AnatomicalEntity": {
+        "results_count": 1,
+        "note": "SemMedDB, 'adult organism' only"
+      },
+      "MONDO:0005133 -related_to-> AnatomicalEntity": {
+        "results_count": 136,
+        "distinct_answer_nodes": 115
+      }
+    },
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0",
+    "plover_build": "Plover build 2026-07-24 from kg2c-2.10.2-v1.0 nodes/edges; code commit c3ec8ba (GET /code_version, 2026-09-28)"
+  },
+  "verification_guide": {
+    "summary": "5 anatomical sites of endometriosis: ovary, fallopian tube, intestine (bowel), peritoneum (pelvic lining) and uterine cervix. Each is named by an NIH/HHS consumer source or the NLM MeSH scope note, and each is returned by PloverDB for the gold query (via the matching endometriosis subclass, e.g. ovarian endometriosis -> ovary).",
+    "sources_used": [
+      "MedlinePlus health topic 'Endometriosis' (last updated March 27, 2025): ovary, fallopian tube, intestine",
+      "MedlinePlus Medical Encyclopedia article 000915 'Endometriosis' (review date 5/22/2025): intestine, peritoneum (secondary)",
+      "HHS Office on Women's Health 'Endometriosis' (page last updated October 24, 2025): fallopian tube, uterine cervix",
+      "NLM MeSH descriptor D004715 'Endometriosis', scope note: ovary, peritoneum"
+    ],
+    "how_to_verify": "Open each URL; per-evidence where_on_page gives the section. Bulleted lists render as separate lines; quotes join the lead-in sentence and the bullet with ' ... ' when they are not adjacent. The curator matched every fragment against the fetched page text on 2026-09-28.",
+    "cross_check_with_ploverdb": "Each verified_answer CURIE is in the PloverDB result set for the gold query (n0=MONDO:0005133, n1=biolink:AnatomicalEntity, e0: n0 -disease_has_location-> n1), revalidated 2026-09-28. The edges' subject is an endometriosis subclass; supporting_edge_note names it.",
+    "intentionally_omitted": "UBERON:0001295 'endometrium' is in the result set (Disease Ontology edge DOID:289 -RO:0004026-> endometrium, the only edge on MONDO:0005133 itself) but is a distractor: by definition endometriosis is endometrium-like tissue OUTSIDE the uterus (MeSH scope note: 'functional endometrial tissue is present outside the UTERUS'; MedlinePlus: 'tissue like the lining of the uterus grows in other places in your body'). Listing the endometrium as a site of endometriosis is wrong. UBERON:0002355 'pelvic region of trunk' (via endometriosis of pelvic peritoneum) is correct but generic (NICHD: 'Most endometriosis patches are found in the pelvic cavity'); it is left unscored rather than marked wrong."
+  },
+  "verified_answers": [
+    {
+      "curie": "UBERON:0000992",
+      "label": "ovary",
+      "site_class": "ovary (listed first among the most common sites)",
+      "supporting_edge_ids": [
+        "5941549",
+        "6276990",
+        "6301745"
+      ],
+      "supporting_edge_note": "via subclass MONDO:0006337 'ovarian endometriosis' (PloverDB expands the pinned MONDO:0005133 to its subclasses); sources infores:disease-ontology, infores:efo, infores:mondo; original predicate RO:0004026 (disease has location); knowledge_assertion",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/endometriosis.html",
+          "url_with_text_fragment": "https://medlineplus.gov/endometriosis.html#:~:text=On%20or%20under%20the%20ovaries",
+          "page_title": "Endometriosis | Endo | MedlinePlus",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus",
+          "source_type": "health_topic_consumer",
+          "section_heading": "Summary — What is endometriosis?",
+          "where_on_page": "MedlinePlus health topic page, 'Summary' tab, paragraph under 'What is endometriosis?'. After the definition sentence the page says the patches are most often found in a bulleted list; the quoted bullet(s) are in that list. First bullet.",
+          "exact_quote": "They are most often found: ... On or under the ovaries"
+        },
+        {
+          "url": "https://meshb.nlm.nih.gov/record/ui?ui=D004715",
+          "url_with_text_fragment": "https://meshb.nlm.nih.gov/record/ui?ui=D004715#:~:text=It%20is%20often%20confined%20to%20the%20PELVIS%20involving%20the%20OVARY",
+          "page_title": "MeSH Browser — Endometriosis (D004715)",
+          "publisher": "U.S. National Library of Medicine — Medical Subject Headings (MeSH)",
+          "source_type": "controlled_vocabulary_definition",
+          "section_heading": "Scope Note",
+          "where_on_page": "MeSH Browser record D004715, row 'Scope Note' (also rendered in the NCBI MeSH database entry https://www.ncbi.nlm.nih.gov/mesh/68004715 and in the NLM MeSH RDF concept M0007413).",
+          "exact_quote": "A condition in which functional endometrial tissue is present outside the UTERUS. It is often confined to the PELVIS involving the OVARY, the ligaments, cul-de-sac, and the uterovesical peritoneum."
+        }
+      ]
+    },
+    {
+      "curie": "UBERON:0003889",
+      "label": "fallopian tube",
+      "site_class": "fallopian tube",
+      "supporting_edge_ids": [
+        "5829039",
+        "5829042",
+        "6301734"
+      ],
+      "supporting_edge_note": "via subclass MONDO:0001282 'fallopian tube endometriosis' (PloverDB expands the pinned MONDO:0005133 to its subclasses); sources infores:disease-ontology, infores:efo, infores:mondo; original predicate RO:0004026 (disease has location); knowledge_assertion",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/endometriosis.html",
+          "url_with_text_fragment": "https://medlineplus.gov/endometriosis.html#:~:text=On%20the%20fallopian%20tubes%2C%20which%20carry%20eggs%20from%20the%20ovaries%20to%20the%20uterus",
+          "page_title": "Endometriosis | Endo | MedlinePlus",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus",
+          "source_type": "health_topic_consumer",
+          "section_heading": "Summary — What is endometriosis?",
+          "where_on_page": "MedlinePlus health topic page, 'Summary' tab, paragraph under 'What is endometriosis?'. After the definition sentence the page says the patches are most often found in a bulleted list; the quoted bullet(s) are in that list. Second bullet.",
+          "exact_quote": "They are most often found: ... On the fallopian tubes, which carry eggs from the ovaries to the uterus"
+        },
+        {
+          "url": "https://womenshealth.gov/a-z-topics/endometriosis",
+          "url_with_text_fragment": "https://womenshealth.gov/a-z-topics/endometriosis#:~:text=Most%20often%2C%20endometriosis%20is%20found%20on%20the",
+          "page_title": "Endometriosis | Office on Women's Health",
+          "publisher": "U.S. Department of Health and Human Services — Office on Women's Health (womenshealth.gov; page last updated October 24, 2025)",
+          "source_type": "health_topic_consumer",
+          "section_heading": "What is endometriosis?",
+          "where_on_page": "Section 'What is endometriosis?', third paragraph: a bulleted list of the most common sites, followed by the sentence on other sites. 'Fallopian tubes' is the second bullet.",
+          "exact_quote": "Most often, endometriosis is found on the: Ovaries Fallopian tubes Tissues that hold the uterus in place Outer surface of the uterus"
+        }
+      ]
+    },
+    {
+      "curie": "UBERON:0000160",
+      "label": "intestine",
+      "site_class": "intestine / bowel (outside the reproductive organs)",
+      "supporting_edge_ids": [
+        "5829045",
+        "5829048",
+        "6301738"
+      ],
+      "supporting_edge_note": "via subclass MONDO:0001284 'endometriosis of intestine' (PloverDB expands the pinned MONDO:0005133 to its subclasses); sources infores:disease-ontology, infores:efo, infores:mondo; original predicate RO:0004026 (disease has location); knowledge_assertion",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://medlineplus.gov/endometriosis.html",
+          "url_with_text_fragment": "https://medlineplus.gov/endometriosis.html#:~:text=On%20the%20bowels%20or%20bladder",
+          "page_title": "Endometriosis | Endo | MedlinePlus",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus",
+          "source_type": "health_topic_consumer",
+          "section_heading": "Summary — What is endometriosis?",
+          "where_on_page": "MedlinePlus health topic page, 'Summary' tab, paragraph under 'What is endometriosis?'. After the definition sentence the page says the patches are most often found in a bulleted list; the quoted bullet(s) are in that list. Fifth (last) bullet.",
+          "exact_quote": "They are most often found: ... On the bowels or bladder"
+        },
+        {
+          "url": "https://medlineplus.gov/ency/article/000915.htm",
+          "url_with_text_fragment": "https://medlineplus.gov/ency/article/000915.htm#:~:text=This%20tissue%20may%20attach%20on%20your",
+          "page_title": "Endometriosis: MedlinePlus Medical Encyclopedia",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus Medical Encyclopedia (A.D.A.M.; review date 5/22/2025)",
+          "source_type": "medical_encyclopedia_consumer",
+          "section_heading": "Causes",
+          "where_on_page": "Under the heading 'Causes', second paragraph: 'Endometriosis occurs when these cells grow outside the uterus...' followed by a bulleted list; the quoted items are in that list ('Lining of your pelvic area' is the last bullet). 'Bowel' is the third bullet.",
+          "exact_quote": "Endometriosis occurs when these cells grow outside the uterus in other parts of your body. This tissue may attach on your: Ovaries Fallopian tubes Bowel Rectum Bladder Lining of your pelvic area"
+        }
+      ]
+    },
+    {
+      "curie": "UBERON:0002358",
+      "label": "peritoneum",
+      "site_class": "peritoneum (pelvic peritoneal lining)",
+      "supporting_edge_ids": [
+        "5829051",
+        "5829054"
+      ],
+      "supporting_edge_note": "via subclass MONDO:0001285 'endometriosis of pelvic peritoneum' (PloverDB expands the pinned MONDO:0005133 to its subclasses); sources infores:efo, infores:mondo; original predicate RO:0004026 (disease has location); knowledge_assertion",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://meshb.nlm.nih.gov/record/ui?ui=D004715",
+          "url_with_text_fragment": "https://meshb.nlm.nih.gov/record/ui?ui=D004715#:~:text=the%20uterovesical%20peritoneum",
+          "page_title": "MeSH Browser — Endometriosis (D004715)",
+          "publisher": "U.S. National Library of Medicine — Medical Subject Headings (MeSH)",
+          "source_type": "controlled_vocabulary_definition",
+          "section_heading": "Scope Note",
+          "where_on_page": "MeSH Browser record D004715, row 'Scope Note' (also rendered in the NCBI MeSH database entry https://www.ncbi.nlm.nih.gov/mesh/68004715 and in the NLM MeSH RDF concept M0007413).",
+          "exact_quote": "A condition in which functional endometrial tissue is present outside the UTERUS. It is often confined to the PELVIS involving the OVARY, the ligaments, cul-de-sac, and the uterovesical peritoneum."
+        },
+        {
+          "url": "https://medlineplus.gov/ency/article/000915.htm",
+          "url_with_text_fragment": "https://medlineplus.gov/ency/article/000915.htm#:~:text=Lining%20of%20your%20pelvic%20area",
+          "page_title": "Endometriosis: MedlinePlus Medical Encyclopedia",
+          "publisher": "U.S. National Library of Medicine — MedlinePlus Medical Encyclopedia (A.D.A.M.; review date 5/22/2025)",
+          "source_type": "medical_encyclopedia_consumer",
+          "section_heading": "Causes",
+          "where_on_page": "Under the heading 'Causes', second paragraph: 'Endometriosis occurs when these cells grow outside the uterus...' followed by a bulleted list; the quoted items are in that list ('Lining of your pelvic area' is the last bullet). The lining of the pelvic cavity is the pelvic peritoneum; this is a lay phrasing, so the MeSH scope note is the primary evidence.",
+          "exact_quote": "This tissue may attach on your: Ovaries Fallopian tubes Bowel Rectum Bladder Lining of your pelvic area"
+        }
+      ]
+    },
+    {
+      "curie": "UBERON:0000002",
+      "label": "uterine cervix",
+      "site_class": "uterine cervix (listed among 'other sites')",
+      "supporting_edge_ids": [
+        "5832132",
+        "5832135"
+      ],
+      "supporting_edge_note": "via subclass MONDO:0002706 'cervix endometriosis' (PloverDB expands the pinned MONDO:0005133 to its subclasses); sources infores:efo, infores:mondo; original predicate RO:0004026 (disease has location); knowledge_assertion",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://womenshealth.gov/a-z-topics/endometriosis",
+          "url_with_text_fragment": "https://womenshealth.gov/a-z-topics/endometriosis#:~:text=Other%20sites%20for%20growths%20can%20include%20the%20vagina%2C%20cervix%2C%20vulva%2C%20bowel%2C%20bladder%2C%20or%20rectum",
+          "page_title": "Endometriosis | Office on Women's Health",
+          "publisher": "U.S. Department of Health and Human Services — Office on Women's Health (womenshealth.gov; page last updated October 24, 2025)",
+          "source_type": "health_topic_consumer",
+          "section_heading": "What is endometriosis?",
+          "where_on_page": "Section 'What is endometriosis?', third paragraph: a bulleted list of the most common sites, followed by the sentence on other sites. The sentence directly after the bulleted list of most common sites.",
+          "exact_quote": "Other sites for growths can include the vagina, cervix, vulva, bowel, bladder, or rectum."
+        }
+      ]
+    }
+  ],
+  "curation_notes": [
+    "Subclass expansion matters here: 6 of 7 answers are reachable only through subclasses of MONDO:0005133. The single direct edge points to the distractor (endometrium). A system that keeps only edges whose subject is the pinned CURIE will answer 'endometrium' and miss every gold site; this is the intended stress point.",
+    "Peritoneum rests on the MeSH scope note ('uterovesical peritoneum'); the MedlinePlus encyclopedia's 'Lining of your pelvic area' is a lay description of the same structure and is given as secondary evidence only.",
+    "Bladder, rectum, vagina and the uterine ligaments are also real sites (named by the same sources) but have no disease_has_location edge in KG2c; they are not gold because they are not in the result set.",
+    "Unused-entity check: MONDO:0005133 is not pinned in evidence/q1-q15 or translator/tr01-tr82.",
+    "Candidates probed and rejected: sarcoidosis (all 5 answers via subclasses, includes 'telencephalon'), granulomatosis with polyangiitis (4 direct Disease Ontology edges but one is 'blood'), Goodpasture syndrome (3 answers, one is 'genitourinary system'), Wilson disease / Behcet disease / Alport syndrome (0 disease_has_location edges)."
+  ]
+}

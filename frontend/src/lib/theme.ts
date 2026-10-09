@@ -45,23 +45,86 @@ function applyToDOM(theme: Theme): ResolvedTheme {
   return dark ? "dark" : "light";
 }
 
+// the View Transitions API is not in every browser we support, so it is
+// feature-detected through a cast rather than typed as always-present.
+// `unknown` first: lib.dom already declares startViewTransition in newer
+// TS versions with a wider signature, and a plain intersection would
+// clash with it.
+type ViewTransitionApi = { startViewTransition?: (cb: () => void) => unknown };
+
+// returns the transition starter only when a cross-fade is actually
+// appropriate. hidden tabs are excluded because a transition captures a
+// screenshot of the page — starting one on a background tab (an OS theme
+// change arriving while the tab is hidden) can leave the stale snapshot
+// on screen until the tab is focused again.
+function viewTransitionStarter(): ((cb: () => void) => unknown) | null {
+  if (typeof window === "undefined" || typeof document === "undefined") return null;
+  if (document.visibilityState !== "visible") return null;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+  const doc = document as unknown as ViewTransitionApi;
+  const start = doc.startViewTransition;
+  return typeof start === "function" ? start.bind(doc) : null;
+}
+
+// runs `flip` inside a root view transition when one is available, else
+// runs it straight. ONLY safe to call from event paths (a click, a
+// storage event, an OS theme change) — never from a render or from a
+// useSyncExternalStore snapshot, which must stay pure.
+function withThemeTransition(flip: () => void): void {
+  const start = viewTransitionStarter();
+  if (!start) {
+    flip();
+    return;
+  }
+  // a transition the browser skips (another one began, or there is
+  // nothing to animate) rejects its promises; that is not an error here.
+  const transition = start(flip) as
+    | { ready?: Promise<unknown>; finished?: Promise<unknown>; updateCallbackDone?: Promise<unknown> }
+    | undefined;
+  for (const done of [transition?.ready, transition?.finished, transition?.updateCallbackDone]) {
+    done?.catch(() => undefined);
+  }
+}
+
+// event-path DOM sync used by the store subscribers. no-ops when the
+// class is already what it should be, which is what keeps the two
+// useSyncExternalStore subscriptions (theme + resolvedTheme) from
+// starting two overlapping transitions for one event.
+function syncDOMAnimated(theme: Theme): void {
+  if (typeof document === "undefined") return;
+  const dark = theme === "dark" || (theme === "system" && systemDark());
+  if (document.documentElement.classList.contains("dark") === dark) return;
+  withThemeTransition(() => {
+    applyToDOM(theme);
+  });
+}
+
 // useSyncExternalStore plumbing for the theme preference. one
 // subscriber listens for cross-tab `storage` events and for OS theme
 // changes when in `system` mode.
 function subscribeTheme(notify: () => void): () => void {
   if (typeof window === "undefined") return () => {};
+  // both handlers are event paths, so they may drive the animated DOM
+  // sync. without it a cross-tab write or an OS flip in `system` mode
+  // updated React state but left html.dark stale.
   const onStorage = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) notify();
+    if (e.key !== STORAGE_KEY) return;
+    syncDOMAnimated(readStored());
+    notify();
   };
   window.addEventListener("storage", onStorage);
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
-  // only fires while we're in `system` mode, but subscribing always
+  // only matters while we're in `system` mode, but subscribing always
   // keeps the wiring simple; if the user is on light/dark explicitly
-  // the OS change is irrelevant and harmless.
-  mq.addEventListener("change", notify);
+  // syncDOMAnimated sees the class is already right and does nothing.
+  const onSystemChange = () => {
+    syncDOMAnimated(readStored());
+    notify();
+  };
+  mq.addEventListener("change", onSystemChange);
   return () => {
     window.removeEventListener("storage", onStorage);
-    mq.removeEventListener("change", notify);
+    mq.removeEventListener("change", onSystemChange);
   };
 }
 
@@ -95,11 +158,15 @@ export function useTheme(): {
     } else {
       window.localStorage.setItem(STORAGE_KEY, t);
     }
-    // `storage` events don't fire on the same tab that wrote them,
-    // so we need to update the DOM directly. then dispatch a synthetic
-    // event so the useSyncExternalStore subscriber re-reads.
-    applyToDOM(t);
-    window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
+    // `storage` events don't fire on the same tab that wrote them, so we
+    // update the DOM directly, then dispatch a synthetic event so the
+    // useSyncExternalStore subscribers re-read. both go INSIDE the view
+    // transition callback so the class flip and the React re-render land
+    // in the same captured frame — one cross-fade for the whole page.
+    withThemeTransition(() => {
+      applyToDOM(t);
+      window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
+    });
   }, []);
 
   return { theme, resolvedTheme, setTheme };

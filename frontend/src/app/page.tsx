@@ -6,10 +6,10 @@
 // users submit queries.
 //
 // the ?run=<id> form serves the same use case (shareable deep links)
-// without any server-side routing. ChatShell reads the URL on mount.
+// without any server-side routing. Workbench reads the URL on mount.
 
-import ChatShell from "@/components/ChatShell";
+import Workbench from "@/components/Workbench";
 
 export default function Home() {
-  return <ChatShell />;
+  return <Workbench />;
 }

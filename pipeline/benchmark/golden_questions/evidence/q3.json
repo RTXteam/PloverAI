@@ -1,5 +1,6 @@
 {
   "question_id": "q3",
+  "split": "dev",
   "nl_question": "What adverse events does warfarin cause?",
   "pinned_entity": {
     "curie": "CHEBI:10033",

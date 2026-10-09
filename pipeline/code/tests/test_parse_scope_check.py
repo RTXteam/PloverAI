@@ -9,18 +9,18 @@
 #
 # this is the spec these tests pin down.
 
-from code.pipeline import _parse_scope_check_output
+from pipeline.code.pipeline import _parse_scope_check_output
 
 
 # ---- happy path: well-formed responses ----
 
-def test_in_scope_true_with_empty_reason():
+def test_in_scope_true_with_empty_reason() -> None:
     out = _parse_scope_check_output('{"in_scope": true, "reason": ""}')
     assert out.in_scope is True
     assert out.reason == ""
 
 
-def test_in_scope_false_with_reason_preserved():
+def test_in_scope_false_with_reason_preserved() -> None:
     raw = '{"in_scope": false, "reason": "this is a policy question"}'
     out = _parse_scope_check_output(raw)
     assert out.in_scope is False
@@ -31,25 +31,25 @@ def test_in_scope_false_with_reason_preserved():
 
 # bad JSON → fail open. this is the one we cannot get wrong: a malformed
 # guardrail response must never block a real question.
-def test_malformed_json_fails_open():
+def test_malformed_json_fails_open() -> None:
     out = _parse_scope_check_output("not valid json")
     assert out.in_scope is True
     assert out.reason == ""
 
 
-def test_partial_json_fails_open():
+def test_partial_json_fails_open() -> None:
     # truncated JSON object
     out = _parse_scope_check_output('{"in_scope": false, "reason":')
     assert out.in_scope is True
 
 
-def test_empty_string_fails_open():
+def test_empty_string_fails_open() -> None:
     out = _parse_scope_check_output("")
     assert out.in_scope is True
     assert out.reason == ""
 
 
-def test_whitespace_only_fails_open():
+def test_whitespace_only_fails_open() -> None:
     out = _parse_scope_check_output("   \n\t   ")
     assert out.in_scope is True
 
@@ -58,7 +58,7 @@ def test_whitespace_only_fails_open():
 # the prompt says return a bool; a snapshot LLM might emit "false" as
 # a string. we treat that as the "wrong type" branch which falls back
 # to True (fail open).
-def test_string_in_scope_value_fails_open():
+def test_string_in_scope_value_fails_open() -> None:
     raw = '{"in_scope": "false", "reason": "test"}'
     out = _parse_scope_check_output(raw)
     # string "false" is not a real bool — parser falls back to True.
@@ -68,7 +68,7 @@ def test_string_in_scope_value_fails_open():
 
 
 # missing in_scope field entirely → fail open
-def test_missing_in_scope_field_fails_open():
+def test_missing_in_scope_field_fails_open() -> None:
     raw = '{"reason": "ambiguous"}'
     out = _parse_scope_check_output(raw)
     assert out.in_scope is True
@@ -76,7 +76,7 @@ def test_missing_in_scope_field_fails_open():
 
 # ---- fence stripping (shared with other JSON stages) ----
 
-def test_fenced_json_unwraps_correctly():
+def test_fenced_json_unwraps_correctly() -> None:
     raw = '```json\n{"in_scope": false, "reason": "math problem"}\n```'
     out = _parse_scope_check_output(raw)
     assert out.in_scope is False
@@ -85,7 +85,7 @@ def test_fenced_json_unwraps_correctly():
 
 # ---- defensive: non-string reason ----
 
-def test_non_string_reason_becomes_empty_string():
+def test_non_string_reason_becomes_empty_string() -> None:
     # if the LLM puts a number in `reason`, downstream code expects a
     # string. parser coerces / drops.
     raw = '{"in_scope": false, "reason": 42}'
@@ -98,7 +98,7 @@ def test_non_string_reason_becomes_empty_string():
 
 # ---- reason whitespace trimming ----
 
-def test_reason_is_stripped():
+def test_reason_is_stripped() -> None:
     raw = '{"in_scope": false, "reason": "   trimmed   "}'
     out = _parse_scope_check_output(raw)
     assert out.reason == "trimmed"
@@ -109,7 +109,7 @@ def test_reason_is_stripped():
 # locking the contract: when the LLM REALLY says out-of-scope, we
 # preserve in_scope=False (no accidental fail-open). this is the
 # inverse pin against an over-eager "always fail open" refactor.
-def test_explicit_in_scope_false_is_respected():
+def test_explicit_in_scope_false_is_respected() -> None:
     raw = '{"in_scope": false, "reason": "general world knowledge"}'
     out = _parse_scope_check_output(raw)
     assert out.in_scope is False

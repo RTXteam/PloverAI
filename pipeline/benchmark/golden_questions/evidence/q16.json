@@ -1,0 +1,761 @@
+{
+  "question_id": "q16",
+  "split": "test",
+  "nl_question": "Which drugs are contraindicated in myasthenia gravis?",
+  "pinned_entity": {
+    "curie": "MONDO:0009688",
+    "label": "myasthenia gravis",
+    "category": "biolink:Disease",
+    "resolution_check": "NameRes /lookup?string=myasthenia gravis rank 1 = MONDO:0009688 'myasthenia gravis' (biolink:Disease; rank 2 is MONDO:0006866 neonatal myasthenia gravis); NodeNorm (conflate + drug_chemical_conflate) canonical id.identifier = MONDO:0009688. Checked 2026-09-28."
+  },
+  "answer_category": "biolink:Drug",
+  "predicate": "biolink:contraindicated_in",
+  "predicate_note": "Edge direction: Drug (subject, n1) -> contraindicated_in -> Disease (object, n0 pinned). All 135 edges come from DrugCentral contraindication records mapped to DOID:437; the reverse direction returns 0. Same relation as q15, but here the KG is populated (q15 is the zero-result twin).",
+  "validation": {
+    "query_graph": {
+      "nodes": {
+        "n0": {
+          "ids": [
+            "MONDO:0009688"
+          ],
+          "categories": [
+            "biolink:Disease"
+          ]
+        },
+        "n1": {
+          "categories": [
+            "biolink:Drug"
+          ]
+        }
+      },
+      "edges": {
+        "e0": {
+          "subject": "n1",
+          "object": "n0",
+          "predicates": [
+            "biolink:contraindicated_in"
+          ]
+        }
+      }
+    },
+    "results_count_baseline": 135,
+    "results_count_revalidated": 135,
+    "distinct_answer_nodes": 135,
+    "edges_in_knowledge_graph": 135,
+    "baseline_date": "2026-09-28",
+    "revalidated_date": "2026-09-28",
+    "gold_curies_all_present_at_revalidation": true,
+    "predicate_fix": null,
+    "results_count_note": "All results bind n0 to MONDO:0009688 itself (no subclass expansion contributes).",
+    "result_set_primary_sources": {
+      "infores:drugcentral": 135
+    },
+    "result_set_knowledge_levels": {
+      "knowledge_assertion": 135
+    },
+    "robustness": {
+      "answer_category_biolink:SmallMolecule": 132,
+      "answer_category_biolink:ChemicalEntity": 136,
+      "answer_category_biolink:NamedThing": 136,
+      "disease_as_subject (reverse direction)": 0
+    },
+    "alternative_queries_probed": {
+      "Drug -treats-> MONDO:0009688": {
+        "results_count": 15,
+        "note": "Mostly infores:multiomics-drugapprovals. Three drugs are in BOTH the treats and the contraindicated_in sets: diazepam (CHEBI:49575, a gold answer), atropine (CHEBI:16684) and fentanyl citrate (CHEBI:31602). The diazepam treats edge contradicts the FDA label; it is not visible to a system that runs the gold query."
+      },
+      "Drug -treats_or_applied_or_studied_to_treat-> MONDO:0009688": {
+        "results_count": 89
+      },
+      "Drug -related_to-> MONDO:0009688": {
+        "results_count": 225,
+        "note": "superset; contains both the contraindicated and the treating drugs"
+      },
+      "Drug -causes-> MONDO:0009688": {
+        "results_count": 4,
+        "note": "SemMedDB, e.g. PEMBROLIZUMAB (immune-checkpoint-inhibitor myasthenia)"
+      }
+    },
+    "full_result_set": [
+      {
+        "curie": "CHEBI:100246",
+        "label": "norfloxacin"
+      },
+      {
+        "curie": "CHEBI:102166",
+        "label": "thiopental"
+      },
+      {
+        "curie": "CHEBI:102484",
+        "label": "sulfisoxazole"
+      },
+      {
+        "curie": "CHEBI:135047",
+        "label": "phenyltoloxamine"
+      },
+      {
+        "curie": "CHEBI:135172",
+        "label": "trolnitrate"
+      },
+      {
+        "curie": "CHEBI:135404",
+        "label": "flumethiazide"
+      },
+      {
+        "curie": "CHEBI:135845",
+        "label": "rapacuronium"
+      },
+      {
+        "curie": "CHEBI:135920",
+        "label": "fesoterodine"
+      },
+      {
+        "curie": "CHEBI:144551",
+        "label": "4-(diethylamino)but-2-yn-1-ol"
+      },
+      {
+        "curie": "CHEBI:15407",
+        "label": "(-)-ephedrine"
+      },
+      {
+        "curie": "CHEBI:15854",
+        "label": "quinine"
+      },
+      {
+        "curie": "CHEBI:16684",
+        "label": "atropine"
+      },
+      {
+        "curie": "CHEBI:17076",
+        "label": "streptomycin"
+      },
+      {
+        "curie": "CHEBI:17630",
+        "label": "kanamycin A"
+      },
+      {
+        "curie": "CHEBI:17750",
+        "label": "glycine betaine"
+      },
+      {
+        "curie": "CHEBI:17833",
+        "label": "gentamycin"
+      },
+      {
+        "curie": "CHEBI:194135",
+        "label": "9-fluoro-3-methyl-10-(4-methylpiperazin-1-yl)-7-oxo-2,3-dihydro-7H-[1,4]oxazino[2,3,4-ij]quinoline-6-carboxylic acid"
+      },
+      {
+        "curie": "CHEBI:2379",
+        "label": "acebutolol"
+      },
+      {
+        "curie": "CHEBI:247956",
+        "label": "cinchocaine"
+      },
+      {
+        "curie": "CHEBI:251408",
+        "label": "edrophonium"
+      },
+      {
+        "curie": "CHEBI:2637",
+        "label": "amikacin"
+      },
+      {
+        "curie": "CHEBI:2676",
+        "label": "amoxicillin"
+      },
+      {
+        "curie": "CHEBI:27732",
+        "label": "caffeine"
+      },
+      {
+        "curie": "CHEBI:28669",
+        "label": "bacitracin"
+      },
+      {
+        "curie": "CHEBI:28864",
+        "label": "tobramycin"
+      },
+      {
+        "curie": "CHEBI:28918",
+        "label": "(R)-adrenaline"
+      },
+      {
+        "curie": "CHEBI:29013",
+        "label": "fusidic acid"
+      },
+      {
+        "curie": "CHEBI:2914",
+        "label": "atracurium"
+      },
+      {
+        "curie": "CHEBI:2955",
+        "label": "azithromycin"
+      },
+      {
+        "curie": "CHEBI:29688",
+        "label": "telithromycin"
+      },
+      {
+        "curie": "CHEBI:3013",
+        "label": "bendroflumethiazide"
+      },
+      {
+        "curie": "CHEBI:3048",
+        "label": "benzatropine"
+      },
+      {
+        "curie": "CHEBI:30746",
+        "label": "benzoic acid"
+      },
+      {
+        "curie": "CHEBI:3082",
+        "label": "betaxolol"
+      },
+      {
+        "curie": "CHEBI:3112",
+        "label": "biperiden"
+      },
+      {
+        "curie": "CHEBI:3127",
+        "label": "bisoprolol"
+      },
+      {
+        "curie": "CHEBI:313639",
+        "label": "profenamine"
+      },
+      {
+        "curie": "CHEBI:31455",
+        "label": "darifenacin hydrobromide"
+      },
+      {
+        "curie": "CHEBI:31573",
+        "label": "Ethyl loflazepate"
+      },
+      {
+        "curie": "CHEBI:31602",
+        "label": "fentanyl citrate"
+      },
+      {
+        "curie": "CHEBI:3175",
+        "label": "brimonidine"
+      },
+      {
+        "curie": "CHEBI:3183",
+        "label": "brompheniramine"
+      },
+      {
+        "curie": "CHEBI:31990",
+        "label": "Pheniramine maleate"
+      },
+      {
+        "curie": "CHEBI:3215",
+        "label": "bupivacaine"
+      },
+      {
+        "curie": "CHEBI:32229",
+        "label": "Tiopronin"
+      },
+      {
+        "curie": "CHEBI:32270",
+        "label": "trospium chloride"
+      },
+      {
+        "curie": "CHEBI:3228",
+        "label": "butabarbital"
+      },
+      {
+        "curie": "CHEBI:32588",
+        "label": "potassium chloride"
+      },
+      {
+        "curie": "CHEBI:3312",
+        "label": "calcium dichloride"
+      },
+      {
+        "curie": "CHEBI:3398",
+        "label": "carbinoxamine"
+      },
+      {
+        "curie": "CHEBI:3437",
+        "label": "carteolol"
+      },
+      {
+        "curie": "CHEBI:34650",
+        "label": "colistimethate sodium"
+      },
+      {
+        "curie": "CHEBI:34683",
+        "label": "disodium hydrogenphosphate"
+      },
+      {
+        "curie": "CHEBI:34918",
+        "label": "phenyl salicylate"
+      },
+      {
+        "curie": "CHEBI:3611",
+        "label": "chlordiazepoxide"
+      },
+      {
+        "curie": "CHEBI:3636",
+        "label": "chloroprocaine"
+      },
+      {
+        "curie": "CHEBI:3640",
+        "label": "chlorothiazide"
+      },
+      {
+        "curie": "CHEBI:3645",
+        "label": "Chlorpheniramine maleate"
+      },
+      {
+        "curie": "CHEBI:3721",
+        "label": "cisatracurium besylate"
+      },
+      {
+        "curie": "CHEBI:3732",
+        "label": "clarithromycin"
+      },
+      {
+        "curie": "CHEBI:3897",
+        "label": "Cortisone acetate"
+      },
+      {
+        "curie": "CHEBI:422",
+        "label": "(S)-lactic acid"
+      },
+      {
+        "curie": "CHEBI:4445",
+        "label": "desflurane"
+      },
+      {
+        "curie": "CHEBI:4464",
+        "label": "dexchlorpheniramine"
+      },
+      {
+        "curie": "CHEBI:4470",
+        "label": "dextromethorphan"
+      },
+      {
+        "curie": "CHEBI:4514",
+        "label": "dicyclomine"
+      },
+      {
+        "curie": "CHEBI:4534",
+        "label": "difenoxin"
+      },
+      {
+        "curie": "CHEBI:45652",
+        "label": "succinylcholine"
+      },
+      {
+        "curie": "CHEBI:45863",
+        "label": "paclitaxel"
+      },
+      {
+        "curie": "CHEBI:4657",
+        "label": "disopyramide"
+      },
+      {
+        "curie": "CHEBI:4702",
+        "label": "dorzolamide"
+      },
+      {
+        "curie": "CHEBI:4706",
+        "label": "doxacurium"
+      },
+      {
+        "curie": "CHEBI:4846",
+        "label": "erythromycin estolate"
+      },
+      {
+        "curie": "CHEBI:4858",
+        "label": "estazolam"
+      },
+      {
+        "curie": "CHEBI:49575",
+        "label": "diazepam"
+      },
+      {
+        "curie": "CHEBI:5102",
+        "label": "fludrocortisone acetate"
+      },
+      {
+        "curie": "CHEBI:51209",
+        "label": "pseudoephedrine"
+      },
+      {
+        "curie": "CHEBI:53749",
+        "label": "gemifloxacin mesylate"
+      },
+      {
+        "curie": "CHEBI:5551",
+        "label": "Guaifenesin"
+      },
+      {
+        "curie": "CHEBI:5747",
+        "label": "Homatropine"
+      },
+      {
+        "curie": "CHEBI:5778",
+        "label": "hydrochlorothiazide"
+      },
+      {
+        "curie": "CHEBI:5779",
+        "label": "hydrocodone"
+      },
+      {
+        "curie": "CHEBI:59118",
+        "label": "perazine"
+      },
+      {
+        "curie": "CHEBI:59936",
+        "label": "ciprofloxacin hydrochloride hydrate"
+      },
+      {
+        "curie": "CHEBI:6043",
+        "label": "Isopropamide"
+      },
+      {
+        "curie": "CHEBI:61276",
+        "label": "scopolamine methobromide"
+      },
+      {
+        "curie": "CHEBI:6149",
+        "label": "levobupivacaine"
+      },
+      {
+        "curie": "CHEBI:63598",
+        "label": "levofloxacin"
+      },
+      {
+        "curie": "CHEBI:6375",
+        "label": "lansoprazole"
+      },
+      {
+        "curie": "CHEBI:64318",
+        "label": "ergotamine"
+      },
+      {
+        "curie": "CHEBI:6438",
+        "label": "levobunolol"
+      },
+      {
+        "curie": "CHEBI:6759",
+        "label": "mepivacaine"
+      },
+      {
+        "curie": "CHEBI:6824",
+        "label": "hexamethylenetetramine"
+      },
+      {
+        "curie": "CHEBI:6872",
+        "label": "methylene blue"
+      },
+      {
+        "curie": "CHEBI:6897",
+        "label": "metipranolol"
+      },
+      {
+        "curie": "CHEBI:6904",
+        "label": "metoprolol"
+      },
+      {
+        "curie": "CHEBI:6958",
+        "label": "Mivacurium"
+      },
+      {
+        "curie": "CHEBI:7003",
+        "label": "morphine sulfate"
+      },
+      {
+        "curie": "CHEBI:7008",
+        "label": "moxifloxacin hydrochloride"
+      },
+      {
+        "curie": "CHEBI:71419",
+        "label": "phenazopyridine hydrochloride"
+      },
+      {
+        "curie": "CHEBI:7507",
+        "label": "neomycin"
+      },
+      {
+        "curie": "CHEBI:77733",
+        "label": "2-(3,4-dimethoxyphenyl)-5-{[2-(3,4-dimethoxyphenyl)ethyl](methyl)amino}-2-(propan-2-yl)pentanenitrile"
+      },
+      {
+        "curie": "CHEBI:7789",
+        "label": "orphenadrine"
+      },
+      {
+        "curie": "CHEBI:7907",
+        "label": "pancuronium"
+      },
+      {
+        "curie": "CHEBI:7954",
+        "label": "penbutolol"
+      },
+      {
+        "curie": "CHEBI:7959",
+        "label": "D-penicillamine"
+      },
+      {
+        "curie": "CHEBI:8069",
+        "label": "phenobarbital"
+      },
+      {
+        "curie": "CHEBI:8093",
+        "label": "phenylephrine"
+      },
+      {
+        "curie": "CHEBI:8214",
+        "label": "pindolol"
+      },
+      {
+        "curie": "CHEBI:8310",
+        "label": "Polymyxin B sulfate"
+      },
+      {
+        "curie": "CHEBI:8404",
+        "label": "prilocaine"
+      },
+      {
+        "curie": "CHEBI:8428",
+        "label": "procainamide"
+      },
+      {
+        "curie": "CHEBI:8430",
+        "label": "procaine"
+      },
+      {
+        "curie": "CHEBI:8435",
+        "label": "prochlorperazine"
+      },
+      {
+        "curie": "CHEBI:8448",
+        "label": "procyclidine"
+      },
+      {
+        "curie": "CHEBI:8466",
+        "label": "propafenone hydrochloride"
+      },
+      {
+        "curie": "CHEBI:8481",
+        "label": "Propantheline"
+      },
+      {
+        "curie": "CHEBI:8499",
+        "label": "propranolol"
+      },
+      {
+        "curie": "CHEBI:8884",
+        "label": "rocuronium"
+      },
+      {
+        "curie": "CHEBI:8890",
+        "label": "(S)-ropivacaine"
+      },
+      {
+        "curie": "CHEBI:90972",
+        "label": "glycopyrronium bromide"
+      },
+      {
+        "curie": "CHEBI:91834",
+        "label": "4-methyl-3-[[1-oxo-2-(propylamino)propyl]amino]-2-thiophenecarboxylic acid methyl ester"
+      },
+      {
+        "curie": "CHEBI:94411",
+        "label": "2-hydroxy-2,2-diphenylacetic acid (1,1-dimethyl-3-piperidin-1-iumyl) ester"
+      },
+      {
+        "curie": "CHEBI:9468",
+        "label": "tetracaine"
+      },
+      {
+        "curie": "CHEBI:94820",
+        "label": "4-aminobenzoic acid 3-(dibutylamino)propyl ester"
+      },
+      {
+        "curie": "CHEBI:95170",
+        "label": "2-hydroxy-2,2-diphenylacetic acid (1-methyl-1-azoniabicyclo[2.2.2]octan-3-yl) ester"
+      },
+      {
+        "curie": "CHEBI:9599",
+        "label": "(S)-timolol (anhydrous)"
+      },
+      {
+        "curie": "CHEBI:9622",
+        "label": "tolterodine"
+      },
+      {
+        "curie": "CHEBI:9649",
+        "label": "trandolapril"
+      },
+      {
+        "curie": "CHEBI:9674",
+        "label": "triazolam"
+      },
+      {
+        "curie": "CHEBI:9720",
+        "label": "Trihexyphenidyl"
+      },
+      {
+        "curie": "CHEBI:9939",
+        "label": "vecuronium"
+      },
+      {
+        "curie": "CHEMBL.COMPOUND:CHEMBL3084722",
+        "label": "CHEMBL3084722"
+      },
+      {
+        "curie": "UNII:4O5J85GJJB",
+        "label": "NETILMICIN"
+      },
+      {
+        "curie": "UNII:P97OGJ7L1L",
+        "label": "METHYLHOMATROPINE"
+      }
+    ],
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "kg_version": "2.10.2c",
+    "biolink_version": "4.2.5",
+    "trapi_version": "1.5.0",
+    "plover_build": "Plover build 2026-07-24 from kg2c-2.10.2-v1.0 nodes/edges; code commit c3ec8ba (GET /code_version, 2026-09-28)"
+  },
+  "verification_guide": {
+    "summary": "5 drugs from 4 mechanistic groups whose current FDA label lists myasthenia gravis in the CONTRAINDICATIONS section: quinine (neuromuscular-blocking antimalarial), diazepam (benzodiazepine), orphenadrine (anticholinergic muscle relaxant), dicyclomine and glycopyrrolate (antimuscarinics). All 5 are returned by PloverDB for the gold query.",
+    "sources_used": [
+      "DailyMed FDA drug labels (current SPL versions, fetched 2026-09-28): QUININE SULFATE capsule (Teva), VALIUM tablet (Waylis), ORPHENADRINE CITRATE ER tablet (Lupin), DICYCLOMINE HYDROCHLORIDE tablet (Hikma), GLYCOPYRROLATE tablet (Par Health)"
+    ],
+    "how_to_verify_a_dailymed_entry": "Open the URL (drugInfo.cfm?setid=...). PLR-format labels (quinine, dicyclomine, glycopyrrolate) have a HIGHLIGHTS box and a FULL PRESCRIBING INFORMATION section numbered 4 CONTRAINDICATIONS; older-format labels (VALIUM, orphenadrine) have an unnumbered CONTRAINDICATIONS heading. The per-answer where_on_page gives the position. Quotes with ' ... ' join non-adjacent fragments of the same section. The curator matched every fragment against the drugInfo.cfm HTML and against the SPL XML (DailyMed web services v2, LOINC 34070-3 section) on 2026-09-28.",
+    "cross_check_with_ploverdb": "Each verified_answer CURIE is in the PloverDB result set for the gold query (n0=MONDO:0009688, n1=biolink:Drug, e0: n1 -contraindicated_in-> n0), revalidated 2026-09-28; supporting_edge_ids are the DrugCentral edges.",
+    "intentionally_omitted": "Checked and rejected as gold even though they are in the result set: tolterodine (CHEBI:9622): the DETROL label (DailyMed setid 41eb00d2-64e3-4ec9-8732-4bfc81b04180) lists only urinary retention, gastric retention, uncontrolled narrow-angle glaucoma and hypersensitivity under CONTRAINDICATIONS, and says under PRECAUTIONS \"DETROL should be used with caution in patients with myasthenia gravis\"; edrophonium (CHEBI:251408): the ENLON label (setid 312042cf-df60-4dc5-90dd-4e77ebd4a781) INDICATES it \"for the differential diagnosis of myasthenia gravis\" and contraindicates it only for hypersensitivity and mechanical intestinal/urinary obstruction. DrugCentral therefore over-calls some label cautions (and in the edrophonium case a diagnostic use) as contraindications. Other plausible drugs (aminoglycosides, fluoroquinolones, telithromycin, beta-blockers, neuromuscular blockers) were not label-checked; gold is open-world, so they are not wrong, just unverified. Methscopolamine (scopolamine methobromide, CHEBI:61276) was label-verified (setid 5c74bfb0-c80a-4a86-acd1-1e3a1b20255d) but left out to avoid a third antimuscarinic."
+  },
+  "verified_answers": [
+    {
+      "curie": "CHEBI:15854",
+      "label": "quinine",
+      "drug_class": "cinchona alkaloid (antimalarial)",
+      "supporting_edge_ids": [
+        "45594778"
+      ],
+      "supporting_edge_note": "infores:drugcentral, knowledge_level=knowledge_assertion, agent_type=manual_agent, original predicate DrugCentral:contraindication (DrugCentral records DrugCentral:2346, DrugCentral:4523 -> DOID:437 myasthenia gravis)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e782283e-2608-4fd6-a8b2-6c30b9d5d3b0",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=e782283e-2608-4fd6-a8b2-6c30b9d5d3b0#:~:text=Quinine%20has%20neuromuscular%20blocking%20activity%2C%20and%20may%20exacerbate%20muscle%20weakness",
+          "page_title": "DailyMed - QUININE SULFATE capsule (Teva Pharmaceuticals USA)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "label_version": "label updated August 22, 2025",
+          "section_heading": "4 CONTRAINDICATIONS (Full Prescribing Information)",
+          "where_on_page": "On the DailyMed page, open FULL PRESCRIBING INFORMATION section \"4 CONTRAINDICATIONS\". The section opens with \"Quinine sulfate capsules are contraindicated in patients with the following:\" followed by a list; the myasthenia gravis item is the fourth list item (after prolonged QT interval, hypersensitivity reactions to quinine, and hypersensitivity to mefloquine or quinidine). The Highlights box repeats it as \"Myasthenia gravis (4)\".",
+          "exact_quote": "Quinine sulfate capsules are contraindicated in patients with the following: ... Myasthenia gravis. Quinine has neuromuscular blocking activity, and may exacerbate muscle weakness."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:49575",
+      "label": "diazepam",
+      "drug_class": "benzodiazepine",
+      "supporting_edge_ids": [
+        "45579918"
+      ],
+      "supporting_edge_note": "infores:drugcentral, knowledge_level=knowledge_assertion, agent_type=manual_agent, original predicate DrugCentral:contraindication (DrugCentral records DrugCentral:852 -> DOID:437 myasthenia gravis)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=260e2041-2bb3-482f-850e-b5d47a7bdbe6",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=260e2041-2bb3-482f-850e-b5d47a7bdbe6#:~:text=Valium%20is%20also%20contraindicated%20in%20patients%20with%20myasthenia%20gravis",
+          "page_title": "DailyMed - VALIUM- diazepam tablet (Waylis Therapeutics)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "label_version": "label updated August 11, 2026",
+          "section_heading": "CONTRAINDICATIONS",
+          "where_on_page": "The VALIUM label uses the older (non-PLR) layout. Scroll to the section titled \"CONTRAINDICATIONS\" (after CLINICAL PHARMACOLOGY / INDICATIONS AND USAGE). The quote is the second sentence of that one-paragraph section.",
+          "exact_quote": "Valium is also contraindicated in patients with myasthenia gravis, severe respiratory insufficiency, severe hepatic insufficiency, and sleep apnea syndrome."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:7789",
+      "label": "orphenadrine",
+      "drug_class": "anticholinergic skeletal muscle relaxant",
+      "supporting_edge_ids": [
+        "45591013"
+      ],
+      "supporting_edge_note": "infores:drugcentral, knowledge_level=knowledge_assertion, agent_type=manual_agent, original predicate DrugCentral:contraindication (DrugCentral records DrugCentral:1999 -> DOID:437 myasthenia gravis)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=7b76c8a7-dd0c-481c-8299-26dfd38ce066",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=7b76c8a7-dd0c-481c-8299-26dfd38ce066#:~:text=Orphenadrine%20citrate%20extended%2Drelease%20tablets%20are%20contraindicated%20in%20patients%20with%20glaucoma",
+          "page_title": "DailyMed - ORPHENADRINE CITRATE tablet, extended release (Lupin Pharmaceuticals)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "label_version": "label updated September 10, 2025",
+          "section_heading": "CONTRAINDICATIONS",
+          "where_on_page": "Older (non-PLR) layout. Scroll to the section titled \"CONTRAINDICATIONS\"; the quote is the first sentence of that section. Myasthenia gravis is the last item of the list.",
+          "exact_quote": "Orphenadrine citrate extended-release tablets are contraindicated in patients with glaucoma, pyloric or duodenal obstruction, stenosing peptic ulcers, prostatic hypertrophy or obstruction of the bladder neck, cardio-spasm (mega-esophagus) and myasthenia gravis."
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:4514",
+      "label": "dicyclomine",
+      "drug_class": "antimuscarinic antispasmodic",
+      "supporting_edge_ids": [
+        "45580159"
+      ],
+      "supporting_edge_note": "infores:drugcentral, knowledge_level=knowledge_assertion, agent_type=manual_agent, original predicate DrugCentral:contraindication (DrugCentral records DrugCentral:868 -> DOID:437 myasthenia gravis)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6d7e73b0-3f7e-462f-92eb-cc82919c8095",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=6d7e73b0-3f7e-462f-92eb-cc82919c8095#:~:text=Myasthenia%20gravis",
+          "page_title": "DailyMed - DICYCLOMINE HYDROCHLORIDE tablet (Hikma Pharmaceuticals USA)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "label_version": "label updated September 10, 2026",
+          "section_heading": "4 CONTRAINDICATIONS (Full Prescribing Information); also Highlights -> CONTRAINDICATIONS",
+          "where_on_page": "In FULL PRESCRIBING INFORMATION section \"4 CONTRAINDICATIONS\", the opening sentence lists infants under 6 months and nursing mothers, then \"and in patients with:\" followed by a bulleted list; myasthenia gravis is the second bullet. The Highlights box lists \"Myasthenia gravis (4)\" as the fourth bullet. Section 5.4 adds that it should not be given in myasthenia gravis except to reduce adverse muscarinic effects of an anticholinesterase.",
+          "exact_quote": "Dicyclomine hydrochloride is contraindicated in infants less than 6 months of age ... and in patients with: ... myasthenia gravis [see Warnings and Precautions (5.4)]"
+        }
+      ]
+    },
+    {
+      "curie": "CHEBI:90972",
+      "label": "glycopyrronium bromide (glycopyrrolate)",
+      "drug_class": "quaternary antimuscarinic",
+      "supporting_edge_ids": [
+        "45603138"
+      ],
+      "supporting_edge_note": "infores:drugcentral, knowledge_level=knowledge_assertion, agent_type=manual_agent, original predicate DrugCentral:contraindication (DrugCentral records DrugCentral:4302 -> DOID:437 myasthenia gravis)",
+      "verified": true,
+      "evidence": [
+        {
+          "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1f266d77-4f9e-44c9-a000-2f8fea3ac80b",
+          "url_with_text_fragment": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1f266d77-4f9e-44c9-a000-2f8fea3ac80b#:~:text=Glycopyrrolate%20tablets%20are%20contraindicated%20in",
+          "page_title": "DailyMed - GLYCOPYRROLATE tablet (Par Health USA)",
+          "publisher": "U.S. National Library of Medicine — DailyMed",
+          "source_type": "fda_drug_label",
+          "label_version": "label updated July 9, 2026",
+          "section_heading": "4 CONTRAINDICATIONS (Full Prescribing Information)",
+          "where_on_page": "In FULL PRESCRIBING INFORMATION section \"4 CONTRAINDICATIONS\": the section opens \"Glycopyrrolate tablets are contraindicated in:\" then \"Patients at risk for anticholinergic toxicity due to an underlying medical condition, including:\" followed by a list; \"Myasthenia gravis\" is the last item of that list, just before the hypersensitivity item.",
+          "exact_quote": "Glycopyrrolate tablets are contraindicated in: Patients at risk for anticholinergic toxicity due to an underlying medical condition, including: ... Myasthenia gravis"
+        }
+      ]
+    }
+  ],
+  "curation_notes": [
+    "All 135 edges are DrugCentral contraindication records (knowledge_assertion, manual_agent), so the KG support is strong in kind; the label check above shows it is not error-free (tolterodine, edrophonium).",
+    "Unused-entity check: MONDO:0009688 is not pinned in evidence/q1-q15 or translator/tr01-tr82.",
+    "Glycopyrrolate: the KG2c node is CHEBI:90972 'glycopyrronium bromide' (biolink:MolecularMixture per NodeNorm). NameRes rank 1 for 'glycopyrrolate' is a different CURIE, CHEBI:94449 'Glycopyrronium', which is NOT in the result set. A system that answers from the result set will use CHEBI:90972; a system that re-resolves the drug name will not be credited under exact-CURIE scoring.",
+    "Diazepam also has a multiomics-drugapprovals 'treats' edge to myasthenia gravis (see alternative_queries_probed). The FDA label contraindicates it; the treats edge is a KG error.",
+    "Dicyclomine's label adds that it may be given in myasthenia gravis only to reduce adverse muscarinic effects of an anticholinesterase (5.4); the contraindication itself is unqualified in section 4.",
+    "Result count is 135 today, matching the count recorded in q15's predicate_populated_elsewhere."
+  ]
+}

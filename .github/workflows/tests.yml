@@ -34,8 +34,11 @@ jobs:
       - name: vulture
         run: vulture code --min-confidence 80 --exclude .venv
 
+      # the code imports itself as pipeline.code.*, so mypy checks it as
+      # that package from the repository root.
       - name: mypy --strict
-        run: mypy --strict --explicit-package-bases --config-file pyproject.toml code
+        working-directory: .
+        run: mypy --strict --config-file pipeline/pyproject.toml -p pipeline.code
 
       - name: pytest
         run: pytest code/tests -q

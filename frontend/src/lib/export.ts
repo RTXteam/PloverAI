@@ -17,14 +17,25 @@
 
 import { marked } from "marked";
 import type {
-  AnswerGraphEdge,
-  AnswerGraphView,
   QueryResponse,
+  ReasoningGraph,
   StagePromptEntry,
 } from "./api";
+import {
+  evidenceItems,
+  evidenceOf,
+  fdaApplicationUrl,
+  levelText,
+  pubmedUrl,
+  sourceText,
+  statement,
+} from "./factText";
+import { liveFigureSvg } from "./figureExport";
 import { linkifyCitations, linkifyCURIEs } from "./linkify";
 
-const EXPORT_VERSION = "v15";
+// names the export shape (ARAX over Tier 0, envelope version 1). written
+// into every export; nothing in the app reads it back.
+const EXPORT_VERSION = "arax-tier0-1";
 
 // marked options: GitHub-flavoured markdown (tables, strikethrough,
 // task lists), break-on-single-newline OFF so blank-line-separated
@@ -78,12 +89,12 @@ export function downloadResultPDF(
   // in that dialog. no third-party PDF library, no extra bundle, and
   // the browser's print rendering is high-quality and consistent.
   //
-  // we capture the live in-page mini-graph SVGs FIRST (before the new
-  // tab opens) because the SVGs only exist while the ResultPanel is
-  // mounted in this tab's DOM. once captured, the new tab is fully
-  // self-contained and works even if the parent tab navigates away.
-  const capturedSVGs = captureMiniGraphSVGs(r.answer_graph_view);
-  const html = buildPrintHTML(question, model, r, capturedSVGs);
+  // the reasoning figure is rebuilt as SVG from the live Cytoscape
+  // figure FIRST (before the new tab opens), because it only exists
+  // while the run's figure is mounted in this tab. once captured, the
+  // new tab is fully self-contained.
+  const figure = r.reasoning_graph ? liveFigureSvg(r.reasoning_graph) : null;
+  const html = buildPrintHTML(question, model, r, figure);
   const w = window.open("", "_blank");
   if (!w) {
     // most likely a pop-up blocker. fall back to Markdown so the user
@@ -107,50 +118,6 @@ export function downloadResultPDF(
   w.focus();
 }
 
-// pull every evidence-chain SVG out of the live DOM and tag each one with
-// the answer entity it depicts. relies on the aria-label that
-// StructuredAnswer.EvidenceChain sets ("Evidence chain for <answerCurie>")
-// to map an SVG back to its answer node. an answer matched via several
-// concepts has more than one chain; we keep its first one here, and the
-// textual graph summary below covers the rest. when the page isn't showing
-// a StructuredAnswer (no graph view, or only MarkdownAnswer fallback),
-// this returns an empty array and the PDF falls back to the textual
-// graph summary.
-type CapturedSVG = { answerCurie: string; svg: string; label: string };
-
-function captureMiniGraphSVGs(
-  view: AnswerGraphView | null,
-): CapturedSVG[] {
-  if (!view || typeof document === "undefined") return [];
-  const labelByCurie = new Map<string, string>();
-  view.answer_nodes.forEach((n) => labelByCurie.set(n.curie, n.label || n.curie));
-
-  // scope to the result section so we never pick up favicons or
-  // unrelated icon SVGs. ResultPanel renders as <section>; the
-  // mini-graphs each set role="img".
-  const nodes = document.querySelectorAll('section svg[role="img"]');
-  const out: CapturedSVG[] = [];
-  const seen = new Set<string>();
-  for (const svg of Array.from(nodes)) {
-    const aria = svg.getAttribute("aria-label") || "";
-    const m = aria.match(/Evidence chain for (.+)$/);
-    if (!m) continue;
-    const answerCurie = m[1].trim();
-    if (seen.has(answerCurie)) continue;
-    seen.add(answerCurie);
-    const clone = svg.cloneNode(true) as SVGElement;
-    if (!clone.getAttribute("xmlns")) {
-      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    }
-    out.push({
-      answerCurie,
-      svg: new XMLSerializer().serializeToString(clone),
-      label: labelByCurie.get(answerCurie) || answerCurie,
-    });
-  }
-  return out;
-}
-
 // ---------- markdown builder ----------
 
 function buildMarkdown(
@@ -170,11 +137,11 @@ function buildMarkdown(
   lines.push(`success: ${r.success}`);
   lines.push(`cost_usd: ${r.cost_usd}`);
   lines.push(`elapsed_s: ${r.elapsed_s}`);
-  const plover = r.intermediates.plover_response_summary;
-  if (plover) {
-    lines.push(`plover_n_results: ${plover.n_results}`);
-    lines.push(`plover_n_nodes: ${plover.n_nodes}`);
-    lines.push(`plover_n_edges: ${plover.n_edges}`);
+  const reply = r.intermediates.reasoner_response_summary;
+  if (reply) {
+    lines.push(`arax_n_results: ${reply.n_results}`);
+    lines.push(`arax_n_nodes: ${reply.n_nodes}`);
+    lines.push(`arax_n_edges: ${reply.n_edges}`);
   }
   lines.push(`exported_at: ${new Date().toISOString()}`);
   lines.push("---");
@@ -195,10 +162,10 @@ function buildMarkdown(
   lines.push("");
 
   // answer-graph summary
-  if (r.answer_graph_view) {
-    lines.push("## Answer graph");
+  if (r.reasoning_graph) {
+    lines.push("## Evidence");
     lines.push("");
-    lines.push(...graphSummaryMarkdown(r.answer_graph_view));
+    lines.push(...factsMarkdown(r.reasoning_graph));
     lines.push("");
   }
 
@@ -265,8 +232,8 @@ function buildMarkdown(
   lines.push("## Raw artifacts");
   lines.push("");
   lines.push(
-    "Per-stage prompts, NameRes/NodeNorm raw responses, PloverDB " +
-      "request/response, PubTator NER verification, and the full LLM " +
+    "Per-stage prompts, NameRes/NodeNorm raw responses, the ARAX " +
+      "request/response summary, and the full LLM " +
       "reasoning trace are in the companion JSON export for this run " +
       `(\`${safeFileBase(r, "json")}\`). The on-disk pipeline artifacts ` +
       "live under `pipeline/code/outputs/RUN_<timestamp>/` on the " +
@@ -277,96 +244,30 @@ function buildMarkdown(
   return lines.join("\n");
 }
 
-function graphSummaryMarkdown(g: AnswerGraphView): string[] {
-  const lines: string[] = [];
-  const pin = g.pinned_node;
-  lines.push(
-    `**Pinned:** ${pin.label || "(no label)"} (\`${pin.curie}\`)` +
-      (pin.category ? ` — ${pin.category.replace(/^biolink:/, "")}` : ""),
-  );
-  lines.push("");
-  if (g.pubtator_metrics) {
-    const m = g.pubtator_metrics;
-    const rate =
-      m.rate != null ? `${Math.round(m.rate * 100)}%` : "—";
+// the reasoning facts as a reference table: statement, source and
+// evidence level, and the evidence with its links.
+function factsMarkdown(graph: ReasoningGraph): string[] {
+  const labels = new Map(graph.nodes.map((n) => [n.id, n.label]));
+  const lines = [
+    "| Fact | Statement | Source | Evidence |",
+    "|---|---|---|---|",
+  ];
+  for (const fact of graph.edges) {
+    const s = statement(fact, labels);
+    const e = evidenceOf(fact);
+    const links = [
+      ...e.fda_approvals.slice(0, 2).map((a) => `[${a}](${fdaApplicationUrl(a)})`),
+      ...e.labels.slice(0, 2).map((l, i) => `[DailyMed label ${i + 1}](${l.url})`),
+      ...e.trials.slice(0, 2).map((t) => `[${t.id}](${t.url})`),
+      ...e.pmids.slice(0, 3).map((p) => `[${p}](${pubmedUrl(p)})`),
+    ];
+    const evidence = [...evidenceItems(fact), ...links].join("; ") || "—";
     lines.push(
-      `**PubTator verification:** ${m.verified}/${m.verified + m.unverified} ` +
-        `edges verified` +
-        (m.not_applicable > 0 ? ` (${m.not_applicable} n/a)` : "") +
-        ` · rate ${rate}`,
+      `| ${fact.fact_id} | ${escapeCell(`${s.subject} *${s.predicate}* ${s.object}`)} | ` +
+        `${escapeCell(`${sourceText(fact)} · ${levelText(fact)}`)} | ${escapeCell(evidence)} |`,
     );
-    lines.push("");
   }
-  if (g.answer_nodes.length === 0) {
-    lines.push("_(no answer entities returned)_");
-    return lines;
-  }
-  lines.push(
-    `**Picked answers (${g.answer_nodes.length}):**`,
-  );
-  lines.push("");
-  lines.push(
-    "| # | Label | CURIE | Category | Edges to pinned | PubTator |",
-  );
-  lines.push(
-    "|---|---|---|---|---|---|",
-  );
-  g.answer_nodes.forEach((a, i) => {
-    const edges = g.edges.filter(
-      (e) => e.source === a.curie || e.target === a.curie,
-    );
-    const verifiedBadge = pubtatorBadge(edges);
-    lines.push(
-      `| ${i + 1} | ${escapeCell(a.label || a.curie)} | \`${a.curie}\` | ` +
-        `${(a.category || "").replace(/^biolink:/, "")} | ${edges.length} | ` +
-        `${verifiedBadge} |`,
-    );
-  });
-  lines.push("");
-
-  // per-edge provenance: predicate + PMIDs + KG source
-  lines.push("### Edge provenance");
-  lines.push("");
-  g.edges.forEach((e, i) => {
-    const pred = (e.predicate || "?").replace(/^biolink:/, "");
-    const lvl = e.knowledge_level || "—";
-    const ks = e.primary_knowledge_source || "—";
-    lines.push(
-      `**Edge ${i + 1}** (\`PloverDB-edge:${e.id}\`): ` +
-        `\`${e.source}\` — ${pred} → \`${e.target}\``,
-    );
-    lines.push(`  - knowledge_level: ${lvl}`);
-    lines.push(`  - primary_knowledge_source: ${ks}`);
-    if (e.supporting_publications.length > 0) {
-      const pmidLinks = e.supporting_publications
-        .map(
-          (p) =>
-            `[${p}](https://pubmed.ncbi.nlm.nih.gov/${p.replace(/^PMID:/, "")}/)`,
-        )
-        .join(", ");
-      lines.push(`  - supporting_publications: ${pmidLinks}`);
-    }
-    if (e.pubtator_verified) {
-      const v = e.pubtator_verified;
-      const status = v.verified ? "✓ co-mention found" : "✗ no co-mention";
-      lines.push(
-        `  - pubtator: ${status} ` +
-          `(${v.co_mention_pmids.length} co, ${v.subject_only_pmids.length} subj-only, ` +
-          `${v.object_only_pmids.length} obj-only, ${v.missing_pmids.length} not-indexed)`,
-      );
-    }
-    lines.push("");
-  });
   return lines;
-}
-
-function pubtatorBadge(edges: AnswerGraphEdge[]): string {
-  if (edges.length === 0) return "—";
-  const hasVerified = edges.some((e) => e.pubtator_verified?.verified);
-  if (hasVerified) return "✓ verified";
-  const hasChecked = edges.some((e) => e.pubtator_verified !== null);
-  if (hasChecked) return "✗ no co-mention";
-  return "n/a";
 }
 
 function pipelineSummaryMarkdown(r: QueryResponse): string[] {
@@ -374,7 +275,7 @@ function pipelineSummaryMarkdown(r: QueryResponse): string[] {
     | Record<string, StagePromptEntry>
     | null
     | undefined) ?? {};
-  // The 15-stage ladder mirrors STAGE_ORDER in ResultPanel.tsx but
+  // The 15-stage ladder mirrors STAGE_ORDER in PipelineStages.tsx but
   // we inline it here to keep export.ts self-contained.
   const stages: Array<{
     n: string;
@@ -392,11 +293,11 @@ function pipelineSummaryMarkdown(r: QueryResponse): string[] {
     { n: "7", kind: "function", label: "Consistency check" },
     { n: "8", kind: "LLM", label: "TRAPI build", promptKey: "stage_8_trapi_build" },
     { n: "9", kind: "function", label: "Validation" },
-    { n: "10", kind: "service", label: "PloverDB query" },
+    { n: "10", kind: "service", label: "ARAX query" },
     { n: "11", kind: "LLM", label: "Answer pick", promptKey: "stage_11_answer_pick" },
     { n: "12", kind: "service", label: "NodeNorm canonicalize answers" },
-    { n: "13", kind: "function", label: "Build graph view" },
-    { n: "14", kind: "service", label: "PubTator enrichment" },
+    { n: "13", kind: "function", label: "Reasoning graph" },
+    { n: "14", kind: "function", label: "Evidence extraction" },
     { n: "15", kind: "LLM", label: "Explanation", promptKey: "stage_15_explain" },
   ];
 
@@ -449,17 +350,14 @@ function inferServiceStatus(stageNumber: string, r: QueryResponse): string {
     case "9":
       return im.validation ? "✓ ran" : "did not run";
     case "10":
-      return im.plover_response_summary ? "✓ ran" : "did not run";
+      return im.reasoner_response_summary ? "✓ ran" : "did not run";
     case "12": {
       const n = im.nodenorm as { answers?: unknown } | null | undefined;
       return n?.answers ? "✓ ran" : "did not run";
     }
     case "13":
-      return r.answer_graph_view ? "✓ ran" : "did not run";
-    case "14": {
-      const v = r.answer_graph_view?.pubtator_call_summary;
-      return v?.called ? "✓ ran" : "did not run";
-    }
+    case "14":
+      return r.reasoning_graph ? "✓ ran" : "did not run";
     default:
       return "—";
   }
@@ -667,7 +565,7 @@ function pipelineDetailMarkdown(r: QueryResponse): string[] {
 // single source of truth for stage metadata — used by the summary
 // table, the detail blocks, and (mirrored) by the HTML print builder.
 // kept verbose so each entry is self-documenting; the screen-side
-// equivalent lives at STAGE_ORDER in ResultPanel.tsx.
+// equivalent lives at STAGE_ORDER in PipelineStages.tsx.
 type StageDescriptor = {
   n: string;
   kind: "LLM" | "service" | "function";
@@ -740,7 +638,7 @@ function stageDescriptors(): StageDescriptor[] {
       kind: "LLM",
       label: "TRAPI build",
       description:
-        "LLM constructs the one-hop TRAPI query graph from the pinned entity. A per-CURIE predicate-density probe runs first and is injected into the LLM's prompt so it can prefer populated predicates over plausible-but-empty ones.",
+        "LLM constructs the TRAPI query graph from the pinned entity, and asks ARAX to reason (knowledge_type inferred) for treatment and gene-regulation questions. Predicates come from the Tier 0 graph, with fact counts for the chosen entity.",
       promptKey: "stage_8_trapi_build",
     },
     {
@@ -748,18 +646,18 @@ function stageDescriptors(): StageDescriptor[] {
       kind: "function",
       label: "Validation",
       description:
-        "reasoner-validator gate: TRAPI schema + Biolink check. Invalid → pipeline stops without hitting PloverDB.",
+        "reasoner-validator gate: TRAPI schema + Biolink check. Invalid → pipeline stops before ARAX.",
       getData: (r) => r.intermediates.validation,
     },
     {
       n: "10",
       kind: "service",
-      label: "PloverDB query",
+      label: "ARAX query",
       description:
-        "POST the validated TRAPI query to kg2cploverdb.ci.transltr.io/query and parse the response.",
+        "POST the validated query to ARAX, the Translator reasoner, which reasons over the Tier 0 knowledge graph and returns ranked answers with the evidence behind each.",
       getData: (r) => ({
-        request: r.intermediates.plover_request,
-        response_summary: r.intermediates.plover_response_summary,
+        request: r.intermediates.reasoner_request,
+        response_summary: r.intermediates.reasoner_response_summary,
       }),
     },
     {
@@ -767,7 +665,7 @@ function stageDescriptors(): StageDescriptor[] {
       kind: "LLM",
       label: "Answer pick",
       description:
-        "LLM selects the answer entities from the PloverDB response, ranked by evidence tier.",
+        "LLM selects the answers from ARAX's ranked list, reading each answer's score, evidence and shortest reasoning paths.",
       promptKey: "stage_11_answer_pick",
     },
     {
@@ -782,35 +680,35 @@ function stageDescriptors(): StageDescriptor[] {
     {
       n: "13",
       kind: "function",
-      label: "Build graph view",
+      label: "Reasoning graph",
       description:
-        "Reshape (pinned entity + picked answers + KG slice) into the node-link graph view the UI renders, with per-edge provenance.",
+        "Trace each picked answer's reasoning paths to the question's entity through ARAX's evidence, and number the facts on them F1…Fn.",
       getData: (r) =>
-        r.answer_graph_view
+        r.reasoning_graph
           ? {
-              n_pinned: 1,
-              n_answers: r.answer_graph_view.answer_nodes.length,
-              n_edges: r.answer_graph_view.edges.length,
+              answers: r.reasoning_graph.nodes.filter((n) => n.role === "answer").length,
+              entities: r.reasoning_graph.nodes.length,
+              facts: r.reasoning_graph.edges.length,
             }
           : null,
     },
     {
       n: "14",
-      kind: "service",
-      label: "PubTator enrichment",
+      kind: "function",
+      label: "Evidence extraction",
       description:
-        "For each edge, ask PubTator whether the supporting PMIDs independently co-mention both endpoints. Adds an external verification signal.",
-      getData: (r) => ({
-        call_summary: r.answer_graph_view?.pubtator_call_summary ?? null,
-        metrics: r.answer_graph_view?.pubtator_metrics ?? null,
-      }),
+        "Read what each fact rests on: approvals and FDA applications, drug labels (DailyMed), registered trials (ClinicalTrials.gov), PubMed articles and literature co-mention.",
+      getData: (r) =>
+        r.reasoning_graph
+          ? r.reasoning_graph.edges.map((f) => ({ fact: f.fact_id, evidence: evidenceItems(f) }))
+          : null,
     },
     {
       n: "15",
       kind: "LLM",
       label: "Explanation",
       description:
-        "LLM writes the structured Markdown summary you see at the top of the result page.",
+        "LLM writes the summary at the top of the result page from the numbered facts, citing each claim as [F#].",
       promptKey: "stage_15_explain",
     },
   ];
@@ -844,7 +742,7 @@ function candidateProbesMarkdown(
     lines.push("_(no probe rows)_");
     return lines;
   }
-  lines.push("| CURIE | KG2c edges | Note |");
+  lines.push("| CURIE | Tier 0 facts | Note |");
   lines.push("|---|---|---|");
   rows.forEach(([curie, p]) => {
     const note = p.error
@@ -893,38 +791,20 @@ function buildPrintHTML(
   question: string,
   model: string,
   r: QueryResponse,
-  capturedSVGs: CapturedSVG[] = [],
+  figure: string | null = null,
 ): string {
   // self-contained HTML: inline CSS, no external assets. designed for
   // the browser's print engine — letter/A4 paper, B&W friendly,
   // section-level page breaks, monospace for CURIEs/code, small page
   // header so multi-page exports are still identifiable.
   const outcome = r.outcome ?? (r.success ? "ok" : "failed");
-  const plover = r.intermediates.plover_response_summary;
+  const reply = r.intermediates.reasoner_response_summary;
   const exportedAt = new Date().toISOString();
 
-  // mini-graphs rendered as captured SVGs above the textual graph
-  // summary. each gets a small caption naming the answer entity it
-  // depicts. when there's no answer_graph_view (out_of_scope refusal,
-  // no_results, etc.) capturedSVGs is empty and this block is skipped.
-  const renderedGraphsHTML =
-    capturedSVGs.length > 0
-      ? `<h3>Rendered graphs</h3>` +
-        capturedSVGs
-          .map(
-            (g, i) =>
-              `<div class="mini-graph-block">` +
-              `<div class="mini-graph-caption">Mini-graph ${i + 1} of ${capturedSVGs.length}: ` +
-              `pinned entity → <strong>${escapeHTML(g.label)}</strong> ` +
-              `(<code>${escapeHTML(g.answerCurie)}</code>)</div>` +
-              `<div class="mini-graph-svg">${g.svg}</div>` +
-              `</div>`,
-          )
-          .join("\n")
-      : "";
-
-  const graphHTML = r.answer_graph_view
-    ? renderedGraphsHTML + graphSummaryHTML(r.answer_graph_view)
+  // the reasoning figure (vector, light palette, with its legend) and
+  // the reference table of its facts.
+  const graphHTML = r.reasoning_graph
+    ? (figure ? `<div class="figure">${figure}</div>` : "") + factsHTML(r.reasoning_graph)
     : "";
   const pipelineHTML = pipelineSummaryHTML(r);
   const candidateProbes = r.intermediates.candidate_probes as
@@ -1021,37 +901,12 @@ function buildPrintHTML(
     .explanation strong { font-weight: 600; }
     .explanation code { background: #f3f3f3; padding: 0.5pt 3pt; border-radius: 2pt; }
 
-    /* Captured mini-graphs from the live result panel. each SVG was
-       cloned out of the React tree, so it still references the
-       Tailwind utility classes the in-app components use. we recreate
-       just the light-mode versions of those classes here so the SVG
-       text fills resolve correctly in this isolated tab (dark: classes
-       are ignored since there's no .dark ancestor). */
-    .mini-graph-block { margin: 10pt 0 14pt; page-break-inside: avoid; }
-    .mini-graph-caption { font-size: 9.5pt; color: #444; margin-bottom: 3pt; }
-    .mini-graph-svg svg { max-width: 100%; height: auto; display: block; }
-    .fill-zinc-900 { fill: #18181b; }
-    .fill-zinc-800 { fill: #27272a; }
-    .fill-zinc-700 { fill: #3f3f46; }
-    .fill-zinc-600 { fill: #52525b; }
-    .fill-zinc-500 { fill: #71717a; }
-    .fill-zinc-400 { fill: #a1a1aa; }
-    .fill-zinc-300 { fill: #d4d4d8; }
-    .fill-zinc-200 { fill: #e4e4e7; }
-    .fill-zinc-100 { fill: #f4f4f5; }
-    .fill-zinc-50  { fill: #fafafa; }
-    .fill-white    { fill: #ffffff; }
-    .stroke-zinc-600 { stroke: #52525b; }
-    .font-semibold { font-weight: 600; }
-    .uppercase     { text-transform: uppercase; }
-    .tracking-wider{ letter-spacing: 0.05em; }
-    .font-mono     { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
-    .italic        { font-style: italic; }
-    /* dark-mode-only utilities used by some SVG elements — explicitly
-       no-op here so the inherited light-mode rule wins. without this
-       rule the dark: classes don't apply (no .dark ancestor) but we
-       list them for documentation. */
-    [class*="dark:fill-"], [class*="dark:stroke-"] { /* no-op */ }
+    /* the reasoning figure (SVG rebuilt from the live Cytoscape figure,
+       light palette, legend included) and the table of its facts. */
+    .figure { margin: 8pt 0 12pt; page-break-inside: avoid; }
+    .figure svg { max-width: 100%; height: auto; display: block; }
+    table.facts td { vertical-align: top; }
+    table.facts .muted { color: #666; }
   </style>
 </head>
 <body>
@@ -1064,7 +919,7 @@ function buildPrintHTML(
     <span><span class="k">model</span><span class="v">${escapeHTML(model)}</span></span>
     <span><span class="k">cost</span><span class="v">$${r.cost_usd.toFixed(6)}</span></span>
     <span><span class="k">elapsed</span><span class="v">${r.elapsed_s.toFixed(2)}s</span></span>
-    ${plover ? `<span><span class="k">plover_results</span><span class="v">${plover.n_results}</span></span>` : ""}
+    ${reply ? `<span><span class="k">ARAX results</span><span class="v">${reply.n_results}</span></span>` : ""}
     <span><span class="k">exported</span><span class="v">${exportedAt}</span></span>
   </div>
 
@@ -1073,7 +928,7 @@ function buildPrintHTML(
     ${explanationHTML}
   </div>
 
-  ${graphHTML ? `<div class="section"><h2>Answer graph</h2>${graphHTML}</div>` : ""}
+  ${graphHTML ? `<div class="section"><h2>Reasoning graph and evidence</h2>${graphHTML}</div>` : ""}
 
   <div class="section">
     <h2>Pipeline stages</h2>
@@ -1088,8 +943,8 @@ function buildPrintHTML(
 
   <div class="footer">
     PloverAI export · run_id <code>${escapeHTML(r.run_id)}</code> · generated ${exportedAt}.
-    For full per-stage prompts, NameRes/NodeNorm raw responses, PloverDB request/response,
-    and PubTator NER traces, see the companion JSON export
+    For full per-stage prompts, NameRes/NodeNorm raw responses and the ARAX request/response
+    summary, see the companion JSON export
     (<code>${escapeHTML(safeFileBase(r, "json"))}</code>).
   </div>
 </body>
@@ -1102,79 +957,33 @@ function outcomeClass(outcome: string): string {
   return "failed";
 }
 
-function graphSummaryHTML(g: AnswerGraphView): string {
-  const pin = g.pinned_node;
-  const pinLine = `<p><strong>Pinned:</strong> ${escapeHTML(pin.label || "(no label)")} ` +
-    `(<code>${escapeHTML(pin.curie)}</code>)` +
-    (pin.category ? ` — ${escapeHTML(pin.category.replace(/^biolink:/, ""))}` : "") +
-    `</p>`;
-  let metricsLine = "";
-  if (g.pubtator_metrics) {
-    const m = g.pubtator_metrics;
-    const rate = m.rate != null ? `${Math.round(m.rate * 100)}%` : "—";
-    metricsLine = `<p><strong>PubTator verification:</strong> ${m.verified}/${m.verified + m.unverified} edges verified` +
-      (m.not_applicable > 0 ? ` (${m.not_applicable} n/a)` : "") +
-      ` · rate ${rate}</p>`;
-  }
-  if (g.answer_nodes.length === 0) {
-    return pinLine + metricsLine + `<p class="empty">No answer entities returned.</p>`;
-  }
-  const rows = g.answer_nodes
-    .map((a, i) => {
-      const edges = g.edges.filter(
-        (e) => e.source === a.curie || e.target === a.curie,
+function factsHTML(graph: ReasoningGraph): string {
+  const labels = new Map(graph.nodes.map((n) => [n.id, n.label]));
+  const link = (href: string, text: string) =>
+    `<a href="${escapeHTML(href)}">${escapeHTML(text)}</a>`;
+  const rows = graph.edges
+    .map((fact) => {
+      const s = statement(fact, labels);
+      const e = evidenceOf(fact);
+      const links = [
+        ...e.fda_approvals.slice(0, 2).map((a) => link(fdaApplicationUrl(a), a)),
+        ...e.labels.slice(0, 2).map((l, i) => link(l.url, `DailyMed label ${i + 1}`)),
+        ...e.trials.slice(0, 2).map((t) => link(t.url, t.id)),
+        ...e.pmids.slice(0, 3).map((p) => link(pubmedUrl(p), p)),
+      ];
+      const evidence = [...evidenceItems(fact).map(escapeHTML), ...links].join("; ") || "—";
+      return (
+        `<tr><td><code>${escapeHTML(fact.fact_id)}</code></td>` +
+        `<td>${escapeHTML(s.subject)} <em>${escapeHTML(s.predicate)}</em> ${escapeHTML(s.object)}</td>` +
+        `<td>${escapeHTML(sourceText(fact))}<br><span class="muted">${escapeHTML(levelText(fact))}</span></td>` +
+        `<td>${evidence}</td></tr>`
       );
-      return `<tr><td>${i + 1}</td><td>${escapeHTML(a.label || a.curie)}</td>` +
-        `<td><code>${escapeHTML(a.curie)}</code></td>` +
-        `<td>${escapeHTML((a.category || "").replace(/^biolink:/, ""))}</td>` +
-        `<td>${edges.length}</td>` +
-        `<td>${pubtatorBadge(edges)}</td></tr>`;
     })
     .join("");
-
-  const edgeBlocks = g.edges
-    .map((e, i) => {
-      const pred = (e.predicate || "?").replace(/^biolink:/, "");
-      const lvl = e.knowledge_level || "—";
-      const ks = e.primary_knowledge_source || "—";
-      const pmidHTML =
-        e.supporting_publications.length > 0
-          ? e.supporting_publications
-              .map(
-                (p) =>
-                  `<a href="https://pubmed.ncbi.nlm.nih.gov/${p.replace(/^PMID:/, "")}/">${escapeHTML(p)}</a>`,
-              )
-              .join(", ")
-          : "—";
-      const ptLine = e.pubtator_verified
-        ? `<li>pubtator: ${
-            e.pubtator_verified.verified
-              ? "✓ co-mention found"
-              : "✗ no co-mention"
-          } ` +
-          `(${e.pubtator_verified.co_mention_pmids.length} co, ` +
-          `${e.pubtator_verified.subject_only_pmids.length} subj-only, ` +
-          `${e.pubtator_verified.object_only_pmids.length} obj-only, ` +
-          `${e.pubtator_verified.missing_pmids.length} not-indexed)</li>`
-        : "";
-      return `<div class="section"><strong>Edge ${i + 1}</strong> ` +
-        `(<code>PloverDB-edge:${escapeHTML(e.id)}</code>): ` +
-        `<code>${escapeHTML(e.source)}</code> — ${escapeHTML(pred)} → ` +
-        `<code>${escapeHTML(e.target)}</code>` +
-        `<ul style="margin: 4pt 0; padding-left: 18pt;">` +
-        `<li>knowledge_level: ${escapeHTML(lvl)}</li>` +
-        `<li>primary_knowledge_source: ${escapeHTML(ks)}</li>` +
-        `<li>supporting_publications: ${pmidHTML}</li>` +
-        ptLine +
-        `</ul></div>`;
-    })
-    .join("");
-
-  return pinLine + metricsLine +
-    `<p><strong>Picked answers (${g.answer_nodes.length}):</strong></p>` +
-    `<table><thead><tr><th>#</th><th>Label</th><th>CURIE</th><th>Category</th><th>Edges</th><th>PubTator</th></tr></thead>` +
-    `<tbody>${rows}</tbody></table>` +
-    `<h3>Edge provenance</h3>${edgeBlocks}`;
+  return (
+    `<table class="facts"><thead><tr><th>Fact</th><th>Statement</th><th>Source</th><th>Evidence</th></tr></thead>` +
+    `<tbody>${rows}</tbody></table>`
+  );
 }
 
 function pipelineSummaryHTML(r: QueryResponse): string {
@@ -1201,11 +1010,11 @@ function pipelineSummaryHTML(r: QueryResponse): string {
     { n: "7", kind: "function", label: "Consistency check" },
     { n: "8", kind: "LLM", label: "TRAPI build", promptKey: "stage_8_trapi_build" },
     { n: "9", kind: "function", label: "Validation" },
-    { n: "10", kind: "service", label: "PloverDB query" },
+    { n: "10", kind: "service", label: "ARAX query" },
     { n: "11", kind: "LLM", label: "Answer pick", promptKey: "stage_11_answer_pick" },
     { n: "12", kind: "service", label: "NodeNorm canonicalize answers" },
-    { n: "13", kind: "function", label: "Build graph view" },
-    { n: "14", kind: "service", label: "PubTator enrichment" },
+    { n: "13", kind: "function", label: "Reasoning graph" },
+    { n: "14", kind: "function", label: "Evidence extraction" },
     { n: "15", kind: "LLM", label: "Explanation", promptKey: "stage_15_explain" },
   ];
 
@@ -1264,7 +1073,7 @@ function candidateProbesHTMLFn(data: Record<string, unknown>): string {
     })
     .join("");
   return intro +
-    `<table><thead><tr><th>CURIE</th><th>KG2c edges</th><th>Note</th></tr></thead>` +
+    `<table><thead><tr><th>CURIE</th><th>Tier 0 facts</th><th>Note</th></tr></thead>` +
     `<tbody>${body}</tbody></table>`;
 }
 

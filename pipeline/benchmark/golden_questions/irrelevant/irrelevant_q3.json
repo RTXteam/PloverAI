@@ -15,5 +15,5 @@
     "First-person treatment recommendations require a licensed clinician, not a knowledge-graph lookup."
   ],
   "expected_user_response_template": "Fixed body produced by pipeline._format_out_of_scope_explanation. Only the line under \"## Reason\" is variable.",
-  "harness_note": "The harness should additionally verify that the pipeline did NOT proceed past Stage -1 — no entity resolution, no NameRes call, no TRAPI query construction, no PloverDB call. Even though the question contains real CURIEs, the scope check must reject before any downstream stage runs."
+  "harness_note": "The harness should additionally verify that the pipeline did NOT proceed past Stage -1 — no entity resolution, no NameRes call, no TRAPI query construction, no ARAX call. Even though the question contains real CURIEs, the scope check must reject before any downstream stage runs."
 }

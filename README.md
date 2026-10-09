@@ -4,106 +4,102 @@
 
 # PloverAI
 
-**A natural-language chat interface for PloverDB / RTX-KG2c, returning grounded, evidence-backed biomedical answers.**
+**Ask a biomedical question in plain English. ARAX answers it over the NCATS Biomedical Data Translator's Tier 0 knowledge graph, and every claim in the explanation cites a fact.**
 
 [![tests](https://github.com/RTXteam/PloverAI/actions/workflows/tests.yml/badge.svg)](https://github.com/RTXteam/PloverAI/actions/workflows/tests.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![python](https://img.shields.io/badge/python-3.12-blue.svg)](pipeline/requirements.txt)
 [![node](https://img.shields.io/badge/node-22-339933.svg)](frontend/package.json)
-[![status](https://img.shields.io/badge/status-research%20preview-orange.svg)](#3-research-questions)
+[![status](https://img.shields.io/badge/status-research%20preview-orange.svg)](#how-it-works)
 
-<img src="docs/img/hero.png" alt="PloverAI chat interface: a biomedical question yields a live pipeline trace, a structured natural-language answer, and edge-level evidence from RTX-KG2c" width="900" />
+<img src="docs/img/hero.png" alt="The PloverAI workbench on &quot;what treats glaucoma&quot;: the query as the LLM wrote it, the pipeline steps, ARAX's ranked answers, the reasoning graph and the cited explanation" width="900" />
 
 </div>
 
 ## Abstract
 
-PloverDB [2] hosts RTX-KG2c [1] (≈6.78M nodes, ≈27.26M edges) and serves it through the TRAPI protocol [4]. The only way to query it today is to write raw TRAPI JSON by hand, which requires fluency in CURIE conventions, the Biolink schema [3], and the TRAPI message format. PloverAI adds a chat interface: a user asks a biomedical question in plain English, an LLM constructs a one-hop TRAPI query, the query is validated against `reasoner-validator` and executed against PloverDB, and a second LLM step produces a natural-language answer cited to the supporting graph edges. The result is a hallucination-resistant biomedical QA system whose every answer can be traced back to a specific subgraph of RTX-KG2c.
+ARAX, the reasoner of the NCATS Biomedical Data Translator, answers questions written as TRAPI queries: JSON graphs of Biolink categories, predicates and CURIEs. Few biomedical researchers can write them by hand. PloverAI lets them ask in plain English. An LLM pipeline turns the question into a one-hop TRAPI query, grounding every entity in Translator's own services. The query is checked with `reasoner-validator` and sent to ARAX, which reasons over the Translator's Tier 0 graph. ARAX's ranked answers and reasoning paths come back, and an LLM explains them. Every claim in the explanation cites a numbered fact on ARAX's paths, so it can be checked against its source.
 
-## 1. Problem
+## How it works
 
-### 1.1 LLMs hallucinate in biomedicine
+A question runs through 15 stages. Six of them call an LLM. The others are deterministic code and calls to Translator services. The web UI shows them as eleven steps:
 
-LLMs hallucinate. In biomedicine that is dangerous. Asked *"what drugs treat type 2 diabetes,"* an LLM may confidently list drugs that don't exist, mix up names, or invent mechanisms. There is no built-in way to check what it says against a trusted source.
+| Step | What happens |
+|---|---|
+| Scope | an LLM decides whether the question is a biomedical question the graph can answer |
+| Entity | an LLM extracts the entity the question is about and the kind of answer it asks for |
+| Lookup | Name Resolution lists candidate CURIEs for the entity |
+| Pick | an LLM picks the candidate, shown for the first few how many Tier 0 facts they have (probed through Retriever) |
+| Normalize | Node Normalization gives the canonical CURIE and its categories |
+| Query | an LLM writes the TRAPI query, choosing among the predicates Tier 0 actually holds for that pair of categories |
+| Validate | `reasoner-validator` checks the query before anything is sent |
+| ARAX | ARAX reasons over Tier 0 and returns ranked answers with their reasoning paths |
+| Answers | an LLM picks the answers to explain from ARAX's top results |
+| Evidence | the facts on the picked answers' paths are numbered F1..Fn, with what each rests on (sources, approvals, trials, publications) |
+| Explain | an LLM writes the explanation, citing each claim as [F#] |
 
-### 1.2 The gap: a curated knowledge graph with no user interface
-
-Knowledge graphs fix the hallucination problem by providing a structured, curated source of truth. RTX-KG2 [1] is one of the largest biomedical KGs, built from 70+ sources including UMLS, DrugBank, ChEMBL, Reactome, and SemMedDB. RTX-KG2c is served through PloverDB [2] using the TRAPI protocol [4] and Biolink vocabulary [3].
-
-But PloverDB has no user-facing interface. To query it, a user must hand-write TRAPI JSON, which requires knowing CURIE conventions, Biolink categories and predicates, and the TRAPI message schema. Most biomedical researchers, clinicians, and students cannot do this. ARAX [5] provides a visual query builder, but it uses ARAXi — a custom domain-specific language — rather than natural language. To the author's knowledge, no conversational interface exists for any TRAPI Knowledge Provider.
-
-## 2. Approach
-
-PloverAI is a two-service architecture. A FastAPI backend exposes a single endpoint, `POST /api/v1/query`, that runs the full pipeline. A Next.js frontend (built as a static export) is one client; any external Translator tool — ARAX, BioThings Explorer, a notebook — is another.
+The pipeline is a standalone HTTP service. The web UI is one client of it; anything that speaks HTTP can call `POST /api/v1/query` too.
 
 ```
 [browser]  ─►  Next.js static UI  (frontend/, served by nginx)
                     │
-                    │  POST /api/v1/query
+                    │  POST /api/v1/query/stream
                     ▼
                 FastAPI service   (pipeline/code/api.py, uvicorn)
                     │
                     ▼
                 pipeline.run_grounded()
                     │
-                    ├─► PloverDB           (TRAPI query → graph subset)
+                    ├─► ARAX               (TRAPI query → ranked answers + reasoning paths)
+                    ├─► Retriever          (Tier 0 meta knowledge graph + entity probes)
                     ├─► Name Resolution    (text → candidate CURIEs)
                     ├─► Node Normalization (CURIE → canonical CURIE)
-                    └─► OpenRouter         (LLM calls per stage)
-
-[ARAX]     ─────────────────────────────► same /api/v1/query endpoint
+                    └─► OpenRouter         (the six LLM stages)
 ```
 
-The pipeline is a multi-stage process: the LLM first extracts entities and intent from the question, NameRes resolves entity text to candidate CURIEs, NodeNorm canonicalises those CURIEs, the LLM constructs a TRAPI one-hop query graph against the Biolink schema, `reasoner-validator` enforces TRAPI 1.5 + Biolink compliance, PloverDB executes the query, and a final LLM step writes the natural-language answer with citations back to the returned edges. See [pipeline/code/README.md](pipeline/code/README.md) for the per-stage breakdown.
+| Service | Endpoint | Role |
+|---|---|---|
+| ARAX 1.6.2 (TRAPI 1.6, Biolink 4.2.5) | `https://arax.ncats.io/api/arax/v1.4` | reasoning over Tier 0 |
+| Retriever, Tier 0 (`parameters.tiers=[0]`) | `https://retriever.ci.transltr.io` | the meta knowledge graph at start-up and the entity probes |
+| Name Resolution, Node Normalization | `name-resolution-sri.renci.org`, `nodenormalization-sri.renci.org` | entity resolution and canonical CURIEs |
+| OpenRouter | `https://openrouter.ai/api/v1` | the six LLM stages |
 
-## 3. Research questions
+The Translator services are free and public. The only paid part is the LLM. With `openai/gpt-6-luna` one question cost $0.0013 to $0.0027 (nine runs, 2026-09-29). Endpoints and models live in `pipeline/config.yaml`.
 
-Three concrete questions, each scoped to what the pipeline can demonstrate:
+## The web UI
 
-- **RQ1 — TRAPI construction.** Given a natural-language question, the canonical pinned CURIE produced by Name Resolution and Node Normalization, and the Biolink schema, can an LLM construct a TRAPI query graph that passes `reasoner-validator`?
-- **RQ2 — Grounded answering.** When that query is sent to PloverDB and returns a real response, can the LLM pick the correct answer entity (or set) out of the returned edges, grounded in RTX-KG2c?
-- **RQ3 — Explanation.** Can the LLM explain its chosen answer using only the edges and nodes returned by PloverDB — i.e., produce a citation-style justification that points back to specific TRAPI edges?
+A full-width workbench:
 
-A benchmark of curated gold-answer questions and a multi-model comparison across frontier and budget LLMs (via OpenRouter) is included under [pipeline/benchmark/](pipeline/benchmark/).
+- **Top band.** The question as the LLM read it, with the TRAPI query it wrote and the one sent to ARAX. Under it, the eleven steps with their timing and cost.
+- **Answers.** ARAX's ranked answers with score and number of facts, marked where the LLM picked them.
+- **Reasoning graph.** A deterministic, left-to-right figure: answers, the entities linking them, and the question's entity. Links that make the same statement about the same entity merge into one line. Line width is the number of facts, and line style is the strongest evidence. Hovering an answer, entity or link lights its paths, its rows in the answers table and its facts in the evidence list. Export as SVG or PNG.
+- **Inspector.** The explanation with citation cards, the evidence behind every fact, the query, all 15 stages with their prompts and artifacts, the raw artifacts and the live log.
+- **Runs.** Every run on the server, filterable by question, model and outcome. Any run opens at `/?run=<run_id>`.
 
-## Repository layout
+## Setup
 
-```
-pipeline/          # python backend
-  code/            #   pipeline stages, FastAPI service, tests
-  benchmark/       #   gold-question set + irrelevant-question set
-  config.yaml      #   model list, prices, endpoints
-  requirements.txt #   pinned production deps
-frontend/          # next.js (App Router, TypeScript, Tailwind v4)
-  src/             #   chat UI, graph view, structured-answer renderer
-deploy/            # aws ec2 deploy artifacts
-  bootstrap.sh     #   one-shot fresh-instance setup
-  *.template       #   nginx vhost, systemd unit, env-file examples
-.github/workflows/ # ci: ruff + mypy --strict + pytest + next build
-docs/img/          # screenshots, diagrams
-```
+### Backend
 
-## Quick start
-
-### Backend (Python service)
+Python 3.12.
 
 ```bash
 cd pipeline
-python -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env       # then fill in OPENROUTER_API_KEY
+cp .env.example .env       # then set OPENROUTER_API_KEY
 ```
 
-Run the always-on service locally:
+Run the service from the repository root (the code imports as `pipeline.code.*`):
 
 ```bash
+cd ..
 PLOVERAI_API_KEY=dev-key-change-me \
-  uvicorn code.api:app --reload --port 8000
+  pipeline/.venv/bin/uvicorn pipeline.code.api:app --port 8000
 ```
 
-Or run the gold benchmark via the CLI runner — see [pipeline/README.md](pipeline/README.md).
+It is ready when the log says `meta_KG cached`. It reads Retriever's meta knowledge graph at start-up, which takes a few seconds.
 
-### Frontend (Next.js UI)
+### Frontend
 
 ```bash
 cd frontend
@@ -114,43 +110,29 @@ npm run dev                          # http://localhost:3000
 
 `NEXT_PUBLIC_API_KEY` in `.env.local` must equal `PLOVERAI_API_KEY` on the Python side.
 
-## Production deployment
+## Benchmark
 
-Config templates live under [deploy/](deploy/): nginx vhost, the `ploverai-api` systemd unit, bootstrap and update scripts, and env-file examples.
+`pipeline/benchmark/` holds two question sets:
 
-The backend runs as a `ploverai-api` systemd unit bound to `127.0.0.1:8000`. The frontend is a static export rsync'd into `/var/www/ploverai/out/`. nginx terminates TLS, enforces single shared-credential basic auth, rate-limits `/api/*`, and reverse-proxies to the FastAPI service. Same origin in production, so no CORS.
+- 19 curated questions with gold answers: q1–q10 are the development split and q11–q19 the held-out test split;
+- 81 question files converted from the expert-labelled NCATS Translator Tests.
 
-## Citing PloverAI
+The runner (`pipeline/code/runner.py`) runs them through the pipeline. The scorer (`pipeline/code/scorer.py`) scores the runs offline. See [pipeline/README.md](pipeline/README.md) and [pipeline/benchmark/README.md](pipeline/benchmark/README.md).
 
-A paper describing PloverAI is in preparation. In the meantime, please cite the repository:
+## Layout
 
-```bibtex
-@misc{ploverai2026,
-  author       = {Bazarkulov, Adilbek},
-  title        = {{PloverAI}: a natural-language chat interface for {PloverDB} / {RTX-KG2c}},
-  year         = {2026},
-  howpublished = {\url{https://github.com/RTXteam/PloverAI}},
-  note         = {Research preview}
-}
-```
+- `pipeline/`: the Python backend: pipeline, FastAPI service, benchmark runner and scorer, question sets, tests.
+- `frontend/`: Next.js 16 (App Router, React 19, TypeScript, Tailwind v4), built as a static export, so production needs no Node runtime.
+- `deploy/`: nginx, systemd and bootstrap templates, and the step-by-step guide for one AWS EC2 instance. The public site runs without a login. It serves one inexpensive model, limits questions per address and per day, and rate-limits at nginx.
 
-BibTeX entries for all upstream services and standards used in this work are collected in [CITATIONS.bib](CITATIONS.bib).
+## History
 
-## References
+Until 2026-09-28 PloverAI was a chat interface for PloverDB, querying RTX-KG2.10.2c one hop at a time with no reasoner. That system is in this repository's history up to commit `b37b3d4`.
 
-1. **RTX-KG2** — Wood EC, Glen AK, Kvarfordt LG, et al. *RTX-KG2: a system for building a semantically standardized knowledge graph for translational biomedicine.* BMC Bioinformatics 23, 400 (2022). DOI: [10.1186/s12859-022-04932-3](https://doi.org/10.1186/s12859-022-04932-3)
-2. **PloverDB** — RTXteam. *PloverDB: an in-memory TRAPI knowledge-graph service.* GitHub, [RTXteam/PloverDB](https://github.com/RTXteam/PloverDB). The KG2.10.2c instance is hosted at <https://kg2cploverdb.ci.transltr.io>.
-3. **Biolink Model** — Unni DR, Moxon SAT, Bada M, et al. *Biolink Model: A universal schema for knowledge graphs in clinical, biomedical, and translational science.* Clinical and Translational Science 15(8), 1848–1855 (2022). DOI: [10.1111/cts.13302](https://doi.org/10.1111/cts.13302)
-4. **TRAPI** — NCATS Biomedical Data Translator Consortium. *Translator Reasoner API (TRAPI) specification.* GitHub, [NCATSTranslator/ReasonerAPI](https://github.com/NCATSTranslator/ReasonerAPI).
-5. **ARAX** — Glen AK, Ma C, Mendoza L, et al. *ARAX: a graph-based modular reasoning tool for translational biomedicine.* Bioinformatics 39(3), btad082 (2023). DOI: [10.1093/bioinformatics/btad082](https://doi.org/10.1093/bioinformatics/btad082)
-6. **Translator Program** — The Biomedical Data Translator Consortium. *The Biomedical Data Translator Program: Conception, Culture, and Community.* Clinical and Translational Science 12(2), 91–94 (2019). DOI: [10.1111/cts.12592](https://doi.org/10.1111/cts.12592)
-7. **NodeNormalization** — TranslatorSRI. *Service to canonicalise CURIE identifiers across biomedical vocabularies.* GitHub, [TranslatorSRI/NodeNormalization](https://github.com/TranslatorSRI/NodeNormalization).
-8. **NameResolution** — TranslatorSRI. *Service to resolve free-text biomedical concept names to candidate CURIEs.* GitHub, [TranslatorSRI/NameResolution](https://github.com/TranslatorSRI/NameResolution).
+## Citation
 
-## Acknowledgments
-
-PloverAI builds on infrastructure developed by the NCATS Biomedical Data Translator program [6]. RTX-KG2 [1] and PloverDB [2] are developed and maintained by the Expander Agent team. LLM access is routed through [OpenRouter](https://openrouter.ai) so the same pipeline can be evaluated across frontier and budget models from multiple providers under one API.
+The works PloverAI builds on are in [CITATIONS.bib](CITATIONS.bib).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+[MIT](LICENSE).

@@ -1,0 +1,80 @@
+{
+  "question_id": "tr06",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_57"
+    ],
+    "question_key": "MONDO:0004975|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Alzheimer Disease?",
+    "paraphrase": "What drugs are prescribed for Alzheimer's?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0004975",
+    "label": "Alzheimer disease",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0004975",
+    "asset_name": "Alzheimer Disease"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0004975"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 71,
+  "label_counts": {
+    "NeverShow": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_57",
+      "asset_curie": "UMLS:C0013227",
+      "label": "Pharmaceutical preparations",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "UMLS:C0013227",
+      "equivalent_curies": [
+        "UMLS:C0013227"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": true
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

@@ -4,20 +4,20 @@
 # SSH'ing in. it installs system packages, creates the `ploverai`
 # service user, and clones the repo. it does NOT do the per-deploy
 # steps (.env values, frontend build, nginx vhost, TLS) — those need
-# values that vary per instance and are configured manually.
+# values that vary per instance and are covered in deploy/README.md.
 #
 # usage:
-#   curl -fsSL https://raw.githubusercontent.com/RTXteam/PloverAI/main/deploy/bootstrap.sh | sudo bash -s -- <git-url>
+#   curl -fsSL https://raw.githubusercontent.com/<org>/<repo>/main/deploy/bootstrap.sh | sudo bash -s -- <git-url>
 #
 # or after manual SSH:
-#   sudo ./bootstrap.sh https://github.com/RTXteam/PloverAI.git
+#   sudo ./bootstrap.sh https://github.com/<org>/<repo>.git
 
 set -euo pipefail
 
 REPO_URL="${1:-}"
 if [[ -z "$REPO_URL" ]]; then
     echo "usage: $0 <git-url>"
-    echo "example: $0 https://github.com/RTXteam/PloverAI.git"
+    echo "example: $0 https://github.com/RamseyLab/ploverai.git"
     exit 1
 fi
 
@@ -26,7 +26,7 @@ fi
 if ! grep -qi ubuntu /etc/os-release; then
     echo "this bootstrap script targets Ubuntu 22.04. you appear to be on:"
     grep ^PRETTY_NAME /etc/os-release
-    echo "for Amazon Linux 2023, install the equivalent packages manually."
+    echo "for Amazon Linux 2023, follow deploy/README.md section 4a manually."
     exit 1
 fi
 
@@ -44,9 +44,9 @@ apt-get install -y \
     curl \
     build-essential
 
-echo "==> node.js 22.x (build-time only)"
+echo "==> node.js 20.x (build-time only)"
 if ! command -v node >/dev/null 2>&1; then
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     apt-get install -y nodejs
 fi
 node --version
@@ -71,7 +71,7 @@ chown -R www-data:www-data /var/www/ploverai
 
 echo
 echo "==================================================================="
-echo "bootstrap complete. next steps:"
+echo "bootstrap complete. next steps (see deploy/README.md, section 5 onward):"
 echo "  1. sudo -u ploverai -i        # become the app user"
 echo "  2. cd /var/lib/ploverai/app/pipeline && python3.12 -m venv .venv"
 echo "  3. set up pipeline/.env and frontend/.env.local"

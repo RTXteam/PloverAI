@@ -5,9 +5,18 @@
 
 from __future__ import annotations
 
+# contextvars: stdlib. tags each record with the request that logged
+# it, so the API's live stream of one question carries that question's
+# lines only while other questions run in parallel (current_request).
+import contextvars
+
 # logging: stdlib. we use the standard logger so the rich handler and
 # the file handler can both subscribe to the same records.
 import logging
+
+# Callable, TypeVar: the signature in_context keeps.
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 # datetime: stdlib. used for the UTC run timestamp baked into every
 # folder name and log file name. UTC is the modern alias for
@@ -32,7 +41,7 @@ from rich.logging import RichHandler
 
 # the shared Console. importable as `from .logging_setup import console`.
 # using `record=True` would let us replay the session as HTML later, but
-# we don't need that for the v15 study and it costs memory.
+# we don't need that for the benchmark and it costs memory.
 console = Console()
 
 
@@ -90,3 +99,36 @@ def setup_logger(logs_dir: Path, run_id: str) -> tuple[logging.Logger, Path]:
     logger.addHandler(rich_h)
     logger.addHandler(file_h)
     return logger, log_path
+
+
+# the run id of the API request whose code is running, None outside one.
+# every question runs in its own worker thread and logs through the one
+# shared logger; the API streams to each browser only the records whose
+# request matches (RequestFilter). a new thread starts with no value, so
+# the API sets it in each worker thread, and code that hands work to a
+# thread pool wraps it in in_context.
+current_request: contextvars.ContextVar[str | None] = contextvars.ContextVar("current_request", default=None)
+
+T = TypeVar("T")
+
+
+def in_context(fn: Callable[..., T]) -> Callable[..., T]:
+    # fn, to run in a pool thread with the caller's context (and so its
+    # current_request). each call gets its own copy: one context cannot
+    # be entered by two threads at once.
+    context = contextvars.copy_context()
+
+    def run(*args: Any, **kwargs: Any) -> T:
+        return context.copy().run(fn, *args, **kwargs)
+
+    return run
+
+
+class RequestFilter(logging.Filter):
+    # passes only the records logged on behalf of one request.
+    def __init__(self, request_id: str) -> None:
+        super().__init__()
+        self.request_id = request_id
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return current_request.get() == self.request_id

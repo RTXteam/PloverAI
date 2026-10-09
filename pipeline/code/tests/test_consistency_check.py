@@ -6,7 +6,7 @@
 # reported "no treatments found for type 2 diabetes" — confidently
 # wrong. the check should return a similarity score that's BELOW the
 # threshold for that input pair, so the pipeline can refuse to query
-# PloverDB with a probably-wrong entity.
+# the reasoner with a probably-wrong entity.
 #
 # the function is pure (stdlib SequenceMatcher only), so this whole
 # file tests behaviour with zero LLM and zero network. assertions are
@@ -16,7 +16,7 @@
 
 import pytest
 
-from code.pipeline import (
+from pipeline.code.pipeline import (
     _check_label_consistency,
     LOW_CONFIDENCE_THRESHOLD,
 )
@@ -28,7 +28,7 @@ from code.pipeline import (
 # type 2" via NameRes BM25. the similarity must be BELOW the threshold so
 # Stage 7 fires and the pipeline refuses to query KG with the wrong
 # disease.
-def test_diabetes_typo_failure_is_caught():
+def test_diabetes_typo_failure_is_caught() -> None:
     sim, dbg = _check_label_consistency(
         mention="type 2 diabites",
         label="sialidosis type 2",
@@ -48,7 +48,7 @@ def test_diabetes_typo_failure_is_caught():
 # typo that's a single-letter edit ("warfrin" → "warfarin"). seqmatcher
 # should give a high score, similar to "warfa(r)in" with one letter
 # missing.
-def test_warfarin_one_letter_typo_passes():
+def test_warfarin_one_letter_typo_passes() -> None:
     sim, dbg = _check_label_consistency(
         mention="warfrin",
         label="warfarin",
@@ -58,7 +58,7 @@ def test_warfarin_one_letter_typo_passes():
 
 
 # transposition typo ("imatanib" / "imatinab" instead of "imatinib")
-def test_imatinib_transposition_passes():
+def test_imatinib_transposition_passes() -> None:
     sim_a, _ = _check_label_consistency("imatanib", "Imatinib")
     sim_b, _ = _check_label_consistency("imatinab", "Imatinib")
     assert sim_a >= LOW_CONFIDENCE_THRESHOLD
@@ -67,7 +67,7 @@ def test_imatinib_transposition_passes():
 
 # substring containment — user types a short form, ontology has the long
 # canonical form. should pass even though seqmatcher is mediocre.
-def test_substring_makes_similarity_one():
+def test_substring_makes_similarity_one() -> None:
     # user mention is fully contained in the label
     sim, dbg = _check_label_consistency(
         mention="type 2 diabetes",
@@ -82,7 +82,7 @@ def test_substring_makes_similarity_one():
 
 
 # exact match (modulo case)
-def test_exact_match_case_insensitive():
+def test_exact_match_case_insensitive() -> None:
     sim, dbg = _check_label_consistency("Cystic Fibrosis", "cystic fibrosis")
     assert sim == 1.0
 
@@ -94,7 +94,7 @@ def test_exact_match_case_insensitive():
 # someone adds token-overlap back into the max, the typo case will jump
 # from 0.38 to 0.50 and THIS assertion will catch it. it's a guardrail
 # against a known anti-pattern.
-def test_token_overlap_is_not_a_signal():
+def test_token_overlap_is_not_a_signal() -> None:
     sim, dbg = _check_label_consistency(
         mention="type 2 diabites",
         label="sialidosis type 2",
@@ -108,7 +108,7 @@ def test_token_overlap_is_not_a_signal():
 # both inputs empty → similarity 0 (NOT 1, even though empty contains
 # empty in the trivial set-theory sense). substring contains is false
 # when either side is empty.
-def test_empty_inputs_score_zero():
+def test_empty_inputs_score_zero() -> None:
     sim, dbg = _check_label_consistency("", "")
     assert sim == 0.0
     assert dbg["substring_match"] is False
@@ -116,7 +116,7 @@ def test_empty_inputs_score_zero():
 
 # whitespace and case should be normalized away — leading/trailing
 # spaces and uppercase should not change the score.
-def test_normalization_strips_case_and_whitespace():
+def test_normalization_strips_case_and_whitespace() -> None:
     sim_a, _ = _check_label_consistency("  WARFARIN  ", "warfarin")
     sim_b, _ = _check_label_consistency("warfarin", "warfarin")
     assert sim_a == sim_b == 1.0
@@ -125,7 +125,7 @@ def test_normalization_strips_case_and_whitespace():
 # symmetry: order of args should not change the score. seqmatcher is
 # symmetric by construction; substring containment is symmetric because
 # we check both directions.
-def test_symmetric_in_arguments():
+def test_symmetric_in_arguments() -> None:
     a, _ = _check_label_consistency("type 2 diabetes", "type 2 diabetes mellitus")
     b, _ = _check_label_consistency("type 2 diabetes mellitus", "type 2 diabetes")
     assert a == b == 1.0
@@ -138,7 +138,7 @@ def test_symmetric_in_arguments():
 # resolved entity is semantically wrong (a Disease called "seizures, ..."
 # vs the phenotype "Seizure"). this test pins that boundary: 0.8 does
 # NOT police semantic correctness, only textual divergence.
-def test_label_collision_is_not_a_0_8_concern():
+def test_label_collision_is_not_a_0_8_concern() -> None:
     sim, dbg = _check_label_consistency(
         mention="seizures",
         label="seizures, benign familial neonatal, 1",

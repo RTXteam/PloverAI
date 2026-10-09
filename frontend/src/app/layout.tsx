@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PloverAI",
-  description: "AI chat interface for PloverDB (RTX-KG2c).",
+  description: "LLM interface to ARAX: multi-hop reasoning over the NCATS Translator Tier 0 knowledge graph, explained with cited facts.",
   // favicon assets live in /public. the .ico is the legacy fallback
   // for older browsers; the .svg is the scalable master so the bird
   // logo stays crisp at any tab-bar size. apple-touch-icon is the

@@ -95,10 +95,51 @@
   howpublished = {\url{https://github.com/TranslatorSRI/NameResolution}}
 }
 
-% reasoner-validator — used at runtime to enforce TRAPI 1.5 + Biolink 4.x compliance
-% on every LLM-built query before it is sent to PloverDB.
+% reasoner-validator — run on every LLM-built query before it is sent
+% to ARAX (it checks against TRAPI 1.5.0; ARAX speaks 1.6.0).
 @misc{ncats_reasoner_validator,
   author       = {{NCATS Biomedical Data Translator Consortium}},
   title        = {{reasoner-validator}: validator for {TRAPI} messages and {Biolink Model} compliance},
   howpublished = {\url{https://github.com/NCATSTranslator/reasoner-validator}}
+}
+
+% the Translator: what it is and how its parts fit together.
+@article{fecho2022progress,
+  author       = {Fecho, Karamarie and Thessen, Anne E. and Baranzini, Sergio E. and Bizon, Chris and others},
+  title        = {Progress toward a universal biomedical data translator},
+  journal      = {Clinical and Translational Science},
+  volume       = {15},
+  number       = {8},
+  pages        = {1838--1847},
+  year         = {2022},
+  doi          = {10.1111/cts.13301},
+  url          = {https://doi.org/10.1111/cts.13301}
+}
+
+% the Translator's public release.
+@article{fecho2025announcing,
+  author       = {Fecho, Karamarie and Glusman, Gustavo and Baranzini, Sergio E. and others},
+  title        = {Announcing the {Biomedical Data Translator}: initial public release},
+  journal      = {Clinical and Translational Science},
+  volume       = {18},
+  number       = {7},
+  pages        = {e70284},
+  year         = {2025},
+  doi          = {10.1111/cts.70284},
+  url          = {https://doi.org/10.1111/cts.70284}
+}
+
+% Tier 0, Retriever and the query types.
+@misc{ncats_translator_docs,
+  author       = {{NCATS Biomedical Data Translator Consortium}},
+  title        = {{Translator} technical documentation},
+  howpublished = {\url{https://ncatstranslator.github.io/TranslatorTechnicalDocumentation/}}
+}
+
+% the expert-labelled questions behind the held-out Translator question set.
+@misc{ncats_translator_tests,
+  author       = {{NCATS Biomedical Data Translator Consortium}},
+  title        = {{Translator} {Tests}},
+  howpublished = {\url{https://github.com/NCATSTranslator/Tests}},
+  note         = {commit a195955}
 }

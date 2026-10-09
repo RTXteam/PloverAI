@@ -1,0 +1,100 @@
+{
+  "question_id": "tr40",
+  "question_type": "treats",
+  "source": {
+    "repo": "https://github.com/NCATSTranslator/Tests",
+    "commit": "a195955f9a80de4b59ada21392e0a322360987b0",
+    "asset_ids": [
+      "Asset_68",
+      "Asset_69"
+    ],
+    "question_key": "MONDO:0007147|biolink:treats|-|-",
+    "converted_on": "2026-09-28"
+  },
+  "split": "test",
+  "phrasings": {
+    "template": "What drugs may treat Obstructive Sleep Apnea?",
+    "paraphrase": "Are there any drugs for obstructive sleep apnoea?"
+  },
+  "pinned_entity": {
+    "curie": "MONDO:0007147",
+    "label": "obstructive sleep apnea syndrome",
+    "category": "biolink:Disease",
+    "asset_curie": "MONDO:0007147",
+    "asset_name": "Obstructive Sleep Apnea"
+  },
+  "answer_category": "biolink:ChemicalEntity",
+  "predicate": "biolink:treats",
+  "qualifiers": [],
+  "gold_query_graph": {
+    "nodes": {
+      "n0": {
+        "ids": [
+          "MONDO:0007147"
+        ],
+        "categories": [
+          "biolink:Disease"
+        ]
+      },
+      "n1": {
+        "categories": [
+          "biolink:ChemicalEntity"
+        ]
+      }
+    },
+    "edges": {
+      "e0": {
+        "subject": "n1",
+        "object": "n0",
+        "predicates": [
+          "biolink:treats"
+        ]
+      }
+    }
+  },
+  "gold_query_results": 26,
+  "label_counts": {
+    "Acceptable": 1,
+    "NeverShow": 1
+  },
+  "labelled_answers": [
+    {
+      "asset_id": "Asset_69",
+      "asset_curie": "MESH:D053260",
+      "label": "Soot",
+      "expected_output": "Acceptable",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "MESH:D053260",
+      "equivalent_curies": [
+        "MESH:D053260",
+        "UMLS:C0037684"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    },
+    {
+      "asset_id": "Asset_68",
+      "asset_curie": "MESH:D053260",
+      "label": "Soot",
+      "expected_output": "NeverShow",
+      "output_category": "biolink:ChemicalEntity",
+      "canonical_curie": "MESH:D053260",
+      "equivalent_curies": [
+        "MESH:D053260",
+        "UMLS:C0037684"
+      ],
+      "reachable_one_hop": {
+        "gold_query": false,
+        "predicate_without_qualifiers": false,
+        "any_predicate": false
+      }
+    }
+  ],
+  "kg": {
+    "ploverdb_url": "https://kg2cploverdb.ci.transltr.io",
+    "probed_on": "2026-09-28"
+  }
+}

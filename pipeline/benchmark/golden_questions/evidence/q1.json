@@ -1,5 +1,6 @@
 {
   "question_id": "q1",
+  "split": "dev",
   "nl_question": "What drugs treat type 2 diabetes mellitus?",
   "pinned_entity": {
     "curie": "MONDO:0005148",

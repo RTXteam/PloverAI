@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-# json: stdlib. all artifacts except explanation.txt are JSON. we use
+# json: stdlib. all artifacts except explanation.md are JSON. we use
 # json.dumps directly here (not a wrapper) so the output stays
 # diffable in code editors.
 import json
@@ -27,9 +27,8 @@ from typing import Any
 class RunPaths:
     # one of these per (model, run_timestamp). owns the run-level
     # metadata file (run.json) — per-question files live in QuestionPaths.
-    root: Path                       # benchmark/results/<model>/<run>/
+    root: Path                       # outputs/RUN_<ts>/<model_id>_<slug>/
     run_meta: Path                   # root/run.json
-    log_file: Path | None = None     # set by the runner once logging is wired
 
 
 @dataclass
@@ -45,7 +44,7 @@ class QuestionPaths:
     candidate_probes: Path           # Stage 4 setup: per-candidate edge-density probe
                                      # against the answer category (one entry per top-K
                                      # NameRes candidate; informs Stage 4's pick so the
-                                     # LLM prefers CURIEs with non-zero KG2c coverage)
+                                     # LLM prefers CURIEs with facts in Tier 0)
     nodenorm: Path                   # Stage 6 (pinned) + Stage 12 (answers)
     predicate_probe: Path            # Stage 8 setup: chosen-CURIE predicate-density probe
                                      # (per-predicate edge counts from the pinned CURIE to the
@@ -56,21 +55,18 @@ class QuestionPaths:
                                      # that look up the chosen-CURIE probe by file name.
     trapi_query: Path                # LLM-built TRAPI query graph
     validation: Path                 # reasoner-validator report
-    plover_request: Path             # exact body POSTed to PloverDB
-    plover_response: Path            # raw response from PloverDB
-    reduced_data: Path               # PloverDB response after Strategy B
-                                     # reduction; this is what Stage 11
-                                     # actually sees, and what the
-                                     # faithfulness evaluator grades
-                                     # answers against
-    reduction_metadata: Path         # per-predicate kept/dropped counts +
-                                     # the strategy + N used. lets the
-                                     # benchmark correlate answer quality
-                                     # with reduction stats
+    reasoner_request: Path           # exact body POSTed at Stage 10 (ARAX or Retriever)
+    reasoner_response: Path          # raw Stage 10 response
+    reduced_data: Path               # Stage 11 pre-step: the ranked, flattened
+                                     # evidence table the LLM actually reads
+                                     # (rows + stats, see code/reduction.py).
+                                     # reasoner_response.json stays the full record
     answer: Path                     # CURIEs the LLM picked from the response
-    answer_graph_view: Path          # Stage 13: research-grade node-link view
+    answer_graph_view: Path          # Stage 13, lookup condition: node-link view
                                      # (pinned + answer nodes + edges with provenance)
                                      # for frontend graph rendering
+    reasoning_graph: Path            # Stage 13, ARAX mode: reasoning paths behind the
+                                     # picked answers, facts numbered F1..Fn (UI graph)
     explanation: Path                # structured Markdown summary
     cost: Path                       # per-stage cost ledger + totals
     meta: Path                       # status + error + elapsed_s
@@ -91,12 +87,12 @@ class QuestionPaths:
             predicate_probe=d / "predicate_probe.json",
             trapi_query=d / "trapi_query.json",
             validation=d / "validation.json",
-            plover_request=d / "plover_request.json",
-            plover_response=d / "plover_response.json",
+            reasoner_request=d / "reasoner_request.json",
+            reasoner_response=d / "reasoner_response.json",
             reduced_data=d / "reduced_data.json",
-            reduction_metadata=d / "reduction_metadata.json",
             answer=d / "answer.json",
             answer_graph_view=d / "answer_graph_view.json",
+            reasoning_graph=d / "reasoning_graph.json",
             explanation=d / "explanation.md",
             cost=d / "cost.json",
             meta=d / "meta.json",

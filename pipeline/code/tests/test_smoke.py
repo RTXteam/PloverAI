@@ -4,12 +4,11 @@
 # everything else in this directory tests an actual edge case or
 # invariant, not just "the module loads".
 
-
 # importing the pipeline package proves __init__.py + relative imports
 # all wire. status constants and key prompts are checked at module-load
 # time so a typo in either is caught here before any "real" test runs.
-from code import pipeline as pl
-from code import prompts
+from pipeline.code import pipeline as pl
+from pipeline.code import prompts
 
 
 # status constants are user-visible (they end up in meta.json and the
@@ -18,19 +17,23 @@ from code import prompts
 EXPECTED_STATUSES = {
     "ok",
     "invalid_query",
-    "invalid_query_arity",
     "llm_bad_json",
-    "plover_error",
+    "llm_truncated",
+    "crashed",
+    "lookup_error",
     "llm_error",
     "nameres_failed",
     "nodenorm_failed",
     "entity_empty",
     "out_of_scope",
     "no_candidate_match",
+    "low_confidence_resolution",
+    "query_declined",
+    "arax_error",
 }
 
 
-def test_status_constants_present_and_unique():
+def test_status_constants_present_and_unique() -> None:
     # collect every STATUS_* constant from the pipeline module and check
     # they form exactly the expected set. catches accidental renaming,
     # duplicates, and missing constants in one assert.
@@ -45,7 +48,7 @@ def test_status_constants_present_and_unique():
 # key prompts are also load-time invariants — if SYS_ENTITY_EXTRACT is
 # accidentally renamed, the pipeline runs but Stage 2 silently uses the
 # wrong prompt. lock the names so a rename has to update tests.
-def test_required_prompts_exist():
+def test_required_prompts_exist() -> None:
     required = [
         "SYS_SCOPE_CHECK",
         "SYS_ENTITY_EXTRACT",
@@ -68,7 +71,7 @@ def test_required_prompts_exist():
 # consistency check assert against the SAME constant the pipeline uses,
 # not a hard-coded 0.50 in three different files. confirm it exists and
 # is in (0, 1).
-def test_low_confidence_threshold_in_unit_interval():
+def test_low_confidence_threshold_in_unit_interval() -> None:
     assert hasattr(pl, "LOW_CONFIDENCE_THRESHOLD")
     t = pl.LOW_CONFIDENCE_THRESHOLD
     assert isinstance(t, float)
